@@ -19,3 +19,8 @@ dist
 *.njsproj
 *.sln
 *.sw?
+
+# AI & docs
+.aone_copilot
+.superpowers
+docs
