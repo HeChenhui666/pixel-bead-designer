@@ -1,0 +1,332 @@
+// export-helper.ts — 导出工具函数（三端兼容）
+
+export interface ExportOptions {
+  cellData: string[][]
+  gridWidth: number
+  gridHeight: number
+  cellPixelSize?: number
+  /** hex → 色号 映射，传入后会在每个格子上绘制色号 */
+  colorCodeMap?: Record<string, string>
+}
+
+export interface LongImageOptions extends ExportOptions {
+  colorSummary: Array<{ hex: string; code: string; count: number }>
+  paletteId: string
+}
+
+const DEFAULT_EXPORT_CELL_SIZE = 40
+
+/**
+ * H5 端：离屏 Canvas 绘制网格并导出 PNG 下载
+ */
+function renderGridToCanvas(
+  cellData: string[][],
+  gridWidth: number,
+  gridHeight: number,
+  cellSize: number,
+  colorCodeMap?: Record<string, string>
+): HTMLCanvasElement {
+  const canvas = document.createElement('canvas')
+  const totalWidth = gridWidth * cellSize
+  const totalHeight = gridHeight * cellSize
+  canvas.width = totalWidth
+  canvas.height = totalHeight
+  const ctx = canvas.getContext('2d')!
+
+  // Pass 1: 色块
+  for (let y = 0; y < gridHeight; y++) {
+    for (let x = 0; x < gridWidth; x++) {
+      const hex = cellData[y]?.[x]
+      ctx.fillStyle = hex || '#FAFAFA'
+      ctx.fillRect(x * cellSize, y * cellSize, cellSize, cellSize)
+    }
+  }
+
+  // Pass 2: 网格线
+  ctx.strokeStyle = '#E8E8E8'
+  ctx.lineWidth = 1
+  for (let x = 0; x <= gridWidth; x++) {
+    ctx.beginPath()
+    ctx.moveTo(x * cellSize, 0)
+    ctx.lineTo(x * cellSize, totalHeight)
+    ctx.stroke()
+  }
+  for (let y = 0; y <= gridHeight; y++) {
+    ctx.beginPath()
+    ctx.moveTo(0, y * cellSize)
+    ctx.lineTo(totalWidth, y * cellSize)
+    ctx.stroke()
+  }
+
+  // Pass 3: 色号标注
+  if (colorCodeMap && Object.keys(colorCodeMap).length > 0) {
+    const fontSize = Math.max(9, Math.min(cellSize * 0.35, 14))
+    ctx.font = `bold ${fontSize}px sans-serif`
+    ctx.textAlign = 'center'
+    ctx.textBaseline = 'middle'
+
+    for (let y = 0; y < gridHeight; y++) {
+      for (let x = 0; x < gridWidth; x++) {
+        const hex = cellData[y]?.[x]
+        if (!hex) continue
+        const code = colorCodeMap[hex]
+        if (!code) continue
+
+        // 根据背景色亮度选择文字颜色
+        const brightness = getBrightness(hex)
+        ctx.fillStyle = brightness > 160 ? '#000000' : '#FFFFFF'
+
+        const centerX = x * cellSize + cellSize / 2
+        const centerY = y * cellSize + cellSize / 2
+        ctx.fillText(code, centerX, centerY)
+      }
+    }
+  }
+
+  return canvas
+}
+
+/** 计算颜色亮度（0-255），用于决定文字颜色 */
+function getBrightness(hex: string): number {
+  const cleanHex = hex.replace('#', '')
+  const r = parseInt(cleanHex.substring(0, 2), 16)
+  const g = parseInt(cleanHex.substring(2, 4), 16)
+  const b = parseInt(cleanHex.substring(4, 6), 16)
+  return (r * 299 + g * 587 + b * 114) / 1000
+}
+
+/**
+ * 导出网格 PNG（H5 端下载，App/小程序端保存到相册）
+ */
+export async function exportGridPNG(options: ExportOptions): Promise<string> {
+  const { cellData, gridWidth, gridHeight, cellPixelSize = DEFAULT_EXPORT_CELL_SIZE, colorCodeMap } = options
+
+  // #ifdef H5
+  const canvas = renderGridToCanvas(cellData, gridWidth, gridHeight, cellPixelSize, colorCodeMap)
+  const dataUrl = canvas.toDataURL('image/png')
+  const link = document.createElement('a')
+  link.download = `bead-grid-${gridWidth}x${gridHeight}.png`
+  link.href = dataUrl
+  link.click()
+  return dataUrl
+  // #endif
+
+  // #ifndef H5
+  return new Promise((resolve, reject) => {
+    uni.canvasToTempFilePath({
+      canvasId: 'gridCanvas',
+      fileType: 'png',
+      quality: 1,
+      success: (res: any) => {
+        uni.saveImageToPhotosAlbum({
+          filePath: res.tempFilePath,
+          success: () => {
+            uni.showToast({ title: '已保存到相册', icon: 'success' })
+            resolve(res.tempFilePath)
+          },
+          fail: (err: any) => {
+            uni.showToast({ title: '保存失败', icon: 'none' })
+            reject(err)
+          },
+        })
+      },
+      fail: (err: any) => {
+        uni.showToast({ title: '导出失败', icon: 'none' })
+        reject(err)
+      },
+    })
+  })
+  // #endif
+}
+
+/**
+ * 生成长图预览（仅 H5 端返回 dataUrl，不触发下载）
+ */
+export function generateLongImagePreview(options: LongImageOptions): string {
+  const { cellData, gridWidth, gridHeight, colorSummary, cellPixelSize = DEFAULT_EXPORT_CELL_SIZE, colorCodeMap } = options
+  const padding = 40
+  const gap = 30
+  const swatchSize = 28
+  const itemGap = 16
+  const rowHeight = 36
+  const gridTotalWidth = gridWidth * cellPixelSize
+  const totalWidth = gridTotalWidth + padding * 2
+  const gridTotalHeight = gridHeight * cellPixelSize
+
+  const availableWidth = totalWidth - padding * 2
+  const itemWidth = swatchSize + 8 + 60
+  const itemsPerRow = Math.max(1, Math.floor((availableWidth + itemGap) / (itemWidth + itemGap)))
+  const colorRows = Math.ceil(colorSummary.length / itemsPerRow)
+  const colorTableHeight = colorRows * rowHeight
+  const totalHeight = padding + gridTotalHeight + gap + colorTableHeight + padding
+
+  // #ifdef H5
+  const canvas = document.createElement('canvas')
+  canvas.width = totalWidth
+  canvas.height = totalHeight
+  const ctx = canvas.getContext('2d')!
+
+  ctx.fillStyle = '#FFFFFF'
+  ctx.fillRect(0, 0, totalWidth, totalHeight)
+
+  const gridCanvas = renderGridToCanvas(cellData, gridWidth, gridHeight, cellPixelSize, colorCodeMap)
+  ctx.drawImage(gridCanvas, padding, padding)
+
+  ctx.font = 'bold 14px sans-serif'
+  ctx.textBaseline = 'top'
+  ctx.fillStyle = '#AAAAAA'
+  ctx.fillText(options.paletteId, padding, padding + gridTotalHeight + 6)
+
+  const tableTop = padding + gridTotalHeight + gap
+  ctx.font = '13px sans-serif'
+  ctx.textBaseline = 'middle'
+
+  for (let i = 0; i < colorSummary.length; i++) {
+    const col = i % itemsPerRow
+    const row = Math.floor(i / itemsPerRow)
+    const itemX = padding + col * (itemWidth + itemGap)
+    const itemY = tableTop + row * rowHeight
+
+    ctx.fillStyle = colorSummary[i].hex
+    ctx.fillRect(itemX, itemY + (rowHeight - swatchSize) / 2, swatchSize, swatchSize)
+
+    ctx.fillStyle = '#333333'
+    ctx.fillText(
+      `${colorSummary[i].code} ×${colorSummary[i].count}`,
+      itemX + swatchSize + 8,
+      itemY + rowHeight / 2
+    )
+  }
+
+  return canvas.toDataURL('image/png')
+  // #endif
+
+  // #ifndef H5
+  return ''
+  // #endif
+}
+
+/**
+ * 导出长图（图纸 + 配色表拼接）
+ */
+export async function exportLongImage(options: LongImageOptions): Promise<string> {
+  const { cellData, gridWidth, gridHeight, colorSummary, cellPixelSize = DEFAULT_EXPORT_CELL_SIZE, colorCodeMap } = options
+  const padding = 40
+  const gap = 30
+  const swatchSize = 28
+  const itemGap = 16
+  const rowHeight = 36
+  const gridTotalWidth = gridWidth * cellPixelSize
+  const totalWidth = gridTotalWidth + padding * 2
+  const gridTotalHeight = gridHeight * cellPixelSize
+
+  // 横向布局：计算每行能放多少个色卡
+  const availableWidth = totalWidth - padding * 2
+  const itemWidth = swatchSize + 8 + 60 // 色块 + 间距 + 文字预估宽度
+  const itemsPerRow = Math.max(1, Math.floor((availableWidth + itemGap) / (itemWidth + itemGap)))
+  const colorRows = Math.ceil(colorSummary.length / itemsPerRow)
+  const colorTableHeight = colorRows * rowHeight
+  const totalHeight = padding + gridTotalHeight + gap + colorTableHeight + padding
+
+  // #ifdef H5
+  const canvas = document.createElement('canvas')
+  canvas.width = totalWidth
+  canvas.height = totalHeight
+  const ctx = canvas.getContext('2d')!
+
+  // 白色背景
+  ctx.fillStyle = '#FFFFFF'
+  ctx.fillRect(0, 0, totalWidth, totalHeight)
+
+  // 绘制图纸区域（带色号标注）
+  const gridCanvas = renderGridToCanvas(cellData, gridWidth, gridHeight, cellPixelSize, colorCodeMap)
+  ctx.drawImage(gridCanvas, padding, padding)
+
+  // 绘制品牌标识
+  ctx.font = 'bold 14px sans-serif'
+  ctx.textBaseline = 'top'
+  ctx.fillStyle = '#AAAAAA'
+  ctx.fillText(options.paletteId, padding, padding + gridTotalHeight + 6)
+
+  // 绘制配色表（横向布局）
+  const tableTop = padding + gridTotalHeight + gap
+  ctx.font = '13px sans-serif'
+  ctx.textBaseline = 'middle'
+
+  for (let i = 0; i < colorSummary.length; i++) {
+    const col = i % itemsPerRow
+    const row = Math.floor(i / itemsPerRow)
+    const itemX = padding + col * (itemWidth + itemGap)
+    const itemY = tableTop + row * rowHeight
+
+    // 色块
+    ctx.fillStyle = colorSummary[i].hex
+    ctx.fillRect(itemX, itemY + (rowHeight - swatchSize) / 2, swatchSize, swatchSize)
+
+    // 色号 + 数量
+    ctx.fillStyle = '#333333'
+    ctx.fillText(
+      `${colorSummary[i].code} ×${colorSummary[i].count}`,
+      itemX + swatchSize + 8,
+      itemY + rowHeight / 2
+    )
+  }
+
+  const dataUrl = canvas.toDataURL('image/png')
+  const link = document.createElement('a')
+  link.download = `bead-long-${gridWidth}x${gridHeight}.png`
+  link.href = dataUrl
+  link.click()
+  return dataUrl
+  // #endif
+
+  // #ifndef H5
+  // App/小程序端：使用离屏 Canvas 或降级为普通导出
+  return exportGridPNG({ cellData, gridWidth, gridHeight, cellPixelSize, colorCodeMap })
+  // #endif
+}
+
+/**
+ * 分享图片
+ */
+export async function shareImage(filePath: string, title?: string): Promise<void> {
+  // #ifdef APP-PLUS
+  try {
+    await new Promise<void>((resolve, reject) => {
+      uni.share({
+        provider: 'weixin',
+        scene: 'WXSceneSession',
+        type: 1,
+        imageUrl: filePath,
+        title: title || '我的拼豆图纸',
+        success: () => resolve(),
+        fail: () => reject(new Error('微信分享失败')),
+      })
+    })
+  } catch {
+    // 降级为系统分享
+    uni.shareWithSystem({
+      type: 'image',
+      href: filePath,
+      summary: title || '我的拼豆图纸',
+    })
+  }
+  // #endif
+
+  // #ifdef MP-WEIXIN
+  uni.showToast({ title: '请使用右上角分享', icon: 'none' })
+  // #endif
+
+  // #ifdef H5
+  try {
+    const response = await fetch(filePath)
+    const blob = await response.blob()
+    await navigator.clipboard.write([
+      new ClipboardItem({ [blob.type]: blob }),
+    ])
+    uni.showToast({ title: '已复制到剪贴板', icon: 'success' })
+  } catch {
+    uni.showToast({ title: '复制失败，请手动保存', icon: 'none' })
+  }
+  // #endif
+}

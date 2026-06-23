@@ -1,0 +1,203 @@
+<h2>主流程与导航结构</h2>
+<p class="subtitle">拼豆图纸生成器的核心用户流程有以下几种组织方式，请选择最符合你预期的那种</p>
+
+<div class="cards">
+
+  <!-- Option A: 线性向导流 -->
+  <div class="card" data-choice="linear" onclick="toggleSelect(this)">
+    <div class="card-image" style="background:#0f172a; padding:20px; font-family:monospace; font-size:13px; color:#94a3b8;">
+      <div style="display:flex; flex-direction:column; gap:8px;">
+        <!-- Tab bar at bottom -->
+        <div style="display:flex; gap:6px; margin-bottom:4px;">
+          <div style="flex:1; background:#1e293b; border-radius:8px; padding:10px 8px; text-align:center; border:1px solid #334155;">
+            <div style="color:#60a5fa; font-size:11px; margin-bottom:2px;">①</div>
+            <div style="color:#e2e8f0; font-size:10px;">上传图片</div>
+          </div>
+          <div style="color:#475569; display:flex; align-items:center;">→</div>
+          <div style="flex:1; background:#1e293b; border-radius:8px; padding:10px 8px; text-align:center; border:1px solid #334155;">
+            <div style="color:#475569; font-size:11px; margin-bottom:2px;">②</div>
+            <div style="color:#64748b; font-size:10px;">参数设置</div>
+          </div>
+          <div style="color:#475569; display:flex; align-items:center;">→</div>
+          <div style="flex:1; background:#1e293b; border-radius:8px; padding:10px 8px; text-align:center; border:1px solid #334155;">
+            <div style="color:#475569; font-size:11px; margin-bottom:2px;">③</div>
+            <div style="color:#64748b; font-size:10px;">编辑图纸</div>
+          </div>
+          <div style="color:#475569; display:flex; align-items:center;">→</div>
+          <div style="flex:1; background:#1e293b; border-radius:8px; padding:10px 8px; text-align:center; border:1px solid #334155;">
+            <div style="color:#475569; font-size:11px; margin-bottom:2px;">④</div>
+            <div style="color:#64748b; font-size:10px;">导出分享</div>
+          </div>
+        </div>
+        <!-- Main area -->
+        <div style="background:#1e293b; border-radius:8px; padding:16px; text-align:center; border:1px dashed #334155; min-height:80px; display:flex; align-items:center; justify-content:center; flex-direction:column; gap:8px;">
+          <div style="width:32px; height:32px; border-radius:8px; background:#60a5fa; opacity:0.3; margin:0 auto;"></div>
+          <div style="color:#94a3b8; font-size:11px;">点击上传图片</div>
+          <div style="color:#475569; font-size:10px;">支持 JPG / PNG</div>
+        </div>
+        <!-- Next button -->
+        <div style="background:#3b82f6; border-radius:8px; padding:10px; text-align:center;">
+          <div style="color:#fff; font-size:11px;">下一步 →</div>
+        </div>
+      </div>
+    </div>
+    <div class="card-body">
+      <h3>A · 线性向导流</h3>
+      <p>每步一个屏幕，顺序推进。上传 → 设置 → 编辑 → 导出，步骤清晰，不走回头路。适合第一次使用的用户。</p>
+      <div class="pros-cons" style="margin-top:8px;">
+        <div class="pros"><h4>优点</h4><ul><li>流程清晰无歧义</li><li>实现简单</li></ul></div>
+        <div class="cons"><h4>缺点</h4><ul><li>来回跳转不方便</li><li>编辑时不能看导出</li></ul></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Option B: 主编辑器 + 底部 Tab -->
+  <div class="card" data-choice="editor-tab" onclick="toggleSelect(this)">
+    <div class="card-image" style="background:#0f172a; padding:20px; font-family:monospace; font-size:13px; color:#94a3b8;">
+      <div style="display:flex; flex-direction:column; gap:8px;">
+        <!-- Top toolbar -->
+        <div style="background:#1e293b; border-radius:8px; padding:8px 12px; display:flex; justify-content:space-between; align-items:center; border:1px solid #334155;">
+          <div style="color:#e2e8f0; font-size:11px;">← 我的图纸</div>
+          <div style="color:#60a5fa; font-size:11px;">导出</div>
+        </div>
+        <!-- Canvas area -->
+        <div style="background:#1e293b; border-radius:8px; flex:1; min-height:90px; display:grid; grid-template-columns: repeat(8,1fr); gap:2px; padding:10px; border:1px solid #334155;">
+          <div style="background:#ef4444; border-radius:2px; aspect-ratio:1;"></div>
+          <div style="background:#f97316; border-radius:2px; aspect-ratio:1;"></div>
+          <div style="background:#eab308; border-radius:2px; aspect-ratio:1;"></div>
+          <div style="background:#22c55e; border-radius:2px; aspect-ratio:1;"></div>
+          <div style="background:#3b82f6; border-radius:2px; aspect-ratio:1;"></div>
+          <div style="background:#a855f7; border-radius:2px; aspect-ratio:1;"></div>
+          <div style="background:#ec4899; border-radius:2px; aspect-ratio:1;"></div>
+          <div style="background:#f97316; border-radius:2px; aspect-ratio:1;"></div>
+          <div style="background:#3b82f6; border-radius:2px; aspect-ratio:1;"></div>
+          <div style="background:#22c55e; border-radius:2px; aspect-ratio:1;"></div>
+          <div style="background:#ef4444; border-radius:2px; aspect-ratio:1;"></div>
+          <div style="background:#a855f7; border-radius:2px; aspect-ratio:1;"></div>
+          <div style="background:#eab308; border-radius:2px; aspect-ratio:1;"></div>
+          <div style="background:#ec4899; border-radius:2px; aspect-ratio:1;"></div>
+          <div style="background:#f97316; border-radius:2px; aspect-ratio:1;"></div>
+          <div style="background:#3b82f6; border-radius:2px; aspect-ratio:1;"></div>
+        </div>
+        <!-- Bottom tab bar -->
+        <div style="background:#1e293b; border-radius:8px; padding:6px 0; display:flex; border:1px solid #334155;">
+          <div style="flex:1; text-align:center; padding:6px;">
+            <div style="font-size:15px;">🖼️</div>
+            <div style="color:#64748b; font-size:9px; margin-top:2px;">图片</div>
+          </div>
+          <div style="flex:1; text-align:center; padding:6px; background:#1a2744; border-radius:6px; margin:2px;">
+            <div style="font-size:15px;">✏️</div>
+            <div style="color:#60a5fa; font-size:9px; margin-top:2px;">编辑</div>
+          </div>
+          <div style="flex:1; text-align:center; padding:6px;">
+            <div style="font-size:15px;">🎨</div>
+            <div style="color:#64748b; font-size:9px; margin-top:2px;">色卡</div>
+          </div>
+          <div style="flex:1; text-align:center; padding:6px;">
+            <div style="font-size:15px;">🕒</div>
+            <div style="color:#64748b; font-size:9px; margin-top:2px;">历史</div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="card-body">
+      <h3>B · 编辑器为核心 + 底部 Tab</h3>
+      <p>主页直接就是图纸编辑器，通过底部 Tab 在图片、编辑、色卡、历史间快速切换。编辑体验沉浸，适合反复使用的用户。</p>
+      <div class="pros-cons" style="margin-top:8px;">
+        <div class="pros"><h4>优点</h4><ul><li>编辑体验流畅</li><li>功能随时可达</li></ul></div>
+        <div class="cons"><h4>缺点</h4><ul><li>新用户稍有学习成本</li><li>小程序适配需关注</li></ul></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Option C: 首页列表 + 全屏编辑器 -->
+  <div class="card" data-choice="home-editor" onclick="toggleSelect(this)">
+    <div class="card-image" style="background:#0f172a; padding:20px; font-family:monospace; font-size:13px; color:#94a3b8;">
+      <div style="display:flex; gap:10px;">
+        <!-- Home screen -->
+        <div style="flex:1; display:flex; flex-direction:column; gap:6px;">
+          <div style="color:#60a5fa; font-size:10px; text-align:center; margin-bottom:2px;">首页</div>
+          <div style="background:#1e293b; border-radius:8px; padding:10px; text-align:center; border:2px dashed #3b82f6;">
+            <div style="color:#60a5fa; font-size:10px;">+ 新建图纸</div>
+          </div>
+          <div style="color:#94a3b8; font-size:9px; margin-top:2px;">最近记录</div>
+          <div style="background:#1e293b; border-radius:6px; padding:8px; display:flex; gap:6px; border:1px solid #334155;">
+            <div style="width:24px; height:24px; background:#334155; border-radius:4px; display:grid; grid-template-columns:repeat(3,1fr); gap:1px; padding:2px; flex-shrink:0;">
+              <div style="background:#ef4444; border-radius:1px;"></div>
+              <div style="background:#3b82f6; border-radius:1px;"></div>
+              <div style="background:#22c55e; border-radius:1px;"></div>
+              <div style="background:#eab308; border-radius:1px;"></div>
+              <div style="background:#a855f7; border-radius:1px;"></div>
+              <div style="background:#f97316; border-radius:1px;"></div>
+              <div style="background:#3b82f6; border-radius:1px;"></div>
+              <div style="background:#ef4444; border-radius:1px;"></div>
+              <div style="background:#22c55e; border-radius:1px;"></div>
+            </div>
+            <div>
+              <div style="color:#e2e8f0; font-size:9px;">小猫图纸</div>
+              <div style="color:#475569; font-size:8px;">32×32 · Perler</div>
+            </div>
+          </div>
+          <div style="background:#1e293b; border-radius:6px; padding:8px; display:flex; gap:6px; border:1px solid #334155;">
+            <div style="width:24px; height:24px; background:#334155; border-radius:4px; display:grid; grid-template-columns:repeat(3,1fr); gap:1px; padding:2px; flex-shrink:0;">
+              <div style="background:#60a5fa; border-radius:1px;"></div>
+              <div style="background:#60a5fa; border-radius:1px;"></div>
+              <div style="background:#bfdbfe; border-radius:1px;"></div>
+              <div style="background:#1d4ed8; border-radius:1px;"></div>
+              <div style="background:#60a5fa; border-radius:1px;"></div>
+              <div style="background:#93c5fd; border-radius:1px;"></div>
+              <div style="background:#1d4ed8; border-radius:1px;"></div>
+              <div style="background:#1d4ed8; border-radius:1px;"></div>
+              <div style="background:#60a5fa; border-radius:1px;"></div>
+            </div>
+            <div>
+              <div style="color:#e2e8f0; font-size:9px;">蓝色风景</div>
+              <div style="color:#475569; font-size:8px;">48×48 · Hama</div>
+            </div>
+          </div>
+        </div>
+        <!-- Arrow -->
+        <div style="display:flex; align-items:center; color:#475569; font-size:16px;">→</div>
+        <!-- Editor screen -->
+        <div style="flex:1; display:flex; flex-direction:column; gap:6px;">
+          <div style="color:#a855f7; font-size:10px; text-align:center; margin-bottom:2px;">全屏编辑器</div>
+          <div style="background:#1e293b; border-radius:8px; padding:4px 8px; display:flex; justify-content:space-between; border:1px solid #334155;">
+            <div style="color:#94a3b8; font-size:9px;">← 返回</div>
+            <div style="color:#60a5fa; font-size:9px;">导出</div>
+          </div>
+          <div style="background:#1e293b; border-radius:8px; flex:1; min-height:70px; display:grid; grid-template-columns: repeat(6,1fr); gap:1px; padding:8px; border:1px solid #334155;">
+            <div style="background:#ef4444; border-radius:1px;"></div>
+            <div style="background:#f97316; border-radius:1px;"></div>
+            <div style="background:#eab308; border-radius:1px;"></div>
+            <div style="background:#22c55e; border-radius:1px;"></div>
+            <div style="background:#3b82f6; border-radius:1px;"></div>
+            <div style="background:#a855f7; border-radius:1px;"></div>
+            <div style="background:#f97316; border-radius:1px;"></div>
+            <div style="background:#ef4444; border-radius:1px;"></div>
+            <div style="background:#a855f7; border-radius:1px;"></div>
+            <div style="background:#eab308; border-radius:1px;"></div>
+            <div style="background:#3b82f6; border-radius:1px;"></div>
+            <div style="background:#22c55e; border-radius:1px;"></div>
+          </div>
+          <div style="background:#1e293b; border-radius:6px; padding:6px; display:flex; gap:4px; border:1px solid #334155;">
+            <div style="width:16px; height:16px; background:#ef4444; border-radius:3px;"></div>
+            <div style="width:16px; height:16px; background:#3b82f6; border-radius:3px;"></div>
+            <div style="width:16px; height:16px; background:#22c55e; border-radius:3px;"></div>
+            <div style="color:#94a3b8; font-size:9px; line-height:16px;">当前色卡</div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="card-body">
+      <h3>C · 历史列表 + 全屏编辑器</h3>
+      <p>首页是作品列表（含新建入口），点击后进入全屏编辑模式。历史管理和编辑分离，对多项目用户友好，类似相册应用体验。</p>
+      <div class="pros-cons" style="margin-top:8px;">
+        <div class="pros"><h4>优点</h4><ul><li>多项目管理直观</li><li>编辑空间最大化</li></ul></div>
+        <div class="cons"><h4>缺点</h4><ul><li>层级多一层</li><li>单次使用略啰嗦</li></ul></div>
+      </div>
+    </div>
+  </div>
+
+</div>
+
+<p class="subtitle" style="margin-top:16px;">在浏览器点击选择，或在终端直接告诉我你的想法</p>
