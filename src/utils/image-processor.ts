@@ -89,6 +89,59 @@ function calculateCellRepresentativeColor(
 }
 
 /**
+ * palette-vote 模式：块内每个像素投票给最近的调色板颜色，票数最多者胜出
+ * @param colorCache - 量化颜色 key → 调色板 hex 的 session 级缓存，外部传入共享
+ */
+function calculateCellByPaletteVote(
+  data: Uint8ClampedArray,
+  imgWidth: number,
+  startX: number,
+  startY: number,
+  blockWidth: number,
+  blockHeight: number,
+  paletteId: string,
+  colorCache: Map<number, string>,
+  allowedSeries?: string[]
+): string | null {
+  const endX = Math.min(startX + blockWidth, imgWidth)
+  const endY = Math.min(startY + blockHeight, Math.floor(data.length / 4 / imgWidth))
+
+  const votes = new Map<string, number>()
+
+  for (let y = startY; y < endY; y++) {
+    for (let x = startX; x < endX; x++) {
+      const index = (y * imgWidth + x) * 4
+      if (data[index + 3] < 128) continue
+
+      const r = data[index]
+      const g = data[index + 1]
+      const b = data[index + 2]
+      const quantKey = ((r >> 3) << 10) | ((g >> 3) << 5) | (b >> 3)
+
+      let hex = colorCache.get(quantKey)
+      if (hex === undefined) {
+        hex = findNearestColor({ r, g, b }, paletteId, allowedSeries).hex
+        colorCache.set(quantKey, hex)
+      }
+
+      votes.set(hex, (votes.get(hex) ?? 0) + 1)
+    }
+  }
+
+  if (votes.size === 0) return null
+
+  let bestHex = ''
+  let maxVotes = 0
+  for (const [hex, count] of votes) {
+    if (count > maxVotes) {
+      maxVotes = count
+      bestHex = hex
+    }
+  }
+  return bestHex
+}
+
+/**
  * 核心像素化函数
  * 接收原始像素数据，输出匹配后的 HEX 二维数组
  */
@@ -99,6 +152,7 @@ export function pixelateFromImageData(options: PixelateOptions): PixelateResult 
   const blockWidth = imageWidth / gridWidth
   const blockHeight = imageHeight / gridHeight
   const cellData: string[][] = []
+  const paletteVoteCache = new Map<number, string>()
 
   for (let gy = 0; gy < gridHeight; gy++) {
     const row: string[] = []
@@ -109,21 +163,35 @@ export function pixelateFromImageData(options: PixelateOptions): PixelateResult 
       const startX = Math.floor(gx * blockWidth)
       const currentBlockWidth = Math.max(1, Math.ceil((gx + 1) * blockWidth) - startX)
 
-      const representativeRgb = calculateCellRepresentativeColor(
-        imageData,
-        imageWidth,
-        startX,
-        startY,
-        currentBlockWidth,
-        currentBlockHeight,
-        mode
-      )
-
-      if (representativeRgb) {
-        const match = findNearestColor(representativeRgb, paletteId, allowedSeries)
-        row.push(match.hex)
+      if (mode === 'palette-vote') {
+        const hex = calculateCellByPaletteVote(
+          imageData,
+          imageWidth,
+          startX,
+          startY,
+          currentBlockWidth,
+          currentBlockHeight,
+          paletteId,
+          paletteVoteCache,
+          allowedSeries
+        )
+        row.push(hex ?? '')
       } else {
-        row.push('')
+        const representativeRgb = calculateCellRepresentativeColor(
+          imageData,
+          imageWidth,
+          startX,
+          startY,
+          currentBlockWidth,
+          currentBlockHeight,
+          mode
+        )
+        if (representativeRgb) {
+          const match = findNearestColor(representativeRgb, paletteId, allowedSeries)
+          row.push(match.hex)
+        } else {
+          row.push('')
+        }
       }
     }
     cellData.push(row)

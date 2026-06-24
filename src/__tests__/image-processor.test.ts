@@ -183,3 +183,84 @@ describe('pixelateFromImageData - 边界情况', () => {
     expect(result.elapsedMs).toBeLessThan(5000)
   })
 })
+
+describe('pixelateFromImageData - palette-vote 模式', () => {
+  it('均匀色块 → 与 average 模式结果相同', () => {
+    const imageData = createSolidImageData(255, 0, 0, 64, 64)
+    const avgResult = pixelateFromImageData({
+      imageData,
+      imageWidth: 64,
+      imageHeight: 64,
+      gridWidth: 4,
+      gridHeight: 4,
+      mode: 'average',
+      paletteId: 'MARD',
+    })
+    const voteResult = pixelateFromImageData({
+      imageData,
+      imageWidth: 64,
+      imageHeight: 64,
+      gridWidth: 4,
+      gridHeight: 4,
+      mode: 'palette-vote',
+      paletteId: 'MARD',
+    })
+    for (let y = 0; y < 4; y++) {
+      for (let x = 0; x < 4; x++) {
+        expect(voteResult.cellData[y][x]).toBe(avgResult.cellData[y][x])
+      }
+    }
+  })
+
+  it('75% 主色 + 25% 次色 → 投票结果与纯主色块相同', () => {
+    const width = 64
+    const height = 64
+    const mixedData = new Uint8ClampedArray(width * height * 4)
+    const threshold = Math.floor(0.75 * width * height)
+    for (let i = 0; i < width * height; i++) {
+      const isRed = i < threshold
+      mixedData[i * 4] = isRed ? 255 : 0
+      mixedData[i * 4 + 1] = 0
+      mixedData[i * 4 + 2] = isRed ? 0 : 255
+      mixedData[i * 4 + 3] = 255
+    }
+    const pureRedData = createSolidImageData(255, 0, 0, width, height)
+
+    const mixedResult = pixelateFromImageData({
+      imageData: mixedData,
+      imageWidth: width,
+      imageHeight: height,
+      gridWidth: 1,
+      gridHeight: 1,
+      mode: 'palette-vote',
+      paletteId: 'MARD',
+    })
+    const pureRedResult = pixelateFromImageData({
+      imageData: pureRedData,
+      imageWidth: width,
+      imageHeight: height,
+      gridWidth: 1,
+      gridHeight: 1,
+      mode: 'average',
+      paletteId: 'MARD',
+    })
+
+    expect(mixedResult.cellData[0][0]).toBe(pureRedResult.cellData[0][0])
+  })
+
+  it('200×200 网格 + 1024×1024 图像 < 5000ms', () => {
+    const imageData = createSolidImageData(128, 100, 180, 1024, 1024)
+    const result = pixelateFromImageData({
+      imageData,
+      imageWidth: 1024,
+      imageHeight: 1024,
+      gridWidth: 200,
+      gridHeight: 200,
+      mode: 'palette-vote',
+      paletteId: 'MARD',
+    })
+    expect(result.elapsedMs).toBeLessThan(5000)
+    expect(result.cellData.length).toBe(200)
+    expect(result.cellData[0].length).toBe(200)
+  })
+})
