@@ -124,9 +124,9 @@ function onColorCellTap(item: { hex: string; code: string }) {
 .page-palette {
   display: flex;
   flex-direction: column;
-  height: calc(100vh - 50px - env(safe-area-inset-bottom));
+  height: calc(100vh - 50px - var(--safe-bottom, 0px));
   background-color: #f8f8f8;
-  padding-top: env(safe-area-inset-top);
+  padding-top: var(--safe-top, 0px);
   overflow: auto;
 }
 
@@ -305,7 +305,7 @@ function onColorCellTap(item: { hex: string; code: string }) {
   width: 100%;
   background-color: #ffffff;
   border-radius: 20px 20px 0 0;
-  padding: 24px 20px calc(24px + env(safe-area-inset-bottom));
+  padding: 24px 20px calc(24px + var(--safe-bottom, 0px));
   display: flex;
   align-items: center;
   gap: 16px;

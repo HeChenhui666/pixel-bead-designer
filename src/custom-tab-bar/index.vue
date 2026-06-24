@@ -41,8 +41,8 @@ function switchTab(index: number) {
   bottom: 0;
   left: 0;
   right: 0;
-  height: calc(50px + env(safe-area-inset-bottom));
-  padding-bottom: env(safe-area-inset-bottom);
+  height: calc(50px + var(--safe-bottom, 0px));
+  padding-bottom: var(--safe-bottom, 0px);
   background-color: #ffffff;
   border-top: 1px solid #e8e8e8;
   display: flex;

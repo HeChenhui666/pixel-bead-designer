@@ -394,12 +394,7 @@ export function pixelateFromImageData(options: PixelateOptions): PixelateResult 
   const blockWidth = imageWidth / gridWidth
   const blockHeight = imageHeight / gridHeight
 
-  const effectiveData = mode === 'preprocessed'
-    ? applyBoxBlur(imageData, imageWidth, imageHeight, BOX_BLUR_RADIUS)
-    : imageData
-
   const cellData: string[][] = []
-  const paletteVoteCache = new Map<number, string>()
 
   for (let gy = 0; gy < gridHeight; gy++) {
     const row: string[] = []
@@ -410,32 +405,9 @@ export function pixelateFromImageData(options: PixelateOptions): PixelateResult 
       const startX = Math.floor(gx * blockWidth)
       const currentBlockWidth = Math.max(1, Math.ceil((gx + 1) * blockWidth) - startX)
 
-      if (mode === 'palette-vote') {
-        const hex = calculateCellByPaletteVote(
-          effectiveData,
-          imageWidth,
-          startX,
-          startY,
-          currentBlockWidth,
-          currentBlockHeight,
-          paletteId,
-          paletteVoteCache,
-          allowedSeries
-        )
-        row.push(hex ?? '')
-      } else if (mode === 'adaptive') {
+      if (mode === 'adaptive') {
         const rgb = calculateCellAdaptive(
-          effectiveData,
-          imageWidth,
-          startX,
-          startY,
-          currentBlockWidth,
-          currentBlockHeight
-        )
-        row.push(rgb ? findNearestColor(rgb, paletteId, allowedSeries).hex : '')
-      } else if (mode === 'preprocessed') {
-        const rgb = calculateCellQuantizedDominant(
-          effectiveData,
+          imageData,
           imageWidth,
           startX,
           startY,
@@ -445,7 +417,7 @@ export function pixelateFromImageData(options: PixelateOptions): PixelateResult 
         row.push(rgb ? findNearestColor(rgb, paletteId, allowedSeries).hex : '')
       } else {
         const representativeRgb = calculateCellRepresentativeColor(
-          effectiveData,
+          imageData,
           imageWidth,
           startX,
           startY,
@@ -654,7 +626,7 @@ export async function pixelateImage(options: {
   // #endif
 
   // #ifndef H5
-  // App/小程序端使用 uni API 加载图片到 Canvas
+  // App/小程序端：通过 uni Canvas API 获取像素数据并像素化
   return new Promise((resolve, reject) => {
     uni.getImageInfo({
       src: imagePath,
@@ -668,12 +640,38 @@ export async function pixelateImage(options: {
           drawHeight = Math.round(drawHeight * scale)
         }
 
-        const canvasId = '_pixelate_canvas_'
-        const query = uni.createSelectorQuery()
-        query.select(`#${canvasId}`).node().exec(() => {
-          // 降级方案：如果无法获取 Canvas node，返回空结果
+        // 使用 uni.createOffscreenCanvas 创建离屏 Canvas（App 端支持）
+        try {
+          const offscreen = (uni as any).createOffscreenCanvas({ type: '2d', width: drawWidth, height: drawHeight })
+          if (!offscreen) {
+            resolve({ cellData: Array.from({ length: gridHeight }, () => Array(gridWidth).fill('')), elapsedMs: 0 })
+            return
+          }
+
+          const ctx = offscreen.getContext('2d')
+          const img = offscreen.createImage()
+          img.onload = () => {
+            ctx.drawImage(img, 0, 0, drawWidth, drawHeight)
+            const imageDataObj = ctx.getImageData(0, 0, drawWidth, drawHeight)
+
+            const result = pixelateFromImageData({
+              imageData: imageDataObj.data,
+              imageWidth: drawWidth,
+              imageHeight: drawHeight,
+              gridWidth,
+              gridHeight,
+              mode,
+              paletteId,
+              allowedSeries,
+            })
+            resolve(result)
+          }
+          img.onerror = () => reject(new Error('App端图片加载失败'))
+          img.src = imagePath
+        } catch (_e) {
+          // createOffscreenCanvas 不可用时降级返回空结果
           resolve({ cellData: Array.from({ length: gridHeight }, () => Array(gridWidth).fill('')), elapsedMs: 0 })
-        })
+        }
       },
       fail: () => reject(new Error('图片信息获取失败')),
     })

@@ -235,7 +235,9 @@ function onDragStart(event: TouchEvent) {
 
 function onDragMove(event: TouchEvent) {
   const deltaY = dragStartY - event.touches[0].clientY
-  const maxHeight = window.innerHeight * 0.8
+  // @ts-ignore 条件编译：H5/App 二选一
+  const screenHeight = typeof window !== 'undefined' ? window.innerHeight : uni.getSystemInfoSync().windowHeight
+  const maxHeight = screenHeight * 0.8
   const newHeight = Math.min(maxHeight, Math.max(DEFAULT_PALETTE_HEIGHT, dragStartHeight + deltaY))
   paletteHeight.value = newHeight
 }
@@ -497,9 +499,9 @@ function onCellClick(payload: { x: number; y: number }) {
 .page-editor {
   display: flex;
   flex-direction: column;
-  height: calc(100vh - 56px - env(safe-area-inset-bottom));
+  height: calc(100vh - 56px - var(--safe-bottom, 0px));
   background-color: #fafafa;
-  padding-top: env(safe-area-inset-top);
+  padding-top: var(--safe-top, 0px);
   overflow: hidden;
 }
 
@@ -550,14 +552,14 @@ function onCellClick(payload: { x: number; y: number }) {
 
 .color-palette-bar {
   position: fixed;
-  bottom: calc(56px + env(safe-area-inset-bottom));
+  bottom: calc(56px + var(--safe-bottom, 0px));
   left: 0;
   right: 0;
   background-color: #ffffff;
   border-top: 1px solid #e8e8e8;
   border-radius: 16px 16px 0 0;
   box-shadow: 0 -4px 16px rgba(0, 0, 0, 0.08);
-  padding-bottom: env(safe-area-inset-bottom);
+  padding-bottom: var(--safe-bottom, 0px);
   z-index: 40;
   display: flex;
   flex-direction: column;
@@ -665,7 +667,7 @@ function onCellClick(payload: { x: number; y: number }) {
 /* 返回按钮 */
 .back-btn {
   position: fixed;
-  top: calc(env(safe-area-inset-top) + 8px);
+  top: calc(var(--safe-top, 0px) + 8px);
   left: 12px;
   z-index: 36;
   padding: 6px 14px;
@@ -682,7 +684,7 @@ function onCellClick(payload: { x: number; y: number }) {
 
 .action-bar {
   position: fixed;
-  top: calc(env(safe-area-inset-top) + 8px);
+  top: calc(var(--safe-top, 0px) + 8px);
   /* 左侧为返回按钮留出空间 */
   left: 90px;
   right: 0;
@@ -775,7 +777,7 @@ function onCellClick(payload: { x: number; y: number }) {
   transition: transform 0.25s ease;
   display: flex;
   flex-direction: column;
-  padding-top: env(safe-area-inset-top);
+  padding-top: var(--safe-top, 0px);
   box-shadow: -4px 0 16px rgba(0, 0, 0, 0.1);
 }
 
@@ -1083,8 +1085,8 @@ function onCellClick(payload: { x: number; y: number }) {
   bottom: 0;
   left: 0;
   right: 0;
-  height: calc(56px + env(safe-area-inset-bottom));
-  padding-bottom: env(safe-area-inset-bottom);
+  height: calc(56px + var(--safe-bottom, 0px));
+  padding-bottom: var(--safe-bottom, 0px);
   background-color: rgba(30, 30, 30, 0.95);
   backdrop-filter: blur(12px);
   display: flex;
@@ -1132,7 +1134,7 @@ function onCellClick(payload: { x: number; y: number }) {
 /* 画笔色卡选择面板 */
 .brush-palette-panel {
   position: fixed;
-  bottom: calc(56px + env(safe-area-inset-bottom));
+  bottom: calc(56px + var(--safe-bottom, 0px));
   left: 0;
   right: 0;
   height: 40vh;

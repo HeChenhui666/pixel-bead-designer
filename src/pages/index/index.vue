@@ -52,9 +52,9 @@ function handleGenerate() {
 .page-index {
   display: flex;
   flex-direction: column;
-  height: calc(100vh - 50px - env(safe-area-inset-bottom));
+  height: calc(100vh - 50px - var(--safe-bottom, 0px));
   background-color: #ffffff;
-  padding-top: env(safe-area-inset-top);
+  padding-top: var(--safe-top, 0px);
   overflow: auto;
 }
 
@@ -69,7 +69,7 @@ function handleGenerate() {
 
 .bottom-action {
   padding: 16px;
-  padding-bottom: calc(16px + env(safe-area-inset-bottom));
+  padding-bottom: calc(16px + var(--safe-bottom, 0px));
   flex-shrink: 0;
 }
 

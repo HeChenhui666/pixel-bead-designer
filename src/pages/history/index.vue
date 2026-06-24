@@ -167,9 +167,9 @@ function goToUpload() {
 .page-history {
   display: flex;
   flex-direction: column;
-  height: 100vh;
+  height: calc(100vh - 50px - var(--safe-bottom, 0px));
   background-color: #f8f8f8;
-  padding-top: env(safe-area-inset-top);
+  padding-top: var(--safe-top, 0px);
   overflow: auto;
 }
 

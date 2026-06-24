@@ -22,6 +22,15 @@
         :style="{ width: displayWidth + 'px', height: displayHeight + 'px' }"
         @click.stop="handleCanvasClick"
       />
+      <!-- #ifndef H5 -->
+      <image
+        v-if="compareImage"
+        :src="compareImage"
+        mode="aspectFill"
+        class="compare-overlay-app"
+        :style="{ width: displayWidth + 'px', height: displayHeight + 'px' }"
+      />
+      <!-- #endif -->
     </view>
   </view>
 </template>
@@ -201,11 +210,20 @@ function onViewportTouchStart(event: any) {
 
 /** 根据触摸坐标计算格子并发射 brushPaint 事件 */
 function emitBrushAt(touch: any) {
+  // #ifdef H5
   const wrapper = document.getElementById('gridCanvasWrapper')
   if (!wrapper) return
   const rect = wrapper.getBoundingClientRect()
   const offsetX = ((touch.clientX ?? touch.x ?? 0) - rect.left) / scale.value
   const offsetY = ((touch.clientY ?? touch.y ?? 0) - rect.top) / scale.value
+  // #endif
+
+  // #ifndef H5
+  // App/小程序端：触摸事件坐标已经是相对于 Canvas 的
+  const offsetX = (touch.x ?? touch.clientX ?? 0) / scale.value
+  const offsetY = (touch.y ?? touch.clientY ?? 0) / scale.value
+  // #endif
+
   const cellSize = displayWidth.value / props.gridWidth
   const gridX = Math.floor(offsetX / cellSize)
   const gridY = Math.floor(offsetY / cellSize)
@@ -464,6 +482,10 @@ watch(() => props.compareImage, (newSrc) => {
   if (!wrapper) return
   appendCompareOverlay(wrapper, newSrc, displayWidth.value, displayHeight.value)
   // #endif
+  // #ifndef H5
+  // App端通过 v-if 响应式控制，无需额外操作；触发重渲染确保尺寸同步
+  nextTick(() => renderGrid())
+  // #endif
 })
 
 // App/小程序端：分批绘制，避免大尺寸网格一次性发送过多 IPC 命令导致崩溃
@@ -610,4 +632,14 @@ function drawGridLines(
   pointer-events: none;
   border-radius: 4px;
 }
+
+/* #ifndef H5 */
+.compare-overlay-app {
+  position: absolute;
+  top: 0;
+  left: 0;
+  opacity: 0.6;
+  border-radius: 4px;
+}
+/* #endif */
 </style>

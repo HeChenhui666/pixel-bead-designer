@@ -202,7 +202,91 @@ export function generateLongImagePreview(options: LongImageOptions): string {
   // #endif
 
   // #ifndef H5
-  return ''
+  // App/小程序端：使用离屏 Canvas 绘制长图预览，返回临时文件路径
+  return new Promise<string>((resolve) => {
+    try {
+      const offscreen = (uni as any).createOffscreenCanvas({ type: '2d', width: totalWidth, height: totalHeight })
+      if (!offscreen) { resolve(''); return }
+      const ctx = offscreen.getContext('2d')
+
+      ctx.fillStyle = '#FFFFFF'
+      ctx.fillRect(0, 0, totalWidth, totalHeight)
+
+      // 绘制图纸区域
+      for (let y = 0; y < gridHeight; y++) {
+        for (let x = 0; x < gridWidth; x++) {
+          const hex = cellData[y]?.[x]
+          ctx.fillStyle = hex || '#FAFAFA'
+          ctx.fillRect(padding + x * cellPixelSize, padding + y * cellPixelSize, cellPixelSize, cellPixelSize)
+        }
+      }
+
+      // 网格线
+      if (cellPixelSize >= 2) {
+        ctx.strokeStyle = '#E8E8E8'
+        ctx.lineWidth = 1
+        for (let x = 0; x <= gridWidth; x++) {
+          ctx.beginPath()
+          ctx.moveTo(padding + x * cellPixelSize, padding)
+          ctx.lineTo(padding + x * cellPixelSize, padding + gridTotalHeight)
+          ctx.stroke()
+        }
+        for (let y = 0; y <= gridHeight; y++) {
+          ctx.beginPath()
+          ctx.moveTo(padding, padding + y * cellPixelSize)
+          ctx.lineTo(padding + gridTotalWidth, padding + y * cellPixelSize)
+          ctx.stroke()
+        }
+      }
+
+      // 色号标注
+      if (colorCodeMap && cellPixelSize >= 16) {
+        ctx.font = `${Math.max(8, Math.floor(cellPixelSize / 3))}px sans-serif`
+        ctx.textAlign = 'center'
+        ctx.textBaseline = 'middle'
+        for (let y = 0; y < gridHeight; y++) {
+          for (let x = 0; x < gridWidth; x++) {
+            const hex = cellData[y]?.[x]
+            if (hex && colorCodeMap[hex]) {
+              ctx.fillStyle = '#000000'
+              ctx.fillText(colorCodeMap[hex], padding + x * cellPixelSize + cellPixelSize / 2, padding + y * cellPixelSize + cellPixelSize / 2)
+            }
+          }
+        }
+      }
+
+      // 品牌标识
+      ctx.font = 'bold 14px sans-serif'
+      ctx.textAlign = 'left'
+      ctx.textBaseline = 'top'
+      ctx.fillStyle = '#AAAAAA'
+      ctx.fillText(options.paletteId, padding, padding + gridTotalHeight + 6)
+
+      // 配色表
+      const tableTop = padding + gridTotalHeight + gap
+      ctx.font = '13px sans-serif'
+      ctx.textBaseline = 'middle'
+      for (let i = 0; i < colorSummary.length; i++) {
+        const col = i % itemsPerRow
+        const row = Math.floor(i / itemsPerRow)
+        const itemX = padding + col * (itemWidth + itemGap)
+        const itemY = tableTop + row * rowHeight
+        ctx.fillStyle = colorSummary[i].hex
+        ctx.fillRect(itemX, itemY + (rowHeight - swatchSize) / 2, swatchSize, swatchSize)
+        ctx.fillStyle = '#333333'
+        ctx.fillText(`${colorSummary[i].code} ×${colorSummary[i].count}`, itemX + swatchSize + 8, itemY + rowHeight / 2)
+      }
+
+      uni.canvasToTempFilePath({
+        canvas: offscreen,
+        fileType: 'png',
+        success: (res) => resolve(res.tempFilePath),
+        fail: () => resolve(''),
+      })
+    } catch (_e) {
+      resolve('')
+    }
+  }) as unknown as string
   // #endif
 }
 
@@ -281,8 +365,109 @@ export async function exportLongImage(options: LongImageOptions): Promise<string
   // #endif
 
   // #ifndef H5
-  // App/小程序端：使用离屏 Canvas 或降级为普通导出
-  return exportGridPNG({ cellData, gridWidth, gridHeight, cellPixelSize, colorCodeMap })
+  // App/小程序端：使用离屏 Canvas 绘制完整长图
+  return new Promise<string>((resolve) => {
+    try {
+      const offscreen = (uni as any).createOffscreenCanvas({ type: '2d', width: totalWidth, height: totalHeight })
+      if (!offscreen) {
+        resolve('')
+        return
+      }
+      const ctx = offscreen.getContext('2d')
+
+      // 白色背景
+      ctx.fillStyle = '#FFFFFF'
+      ctx.fillRect(0, 0, totalWidth, totalHeight)
+
+      // 绘制图纸区域
+      for (let y = 0; y < gridHeight; y++) {
+        for (let x = 0; x < gridWidth; x++) {
+          const hex = cellData[y]?.[x]
+          ctx.fillStyle = hex || '#FAFAFA'
+          ctx.fillRect(padding + x * cellPixelSize, padding + y * cellPixelSize, cellPixelSize, cellPixelSize)
+        }
+      }
+
+      // 网格线
+      if (cellPixelSize >= 2) {
+        ctx.strokeStyle = '#E8E8E8'
+        ctx.lineWidth = 1
+        for (let x = 0; x <= gridWidth; x++) {
+          ctx.beginPath()
+          ctx.moveTo(padding + x * cellPixelSize, padding)
+          ctx.lineTo(padding + x * cellPixelSize, padding + gridTotalHeight)
+          ctx.stroke()
+        }
+        for (let y = 0; y <= gridHeight; y++) {
+          ctx.beginPath()
+          ctx.moveTo(padding, padding + y * cellPixelSize)
+          ctx.lineTo(padding + gridTotalWidth, padding + y * cellPixelSize)
+          ctx.stroke()
+        }
+      }
+
+      // 色号标注
+      if (colorCodeMap && cellPixelSize >= 16) {
+        ctx.font = `${Math.max(8, Math.floor(cellPixelSize / 3))}px sans-serif`
+        ctx.textAlign = 'center'
+        ctx.textBaseline = 'middle'
+        for (let y = 0; y < gridHeight; y++) {
+          for (let x = 0; x < gridWidth; x++) {
+            const hex = cellData[y]?.[x]
+            if (hex && colorCodeMap[hex]) {
+              ctx.fillStyle = '#000000'
+              ctx.fillText(
+                colorCodeMap[hex],
+                padding + x * cellPixelSize + cellPixelSize / 2,
+                padding + y * cellPixelSize + cellPixelSize / 2
+              )
+            }
+          }
+        }
+      }
+
+      // 品牌标识
+      ctx.font = 'bold 14px sans-serif'
+      ctx.textAlign = 'left'
+      ctx.textBaseline = 'top'
+      ctx.fillStyle = '#AAAAAA'
+      ctx.fillText(options.paletteId, padding, padding + gridTotalHeight + 6)
+
+      // 配色表（横向布局）
+      const tableTop = padding + gridTotalHeight + gap
+      ctx.font = '13px sans-serif'
+      ctx.textBaseline = 'middle'
+
+      for (let i = 0; i < colorSummary.length; i++) {
+        const col = i % itemsPerRow
+        const row = Math.floor(i / itemsPerRow)
+        const itemX = padding + col * (itemWidth + itemGap)
+        const itemY = tableTop + row * rowHeight
+
+        // 色块
+        ctx.fillStyle = colorSummary[i].hex
+        ctx.fillRect(itemX, itemY + (rowHeight - swatchSize) / 2, swatchSize, swatchSize)
+
+        // 色号 + 数量
+        ctx.fillStyle = '#333333'
+        ctx.fillText(
+          `${colorSummary[i].code} ×${colorSummary[i].count}`,
+          itemX + swatchSize + 8,
+          itemY + rowHeight / 2
+        )
+      }
+
+      // 导出为临时文件路径
+      uni.canvasToTempFilePath({
+        canvas: offscreen,
+        fileType: 'png',
+        success: (res) => resolve(res.tempFilePath),
+        fail: () => resolve(''),
+      })
+    } catch (_e) {
+      resolve('')
+    }
+  })
   // #endif
 }
 
