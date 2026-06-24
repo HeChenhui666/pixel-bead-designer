@@ -56,6 +56,27 @@
         >
           <text>主色</text>
         </view>
+        <view
+          class="mode-btn"
+          :class="{ active: configStore.pixelationMode === 'palette-vote' }"
+          @click="configStore.pixelationMode = 'palette-vote'"
+        >
+          <text>投票法</text>
+        </view>
+        <view
+          class="mode-btn"
+          :class="{ active: configStore.pixelationMode === 'adaptive' }"
+          @click="configStore.pixelationMode = 'adaptive'"
+        >
+          <text>自适应</text>
+        </view>
+        <view
+          class="mode-btn"
+          :class="{ active: configStore.pixelationMode === 'preprocessed' }"
+          @click="configStore.pixelationMode = 'preprocessed'"
+        >
+          <text>预处理</text>
+        </view>
       </view>
     </view>
 
@@ -278,6 +299,7 @@ function onHeightInput(event: any) {
 .mode-row {
   display: flex;
   gap: 8px;
+  flex-wrap: wrap;
 }
 
 .mode-btn {
