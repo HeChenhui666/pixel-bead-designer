@@ -232,14 +232,15 @@ export function applyBoxBlur(
   height: number,
   radius: number
 ): Uint8ClampedArray {
+  if (radius < 0) throw new RangeError('applyBoxBlur: radius must be >= 0')
   const temp = new Uint8ClampedArray(data.length)
   const output = new Uint8ClampedArray(data.length)
+  const count = radius * 2 + 1
 
   // 水平方向
   for (let y = 0; y < height; y++) {
     for (let x = 0; x < width; x++) {
       let rSum = 0, gSum = 0, bSum = 0
-      const count = radius * 2 + 1
       for (let dx = -radius; dx <= radius; dx++) {
         const nx = Math.max(0, Math.min(width - 1, x + dx))
         const i = (y * width + nx) * 4
@@ -257,7 +258,6 @@ export function applyBoxBlur(
   for (let y = 0; y < height; y++) {
     for (let x = 0; x < width; x++) {
       let rSum = 0, gSum = 0, bSum = 0
-      const count = radius * 2 + 1
       for (let dy = -radius; dy <= radius; dy++) {
         const ny = Math.max(0, Math.min(height - 1, y + dy))
         const i = (ny * width + x) * 4
@@ -336,8 +336,9 @@ export function pixelateFromImageData(options: PixelateOptions): PixelateResult 
   const blockWidth = imageWidth / gridWidth
   const blockHeight = imageHeight / gridHeight
 
+  const BOX_BLUR_RADIUS = 2
   const effectiveData = mode === 'preprocessed'
-    ? applyBoxBlur(imageData, imageWidth, imageHeight, 2)
+    ? applyBoxBlur(imageData, imageWidth, imageHeight, BOX_BLUR_RADIUS)
     : imageData
 
   const cellData: string[][] = []
