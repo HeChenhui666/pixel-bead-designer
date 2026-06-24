@@ -142,6 +142,7 @@ function calculateCellByPaletteVote(
 }
 
 const ADAPTIVE_VARIANCE_THRESHOLD = 2000
+const BOX_BLUR_RADIUS = 2
 
 /**
  * adaptive 模式：低方差块用全块平均，高方差块用中心 50%×50% 子块平均
@@ -336,7 +337,6 @@ export function pixelateFromImageData(options: PixelateOptions): PixelateResult 
   const blockWidth = imageWidth / gridWidth
   const blockHeight = imageHeight / gridHeight
 
-  const BOX_BLUR_RADIUS = 2
   const effectiveData = mode === 'preprocessed'
     ? applyBoxBlur(imageData, imageWidth, imageHeight, BOX_BLUR_RADIUS)
     : imageData
