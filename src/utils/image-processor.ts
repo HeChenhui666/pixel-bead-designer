@@ -3,7 +3,7 @@
 
 import { findNearestColor, hexToRgb, rgbToHex, srgbToOklab, oklabDistance, type RgbColor } from './color-mapper'
 
-export type PixelationMode = 'average' | 'dominant'
+export type PixelationMode = 'average' | 'dominant' | 'palette-vote' | 'adaptive' | 'preprocessed'
 
 export interface PixelateOptions {
   imageData: Uint8ClampedArray

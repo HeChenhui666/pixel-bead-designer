@@ -1,7 +1,6 @@
 import { defineStore } from 'pinia'
 import { ref, watch } from 'vue'
-
-export type PixelationMode = 'average' | 'dominant'
+import type { PixelationMode } from '../utils/image-processor'
 
 export const useConfigStore = defineStore('config', () => {
   const defaultGridSize = ref(32)
