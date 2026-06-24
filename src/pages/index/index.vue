@@ -20,15 +20,22 @@
         <text class="btn-text">生成图纸</text>
       </view>
     </view>
+    <CustomTabBar :current="0" />
   </view>
 </template>
 
 <script setup lang="ts">
+import { onShow } from '@dcloudio/uni-app'
 import { useProjectStore } from '../../stores/useProjectStore'
 import ImagePicker from '../../components/ImagePicker.vue'
 import ParamPanel from '../../components/ParamPanel.vue'
+import CustomTabBar from '../../custom-tab-bar/index.vue'
 
 const projectStore = useProjectStore()
+
+onShow(() => {
+  // 自定义 tabBar 通过 prop 控制选中态，无需额外处理
+})
 
 function onImageError(message: string) {
   uni.showToast({ title: message, icon: 'none' })

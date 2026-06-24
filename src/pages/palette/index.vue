@@ -72,6 +72,7 @@
         </view>
       </view>
     </view>
+    <CustomTabBar :current="1" />
   </view>
 </template>
 
@@ -81,6 +82,7 @@ import { onShow } from '@dcloudio/uni-app'
 import { useProjectStore } from '../../stores/useProjectStore'
 import { getColorList } from '../../utils/color-mapper'
 import type { PaletteId } from '../../stores/useProjectStore'
+import CustomTabBar from '../../custom-tab-bar/index.vue'
 
 const projectStore = useProjectStore()
 

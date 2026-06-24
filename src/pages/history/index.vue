@@ -44,12 +44,19 @@
         </view>
       </view>
     </scroll-view>
+    <CustomTabBar :current="2" />
   </view>
 </template>
 
 <script setup lang="ts">
 import { ref, onMounted, nextTick } from 'vue'
+import { onShow } from '@dcloudio/uni-app'
 import { useProjectStore } from '../../stores/useProjectStore'
+import CustomTabBar from '../../custom-tab-bar/index.vue'
+
+onShow(() => {
+  // 自定义 tabBar 通过 prop 控制选中态，无需额外处理
+})
 
 interface HistoryItem {
   id: string
