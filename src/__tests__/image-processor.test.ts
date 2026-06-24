@@ -264,3 +264,66 @@ describe('pixelateFromImageData - palette-vote 模式', () => {
     expect(result.cellData[0].length).toBe(200)
   })
 })
+
+describe('pixelateFromImageData - adaptive 模式', () => {
+  it('均匀色块（方差=0）→ 与 average 模式结果相同', () => {
+    const imageData = createSolidImageData(100, 150, 200, 64, 64)
+    const avgResult = pixelateFromImageData({
+      imageData,
+      imageWidth: 64,
+      imageHeight: 64,
+      gridWidth: 4,
+      gridHeight: 4,
+      mode: 'average',
+      paletteId: 'MARD',
+    })
+    const adaptiveResult = pixelateFromImageData({
+      imageData,
+      imageWidth: 64,
+      imageHeight: 64,
+      gridWidth: 4,
+      gridHeight: 4,
+      mode: 'adaptive',
+      paletteId: 'MARD',
+    })
+    for (let y = 0; y < 4; y++) {
+      for (let x = 0; x < 4; x++) {
+        expect(adaptiveResult.cellData[y][x]).toBe(avgResult.cellData[y][x])
+      }
+    }
+  })
+
+  it('高方差色块（黑白分割）→ 每格返回有效的调色板色', () => {
+    const imageData = createSplitImageData([0, 0, 0], [255, 255, 255], 64, 64)
+    const result = pixelateFromImageData({
+      imageData,
+      imageWidth: 64,
+      imageHeight: 64,
+      gridWidth: 4,
+      gridHeight: 4,
+      mode: 'adaptive',
+      paletteId: 'MARD',
+    })
+    for (const row of result.cellData) {
+      for (const hex of row) {
+        expect(hex).toMatch(/^#[0-9A-F]{6}$/)
+      }
+    }
+  })
+
+  it('200×200 网格 + 1024×1024 图像 < 5000ms', () => {
+    const imageData = createSolidImageData(100, 150, 200, 1024, 1024)
+    const result = pixelateFromImageData({
+      imageData,
+      imageWidth: 1024,
+      imageHeight: 1024,
+      gridWidth: 200,
+      gridHeight: 200,
+      mode: 'adaptive',
+      paletteId: 'MARD',
+    })
+    expect(result.elapsedMs).toBeLessThan(5000)
+    expect(result.cellData.length).toBe(200)
+    expect(result.cellData[0].length).toBe(200)
+  })
+})

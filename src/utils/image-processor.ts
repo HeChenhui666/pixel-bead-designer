@@ -141,6 +141,79 @@ function calculateCellByPaletteVote(
   return bestHex
 }
 
+const ADAPTIVE_VARIANCE_THRESHOLD = 2000
+
+/**
+ * adaptive 模式：低方差块用全块平均，高方差块用中心 50%×50% 子块平均
+ */
+function calculateCellAdaptive(
+  data: Uint8ClampedArray,
+  imgWidth: number,
+  startX: number,
+  startY: number,
+  blockWidth: number,
+  blockHeight: number
+): RgbColor | null {
+  const endX = Math.min(startX + blockWidth, imgWidth)
+  const endY = Math.min(startY + blockHeight, Math.floor(data.length / 4 / imgWidth))
+
+  let rSum = 0, gSum = 0, bSum = 0, pixelCount = 0
+  const pixels: Array<{ r: number; g: number; b: number }> = []
+
+  for (let y = startY; y < endY; y++) {
+    for (let x = startX; x < endX; x++) {
+      const index = (y * imgWidth + x) * 4
+      if (data[index + 3] < 128) continue
+      const r = data[index], g = data[index + 1], b = data[index + 2]
+      rSum += r; gSum += g; bSum += b
+      pixelCount++
+      pixels.push({ r, g, b })
+    }
+  }
+
+  if (pixelCount === 0) return null
+
+  const rAvg = rSum / pixelCount
+  const gAvg = gSum / pixelCount
+  const bAvg = bSum / pixelCount
+
+  let varianceSum = 0
+  for (const p of pixels) {
+    const dr = p.r - rAvg, dg = p.g - gAvg, db = p.b - bAvg
+    varianceSum += dr * dr + dg * dg + db * db
+  }
+  const variance = varianceSum / pixelCount
+
+  if (variance <= ADAPTIVE_VARIANCE_THRESHOLD) {
+    return { r: Math.round(rAvg), g: Math.round(gAvg), b: Math.round(bAvg) }
+  }
+
+  // 高方差：只取中心 50%×50% 子块
+  const cx0 = startX + Math.floor(blockWidth / 4)
+  const cx1 = startX + Math.ceil(blockWidth * 3 / 4)
+  const cy0 = startY + Math.floor(blockHeight / 4)
+  const cy1 = startY + Math.ceil(blockHeight * 3 / 4)
+
+  let crSum = 0, cgSum = 0, cbSum = 0, cCount = 0
+  for (let y = cy0; y < Math.min(cy1, endY); y++) {
+    for (let x = cx0; x < Math.min(cx1, endX); x++) {
+      const index = (y * imgWidth + x) * 4
+      if (data[index + 3] < 128) continue
+      crSum += data[index]; cgSum += data[index + 1]; cbSum += data[index + 2]
+      cCount++
+    }
+  }
+
+  if (cCount === 0) {
+    return { r: Math.round(rAvg), g: Math.round(gAvg), b: Math.round(bAvg) }
+  }
+  return {
+    r: Math.round(crSum / cCount),
+    g: Math.round(cgSum / cCount),
+    b: Math.round(cbSum / cCount),
+  }
+}
+
 /**
  * 核心像素化函数
  * 接收原始像素数据，输出匹配后的 HEX 二维数组
@@ -176,6 +249,16 @@ export function pixelateFromImageData(options: PixelateOptions): PixelateResult 
           allowedSeries
         )
         row.push(hex ?? '')
+      } else if (mode === 'adaptive') {
+        const rgb = calculateCellAdaptive(
+          imageData,
+          imageWidth,
+          startX,
+          startY,
+          currentBlockWidth,
+          currentBlockHeight
+        )
+        row.push(rgb ? findNearestColor(rgb, paletteId, allowedSeries).hex : '')
       } else {
         const representativeRgb = calculateCellRepresentativeColor(
           imageData,
