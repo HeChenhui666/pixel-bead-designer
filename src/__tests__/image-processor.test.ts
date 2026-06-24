@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest'
-import { pixelateFromImageData } from '../utils/image-processor'
+import { pixelateFromImageData, applyBoxBlur } from '../utils/image-processor'
 
 /**
  * 创建纯色 Uint8ClampedArray 用于测试
@@ -320,6 +320,97 @@ describe('pixelateFromImageData - adaptive 模式', () => {
       gridWidth: 200,
       gridHeight: 200,
       mode: 'adaptive',
+      paletteId: 'MARD',
+    })
+    expect(result.elapsedMs).toBeLessThan(5000)
+    expect(result.cellData.length).toBe(200)
+    expect(result.cellData[0].length).toBe(200)
+  })
+})
+
+describe('applyBoxBlur', () => {
+  it('均匀图像模糊后像素值不变', () => {
+    const data = createSolidImageData(100, 150, 200, 16, 16)
+    const result = applyBoxBlur(data, 16, 16, 2)
+    for (let i = 0; i < 16 * 16; i++) {
+      expect(result[i * 4]).toBe(100)
+      expect(result[i * 4 + 1]).toBe(150)
+      expect(result[i * 4 + 2]).toBe(200)
+    }
+  })
+
+  it('不修改原始 imageData', () => {
+    const data = createSolidImageData(255, 0, 0, 8, 8)
+    const original = new Uint8ClampedArray(data)
+    applyBoxBlur(data, 8, 8, 2)
+    expect(data).toEqual(original)
+  })
+
+  it('左右分色图像：中间边界像素被混合，两端像素基本不变', () => {
+    // 8×1 图像：左 4 像素纯红，右 4 像素纯蓝
+    const data = createSplitImageData([255, 0, 0], [0, 0, 255], 8, 1)
+    const result = applyBoxBlur(data, 8, 1, 2)
+    // 最左像素应仍接近红色（R 通道高）
+    expect(result[0]).toBeGreaterThan(150)
+    // 最右像素应仍接近蓝色（B 通道高）
+    expect(result[7 * 4 + 2]).toBeGreaterThan(150)
+    // 边界处（索引 3）应是混合色（R 和 B 都有值）
+    expect(result[3 * 4]).toBeGreaterThan(0)
+    expect(result[3 * 4 + 2]).toBeGreaterThan(0)
+  })
+})
+
+describe('pixelateFromImageData - preprocessed 模式', () => {
+  it('均匀色块 → 与 average 模式结果相同', () => {
+    const imageData = createSolidImageData(255, 0, 0, 64, 64)
+    const avgResult = pixelateFromImageData({
+      imageData,
+      imageWidth: 64,
+      imageHeight: 64,
+      gridWidth: 4,
+      gridHeight: 4,
+      mode: 'average',
+      paletteId: 'MARD',
+    })
+    const prepResult = pixelateFromImageData({
+      imageData,
+      imageWidth: 64,
+      imageHeight: 64,
+      gridWidth: 4,
+      gridHeight: 4,
+      mode: 'preprocessed',
+      paletteId: 'MARD',
+    })
+    for (let y = 0; y < 4; y++) {
+      for (let x = 0; x < 4; x++) {
+        expect(prepResult.cellData[y][x]).toBe(avgResult.cellData[y][x])
+      }
+    }
+  })
+
+  it('左右分色 → 两列颜色不同', () => {
+    const imageData = createSplitImageData([255, 0, 0], [0, 0, 255], 64, 64)
+    const result = pixelateFromImageData({
+      imageData,
+      imageWidth: 64,
+      imageHeight: 64,
+      gridWidth: 4,
+      gridHeight: 2,
+      mode: 'preprocessed',
+      paletteId: 'MARD',
+    })
+    expect(result.cellData[0][0]).not.toBe(result.cellData[0][2])
+  })
+
+  it('200×200 网格 + 1024×1024 图像 < 5000ms', () => {
+    const imageData = createSolidImageData(128, 128, 128, 1024, 1024)
+    const result = pixelateFromImageData({
+      imageData,
+      imageWidth: 1024,
+      imageHeight: 1024,
+      gridWidth: 200,
+      gridHeight: 200,
+      mode: 'preprocessed',
       paletteId: 'MARD',
     })
     expect(result.elapsedMs).toBeLessThan(5000)

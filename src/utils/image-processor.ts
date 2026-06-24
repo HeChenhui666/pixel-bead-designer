@@ -224,6 +224,108 @@ function calculateCellAdaptive(
 }
 
 /**
+ * 两遍可分离 Box Blur（水平→垂直），边界 clamp，只模糊 RGB，alpha 保持原值
+ */
+export function applyBoxBlur(
+  data: Uint8ClampedArray,
+  width: number,
+  height: number,
+  radius: number
+): Uint8ClampedArray {
+  const temp = new Uint8ClampedArray(data.length)
+  const output = new Uint8ClampedArray(data.length)
+
+  // 水平方向
+  for (let y = 0; y < height; y++) {
+    for (let x = 0; x < width; x++) {
+      let rSum = 0, gSum = 0, bSum = 0
+      const count = radius * 2 + 1
+      for (let dx = -radius; dx <= radius; dx++) {
+        const nx = Math.max(0, Math.min(width - 1, x + dx))
+        const i = (y * width + nx) * 4
+        rSum += data[i]; gSum += data[i + 1]; bSum += data[i + 2]
+      }
+      const i = (y * width + x) * 4
+      temp[i] = Math.round(rSum / count)
+      temp[i + 1] = Math.round(gSum / count)
+      temp[i + 2] = Math.round(bSum / count)
+      temp[i + 3] = data[i + 3]
+    }
+  }
+
+  // 垂直方向
+  for (let y = 0; y < height; y++) {
+    for (let x = 0; x < width; x++) {
+      let rSum = 0, gSum = 0, bSum = 0
+      const count = radius * 2 + 1
+      for (let dy = -radius; dy <= radius; dy++) {
+        const ny = Math.max(0, Math.min(height - 1, y + dy))
+        const i = (ny * width + x) * 4
+        rSum += temp[i]; gSum += temp[i + 1]; bSum += temp[i + 2]
+      }
+      const i = (y * width + x) * 4
+      output[i] = Math.round(rSum / count)
+      output[i + 1] = Math.round(gSum / count)
+      output[i + 2] = Math.round(bSum / count)
+      output[i + 3] = data[i + 3]
+    }
+  }
+
+  return output
+}
+
+/**
+ * preprocessed 模式的块内主色计算：32 级量化统计主色，修复 dominant 在真实照片中的退化问题
+ */
+function calculateCellQuantizedDominant(
+  data: Uint8ClampedArray,
+  imgWidth: number,
+  startX: number,
+  startY: number,
+  blockWidth: number,
+  blockHeight: number
+): RgbColor | null {
+  const endX = Math.min(startX + blockWidth, imgWidth)
+  const endY = Math.min(startY + blockHeight, Math.floor(data.length / 4 / imgWidth))
+
+  const colorCounts = new Map<number, { count: number; r: number; g: number; b: number }>()
+  let pixelCount = 0
+
+  for (let y = startY; y < endY; y++) {
+    for (let x = startX; x < endX; x++) {
+      const index = (y * imgWidth + x) * 4
+      if (data[index + 3] < 128) continue
+      const r = data[index], g = data[index + 1], b = data[index + 2]
+      const quantKey = ((r >> 3) << 10) | ((g >> 3) << 5) | (b >> 3)
+      const existing = colorCounts.get(quantKey)
+      if (existing) {
+        existing.count++
+      } else {
+        colorCounts.set(quantKey, {
+          count: 1,
+          r: (r >> 3) * 8 + 4,
+          g: (g >> 3) * 8 + 4,
+          b: (b >> 3) * 8 + 4,
+        })
+      }
+      pixelCount++
+    }
+  }
+
+  if (pixelCount === 0) return null
+
+  let maxCount = 0
+  let best: { count: number; r: number; g: number; b: number } | null = null
+  for (const entry of colorCounts.values()) {
+    if (entry.count > maxCount) {
+      maxCount = entry.count
+      best = entry
+    }
+  }
+  return best ? { r: best.r, g: best.g, b: best.b } : null
+}
+
+/**
  * 核心像素化函数
  * 接收原始像素数据，输出匹配后的 HEX 二维数组
  */
@@ -233,6 +335,11 @@ export function pixelateFromImageData(options: PixelateOptions): PixelateResult 
 
   const blockWidth = imageWidth / gridWidth
   const blockHeight = imageHeight / gridHeight
+
+  const effectiveData = mode === 'preprocessed'
+    ? applyBoxBlur(imageData, imageWidth, imageHeight, 2)
+    : imageData
+
   const cellData: string[][] = []
   const paletteVoteCache = new Map<number, string>()
 
@@ -247,7 +354,7 @@ export function pixelateFromImageData(options: PixelateOptions): PixelateResult 
 
       if (mode === 'palette-vote') {
         const hex = calculateCellByPaletteVote(
-          imageData,
+          effectiveData,
           imageWidth,
           startX,
           startY,
@@ -260,7 +367,17 @@ export function pixelateFromImageData(options: PixelateOptions): PixelateResult 
         row.push(hex ?? '')
       } else if (mode === 'adaptive') {
         const rgb = calculateCellAdaptive(
-          imageData,
+          effectiveData,
+          imageWidth,
+          startX,
+          startY,
+          currentBlockWidth,
+          currentBlockHeight
+        )
+        row.push(rgb ? findNearestColor(rgb, paletteId, allowedSeries).hex : '')
+      } else if (mode === 'preprocessed') {
+        const rgb = calculateCellQuantizedDominant(
+          effectiveData,
           imageWidth,
           startX,
           startY,
@@ -270,7 +387,7 @@ export function pixelateFromImageData(options: PixelateOptions): PixelateResult 
         row.push(rgb ? findNearestColor(rgb, paletteId, allowedSeries).hex : '')
       } else {
         const representativeRgb = calculateCellRepresentativeColor(
-          imageData,
+          effectiveData,
           imageWidth,
           startX,
           startY,
