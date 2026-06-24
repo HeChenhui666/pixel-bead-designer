@@ -127,22 +127,22 @@ describe('pixelateFromImageData - dominant 模式', () => {
   })
 
   it('左右分色 → dominant 取主色', () => {
-    // 左半纯红，右半纯蓝
+    // 左半纯红，右半纯蓝，用足够大的网格确保每种颜色出现多次，不被 denoiseGrid 孤立点消除
     const imageData = createSplitImageData([255, 0, 0], [0, 0, 255], 64, 64)
     const result = pixelateFromImageData({
       imageData,
       imageWidth: 64,
       imageHeight: 64,
-      gridWidth: 2,
-      gridHeight: 1,
+      gridWidth: 4,
+      gridHeight: 2,
       mode: 'dominant',
       paletteId: 'MARD',
     })
 
-    expect(result.cellData.length).toBe(1)
-    expect(result.cellData[0].length).toBe(2)
-    // 两格应该有不同的颜色
-    expect(result.cellData[0][0]).not.toBe(result.cellData[0][1])
+    expect(result.cellData.length).toBe(2)
+    expect(result.cellData[0].length).toBe(4)
+    // 左列（索引 0、1）应与右列（索引 2、3）颜色不同
+    expect(result.cellData[0][0]).not.toBe(result.cellData[0][2])
   })
 })
 
