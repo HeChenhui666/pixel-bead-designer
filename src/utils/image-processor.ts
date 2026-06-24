@@ -157,17 +157,14 @@ function calculateCellAdaptive(
   const endX = Math.min(startX + blockWidth, imgWidth)
   const endY = Math.min(startY + blockHeight, Math.floor(data.length / 4 / imgWidth))
 
+  // Pass 1: compute full-block average
   let rSum = 0, gSum = 0, bSum = 0, pixelCount = 0
-  const pixels: Array<{ r: number; g: number; b: number }> = []
-
   for (let y = startY; y < endY; y++) {
     for (let x = startX; x < endX; x++) {
       const index = (y * imgWidth + x) * 4
       if (data[index + 3] < 128) continue
-      const r = data[index], g = data[index + 1], b = data[index + 2]
-      rSum += r; gSum += g; bSum += b
+      rSum += data[index]; gSum += data[index + 1]; bSum += data[index + 2]
       pixelCount++
-      pixels.push({ r, g, b })
     }
   }
 
@@ -177,10 +174,17 @@ function calculateCellAdaptive(
   const gAvg = gSum / pixelCount
   const bAvg = bSum / pixelCount
 
+  // Pass 2: compute variance from raw data (no intermediate array)
   let varianceSum = 0
-  for (const p of pixels) {
-    const dr = p.r - rAvg, dg = p.g - gAvg, db = p.b - bAvg
-    varianceSum += dr * dr + dg * dg + db * db
+  for (let y = startY; y < endY; y++) {
+    for (let x = startX; x < endX; x++) {
+      const index = (y * imgWidth + x) * 4
+      if (data[index + 3] < 128) continue
+      const dr = data[index] - rAvg
+      const dg = data[index + 1] - gAvg
+      const db = data[index + 2] - bAvg
+      varianceSum += dr * dr + dg * dg + db * db
+    }
   }
   const variance = varianceSum / pixelCount
 
@@ -188,11 +192,16 @@ function calculateCellAdaptive(
     return { r: Math.round(rAvg), g: Math.round(gAvg), b: Math.round(bAvg) }
   }
 
-  // 高方差：只取中心 50%×50% 子块
+  // High variance: center 50%×50% sub-block
   const cx0 = startX + Math.floor(blockWidth / 4)
   const cx1 = startX + Math.ceil(blockWidth * 3 / 4)
   const cy0 = startY + Math.floor(blockHeight / 4)
   const cy1 = startY + Math.ceil(blockHeight * 3 / 4)
+
+  // Guard: if center region is not actually smaller than full block, return full-block average
+  if (cx0 <= startX && cx1 >= endX && cy0 <= startY && cy1 >= endY) {
+    return { r: Math.round(rAvg), g: Math.round(gAvg), b: Math.round(bAvg) }
+  }
 
   let crSum = 0, cgSum = 0, cbSum = 0, cCount = 0
   for (let y = cy0; y < Math.min(cy1, endY); y++) {
