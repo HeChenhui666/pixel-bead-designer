@@ -8,21 +8,21 @@
 			}
 		},
 		{
-			"path": "pages/editor/editor",
+			"path": "pages/editor/index",
 			"style": {
 				"navigationBarTitleText": "编辑",
 				"navigationStyle": "custom"
 			}
 		},
 		{
-			"path": "pages/palette/palette",
+			"path": "pages/palette/index",
 			"style": {
 				"navigationBarTitleText": "色卡",
 				"navigationStyle": "custom"
 			}
 		},
 		{
-			"path": "pages/history/history",
+			"path": "pages/history/index",
 			"style": {
 				"navigationBarTitleText": "草稿箱",
 				"navigationStyle": "custom"
@@ -48,13 +48,13 @@
 				"selectedIconPath": "static/tab-icons/image-active.png"
 			},
 			{
-				"pagePath": "pages/palette/palette",
+				"pagePath": "pages/palette/index",
 				"text": "色卡",
 				"iconPath": "static/tab-icons/palette.png",
 				"selectedIconPath": "static/tab-icons/palette-active.png"
 			},
 			{
-				"pagePath": "pages/history/history",
+				"pagePath": "pages/history/index",
 				"text": "草稿箱",
 				"iconPath": "static/tab-icons/history.png",
 				"selectedIconPath": "static/tab-icons/history-active.png"

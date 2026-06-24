@@ -13,15 +13,12 @@
       </view>
 
       <!-- GridCanvas 组件 -->
-      <GridCanvas
-        ref="gridCanvasRef"
-        :cell-data="projectStore.cellData"
-        :grid-width="projectStore.gridWidth"
-        :grid-height="projectStore.gridHeight"
-        :selected-cell="projectStore.selectedCell"
+      <GridCanvas ref="gridCanvasRef" :cell-data="projectStore.cellData" :grid-width="projectStore.gridWidth"
+        :grid-height="projectStore.gridHeight" :selected-cell="projectStore.selectedCell"
         :compare-image="isComparing ? projectStore.sourceImage : ''"
+        :brush-mode="brushMode"
         @cell-click="onCellClick"
-      />
+        @brush-paint="onBrushPaint" />
 
       <!-- 生成耗时提示 -->
       <view v-if="!projectStore.isGenerating && generateElapsed > 0" class="elapsed-hint">
@@ -43,29 +40,15 @@
 
       <!-- 撤销重做栏（页面中下方，不固定） -->
       <view v-if="!projectStore.selectedCell && !projectStore.isGenerating" class="undo-redo-bar">
-        <view
-          class="undo-redo-btn"
-          :class="{ active: isComparing }"
-          @touchstart.prevent="startCompare"
-          @touchend.prevent="stopCompare"
-          @mousedown.prevent="startCompare"
-          @mouseup.prevent="stopCompare"
-          @mouseleave.prevent="stopCompare"
-        >
+        <view class="undo-redo-btn" :class="{ active: isComparing }" @touchstart.prevent="startCompare"
+          @touchend.prevent="stopCompare" @mousedown.prevent="startCompare" @mouseup.prevent="stopCompare"
+          @mouseleave.prevent="stopCompare">
           <text class="undo-redo-text">👁</text>
         </view>
-        <view
-          class="undo-redo-btn"
-          :class="{ disabled: !projectStore.canUndo }"
-          @click="handleUndo"
-        >
+        <view class="undo-redo-btn" :class="{ disabled: !projectStore.canUndo }" @click="handleUndo">
           <text class="undo-redo-text">↩</text>
         </view>
-        <view
-          class="undo-redo-btn"
-          :class="{ disabled: !projectStore.canRedo }"
-          @click="handleRedo"
-        >
+        <view class="undo-redo-btn" :class="{ disabled: !projectStore.canRedo }" @click="handleRedo">
           <text class="undo-redo-text">↪</text>
         </view>
       </view>
@@ -80,11 +63,8 @@
           </view>
         </view>
         <scroll-view scroll-y class="drawer-body">
-          <ColorSummary
-            :color-summary="projectStore.colorSummary"
-            :palette-id="projectStore.paletteId"
-            @color-tap="onStatsColorTap"
-          />
+          <ColorSummary :color-summary="projectStore.colorSummary" :palette-id="projectStore.paletteId"
+            @color-tap="onStatsColorTap" />
         </scroll-view>
       </view>
 
@@ -112,27 +92,61 @@
       </view>
 
       <!-- 底部色板（选中格子时显示） -->
-      <view v-if="projectStore.selectedCell" class="color-palette-bar">
+      <view v-if="projectStore.selectedCell" class="color-palette-bar" :style="{ height: paletteHeight + 'px' }">
+        
         <view class="palette-header">
           <text class="cell-coords">选中 ({{ projectStore.selectedCell.x }}, {{ projectStore.selectedCell.y }})</text>
+          <!-- 拖动手柄 -->
+          <view class="palette-drag-handle" @touchstart.prevent="onDragStart" @touchmove.prevent="onDragMove"
+            @touchend="onDragEnd">
+            <view class="drag-indicator" />
+          </view>
           <view class="clear-selection-btn" @click="clearSelection">
             <text class="clear-text">✕</text>
           </view>
         </view>
-        <scroll-view scroll-y class="palette-grid-scroll">
+        <scroll-view scroll-y class="palette-grid-scroll" :style="{ flex: 1 }">
           <view class="palette-grid">
-            <view
-              v-for="color in paletteColors"
-              :key="color.hex"
-              class="palette-swatch"
-              :class="{ active: isCurrentCellColor(color.hex) }"
-              :style="{ backgroundColor: color.hex }"
-              @click="onColorSelect(color.hex)"
-            >
+            <view v-for="color in paletteColors" :key="color.hex" class="palette-swatch"
+              :class="{ active: isCurrentCellColor(color.hex) }" :style="{ backgroundColor: color.hex }"
+              @click="onColorSelect(color.hex)">
+              <text class="swatch-code">{{ color.code }}</text>
               <text v-if="isCurrentCellColor(color.hex)" class="swatch-check">✓</text>
             </view>
           </view>
         </scroll-view>
+      </view>
+
+      <!-- 画笔色卡选择面板 -->
+      <view v-if="showBrushPalette" class="brush-palette-panel" @touchmove.stop.prevent>
+        <view class="brush-palette-header">
+          <text class="brush-palette-title">选择画笔颜色</text>
+          <view class="brush-palette-close" @click="showBrushPalette = false">
+            <text class="brush-palette-close-text">✕</text>
+          </view>
+        </view>
+        <scroll-view scroll-y class="brush-palette-scroll" :enhanced="true" :show-scrollbar="false">
+          <view class="brush-palette-grid">
+            <view
+              v-for="color in paletteColors"
+              :key="color.hex"
+              class="brush-swatch"
+              :class="{ active: brushColor === color.hex }"
+              :style="{ backgroundColor: color.hex }"
+              @click="selectBrushColor(color.hex)"
+            >
+              <text class="brush-swatch-code">{{ color.code }}</text>
+            </view>
+          </view>
+        </scroll-view>
+      </view>
+
+      <!-- 底部工具条 -->
+      <view v-if="!projectStore.isGenerating" class="editor-toolbar">
+        <view class="toolbar-item" :class="{ active: brushMode }" @click="toggleBrushMode">
+          <view class="toolbar-icon">🖌️</view>
+          <text class="toolbar-label">画笔</text>
+        </view>
       </view>
     </view>
 
@@ -177,6 +191,58 @@ const showStats = ref(false)
 const previewDataUrl = ref('')
 const isComparing = ref(false)
 let pendingExportOptions: Parameters<typeof exportLongImage>[0] | null = null
+
+// 画笔模式
+const brushMode = ref(false)
+const brushColor = ref('')
+const showBrushPalette = ref(false)
+
+function toggleBrushMode() {
+  if (brushMode.value) {
+    // 关闭画笔
+    brushMode.value = false
+    showBrushPalette.value = false
+    projectStore.selectedCell = null
+  } else {
+    // 开启画笔：先弹出色卡选择
+    showBrushPalette.value = true
+  }
+}
+
+function selectBrushColor(hex: string) {
+  brushColor.value = hex
+  showBrushPalette.value = false
+  brushMode.value = true
+  projectStore.selectedCell = null
+}
+
+function onBrushPaint(payload: { x: number; y: number }) {
+  if (!brushMode.value || !brushColor.value) return
+  projectStore.updateCell(payload.x, payload.y, brushColor.value)
+  hasSavedCurrentWork.value = false
+}
+
+// 色卡浮层高度拖动
+const DEFAULT_PALETTE_HEIGHT = 160
+const paletteHeight = ref(DEFAULT_PALETTE_HEIGHT)
+let dragStartY = 0
+let dragStartHeight = 0
+
+function onDragStart(event: TouchEvent) {
+  dragStartY = event.touches[0].clientY
+  dragStartHeight = paletteHeight.value
+}
+
+function onDragMove(event: TouchEvent) {
+  const deltaY = dragStartY - event.touches[0].clientY
+  const maxHeight = window.innerHeight * 0.8
+  const newHeight = Math.min(maxHeight, Math.max(DEFAULT_PALETTE_HEIGHT, dragStartHeight + deltaY))
+  paletteHeight.value = newHeight
+}
+
+function onDragEnd() {
+  // 拖动结束，无需额外处理
+}
 
 function startCompare() {
   isComparing.value = true
@@ -421,6 +487,7 @@ async function generateGrid() {
 }
 
 function onCellClick(payload: { x: number; y: number }) {
+  if (brushMode.value) return
   projectStore.selectedCell = payload
 }
 
@@ -430,7 +497,7 @@ function onCellClick(payload: { x: number; y: number }) {
 .page-editor {
   display: flex;
   flex-direction: column;
-  height: calc(100vh - env(safe-area-inset-bottom));
+  height: calc(100vh - 56px - env(safe-area-inset-bottom));
   background-color: #fafafa;
   padding-top: env(safe-area-inset-top);
   overflow: hidden;
@@ -483,7 +550,7 @@ function onCellClick(payload: { x: number; y: number }) {
 
 .color-palette-bar {
   position: fixed;
-  bottom: env(safe-area-inset-bottom);
+  bottom: calc(56px + env(safe-area-inset-bottom));
   left: 0;
   right: 0;
   background-color: #ffffff;
@@ -492,26 +559,50 @@ function onCellClick(payload: { x: number; y: number }) {
   box-shadow: 0 -4px 16px rgba(0, 0, 0, 0.08);
   padding-bottom: env(safe-area-inset-bottom);
   z-index: 40;
+  display: flex;
+  flex-direction: column;
 }
 
 .palette-header {
   display: flex;
   align-items: center;
-  justify-content: space-between;
-  padding: 10px 16px;
+  padding: 6px 16px;
   border-bottom: 1px solid #f0f0f0;
+  flex-shrink: 0;
+  position: relative;
 }
 
 .cell-coords {
   font-size: 13px;
   color: #666666;
   font-weight: 500;
+  flex-shrink: 0;
+}
+
+.palette-drag-handle {
+  position: absolute;
+  left: 50%;
+  transform: translateX(-50%);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 8px 16px;
+  cursor: grab;
+}
+
+.drag-indicator {
+  width: 36px;
+  height: 4px;
+  border-radius: 2px;
+  background-color: #d0d0d0;
 }
 
 .clear-selection-btn {
+  margin-left: auto;
   padding: 4px 12px;
   border-radius: 14px;
   background-color: #f0f0f0;
+  flex-shrink: 0;
 }
 
 .clear-text {
@@ -520,7 +611,8 @@ function onCellClick(payload: { x: number; y: number }) {
 }
 
 .palette-grid-scroll {
-  max-height: 88px;
+  flex: 1;
+  min-height: 0;
 }
 
 .palette-grid {
@@ -531,13 +623,14 @@ function onCellClick(payload: { x: number; y: number }) {
 }
 
 .palette-swatch {
-  width: 32px;
-  height: 32px;
+  width: 36px;
+  height: 36px;
   border-radius: 6px;
   display: flex;
   align-items: center;
   justify-content: center;
   border: 2px solid transparent;
+  position: relative;
 }
 
 .palette-swatch.active {
@@ -545,10 +638,28 @@ function onCellClick(payload: { x: number; y: number }) {
   box-shadow: 0 0 0 2px rgba(0, 122, 255, 0.3);
 }
 
-.swatch-check {
-  font-size: 14px;
+.swatch-code {
+  font-size: 8px;
   color: #ffffff;
-  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.5);
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.6);
+  line-height: 1;
+  pointer-events: none;
+}
+
+.swatch-check {
+  position: absolute;
+  top: -4px;
+  right: -4px;
+  font-size: 10px;
+  color: #ffffff;
+  background-color: #007AFF;
+  border-radius: 50%;
+  width: 14px;
+  height: 14px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  text-shadow: none;
 }
 
 /* 返回按钮 */
@@ -964,5 +1075,134 @@ function onCellClick(payload: { x: number; y: number }) {
 .confirm-cancel-text {
   font-size: 14px;
   color: #007AFF;
+}
+
+/* 底部工具条 */
+.editor-toolbar {
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  height: calc(56px + env(safe-area-inset-bottom));
+  padding-bottom: env(safe-area-inset-bottom);
+  background-color: rgba(30, 30, 30, 0.95);
+  backdrop-filter: blur(12px);
+  display: flex;
+  align-items: center;
+  z-index: 50;
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+}
+
+.editor-toolbar::-webkit-scrollbar {
+  display: none;
+}
+
+.toolbar-item {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 2px;
+  padding: 6px 16px;
+  border-radius: 8px;
+  flex-shrink: 0;
+  transition: background-color 0.15s ease;
+}
+
+.toolbar-item:active {
+  background-color: rgba(255, 255, 255, 0.12);
+}
+
+.toolbar-icon {
+  font-size: 20px;
+  line-height: 1;
+}
+
+.toolbar-label {
+  font-size: 10px;
+  color: rgba(255, 255, 255, 0.85);
+  line-height: 1;
+}
+
+.toolbar-item.active {
+  background-color: rgba(0, 122, 255, 0.3);
+}
+
+/* 画笔色卡选择面板 */
+.brush-palette-panel {
+  position: fixed;
+  bottom: calc(56px + env(safe-area-inset-bottom));
+  left: 0;
+  right: 0;
+  height: 40vh;
+  background-color: #ffffff;
+  border-radius: 16px 16px 0 0;
+  box-shadow: 0 -4px 16px rgba(0, 0, 0, 0.12);
+  z-index: 55;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+.brush-palette-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 10px 16px;
+  border-bottom: 1px solid #f0f0f0;
+  flex-shrink: 0;
+}
+
+.brush-palette-title {
+  font-size: 14px;
+  font-weight: 600;
+  color: #1a1a1a;
+}
+
+.brush-palette-close {
+  padding: 4px 10px;
+  border-radius: 12px;
+  background-color: #f0f0f0;
+}
+
+.brush-palette-close-text {
+  font-size: 12px;
+  color: #666666;
+}
+
+.brush-palette-scroll {
+  flex: 1;
+  min-height: 0;
+}
+
+.brush-palette-grid {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  padding: 10px 12px;
+}
+
+.brush-swatch {
+  width: 36px;
+  height: 36px;
+  border-radius: 6px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: 2px solid transparent;
+}
+
+.brush-swatch.active {
+  border-color: #007AFF;
+  box-shadow: 0 0 0 2px rgba(0, 122, 255, 0.3);
+}
+
+.brush-swatch-code {
+  font-size: 8px;
+  color: #ffffff;
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.6);
+  line-height: 1;
+  pointer-events: none;
 }
 </style>

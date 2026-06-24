@@ -4,13 +4,8 @@
     <view class="section">
       <text class="section-title">网格尺寸</text>
       <view class="preset-row">
-        <view
-          v-for="preset in presets"
-          :key="preset.label"
-          class="preset-btn"
-          :class="{ active: isActivePreset(preset) }"
-          @click="selectPreset(preset)"
-        >
+        <view v-for="preset in presets" :key="preset.label" class="preset-btn"
+          :class="{ active: isActivePreset(preset) }" @click="selectPreset(preset)">
           <text class="preset-label">{{ preset.label }}</text>
           <text class="preset-size">{{ preset.width }}×{{ preset.height }}</text>
         </view>
@@ -18,22 +13,12 @@
       <view v-if="isCustom" class="custom-input-row">
         <view class="input-group">
           <text class="input-label">宽</text>
-          <input
-            type="number"
-            :value="projectStore.gridWidth"
-            class="size-input"
-            @input="onWidthInput"
-          />
+          <input type="number" :value="projectStore.gridWidth" class="size-input" @input="onWidthInput" />
         </view>
         <text class="input-separator">×</text>
         <view class="input-group">
           <text class="input-label">高</text>
-          <input
-            type="number"
-            :value="projectStore.gridHeight"
-            class="size-input"
-            @input="onHeightInput"
-          />
+          <input type="number" :value="projectStore.gridHeight" class="size-input" @input="onHeightInput" />
         </view>
       </view>
     </view>
@@ -42,40 +27,13 @@
     <view class="section">
       <text class="section-title">像素化模式</text>
       <view class="mode-row">
-        <view
-          class="mode-btn"
-          :class="{ active: configStore.pixelationMode === 'average' }"
-          @click="configStore.pixelationMode = 'average'"
-        >
-          <text>平均色</text>
-        </view>
-        <view
-          class="mode-btn"
-          :class="{ active: configStore.pixelationMode === 'dominant' }"
-          @click="configStore.pixelationMode = 'dominant'"
-        >
-          <text>主色</text>
-        </view>
-        <view
-          class="mode-btn"
-          :class="{ active: configStore.pixelationMode === 'palette-vote' }"
-          @click="configStore.pixelationMode = 'palette-vote'"
-        >
-          <text>投票法</text>
-        </view>
-        <view
-          class="mode-btn"
-          :class="{ active: configStore.pixelationMode === 'adaptive' }"
-          @click="configStore.pixelationMode = 'adaptive'"
-        >
+        <view class="mode-btn" :class="{ active: configStore.pixelationMode === 'adaptive' }"
+          @click="configStore.pixelationMode = 'adaptive'">
           <text>自适应</text>
         </view>
-        <view
-          class="mode-btn"
-          :class="{ active: configStore.pixelationMode === 'preprocessed' }"
-          @click="configStore.pixelationMode = 'preprocessed'"
-        >
-          <text>预处理</text>
+        <view class="mode-btn" :class="{ active: configStore.pixelationMode === 'average' }"
+          @click="configStore.pixelationMode = 'average'">
+          <text>平均色</text>
         </view>
       </view>
     </view>
@@ -84,13 +42,8 @@
     <view class="section">
       <text class="section-title">拼豆品牌</text>
       <view class="brand-row">
-        <view
-          v-for="brand in brands"
-          :key="brand"
-          class="brand-tag"
-          :class="{ active: projectStore.paletteId === brand }"
-          @click="projectStore.paletteId = brand"
-        >
+        <view v-for="brand in brands" :key="brand" class="brand-tag"
+          :class="{ active: projectStore.paletteId === brand }" @click="projectStore.paletteId = brand">
           <text>{{ brand }}</text>
         </view>
       </view>
@@ -105,13 +58,8 @@
         </view>
       </view>
       <view class="series-row">
-        <view
-          v-for="series in currentSeriesList"
-          :key="series"
-          class="series-tag"
-          :class="{ active: isSeriesSelected(series) }"
-          @click="toggleSeries(series)"
-        >
+        <view v-for="series in currentSeriesList" :key="series" class="series-tag"
+          :class="{ active: isSeriesSelected(series) }" @click="toggleSeries(series)">
           <text>{{ series }}系</text>
         </view>
       </view>
@@ -136,9 +84,9 @@ interface Preset {
 }
 
 const presets: Preset[] = [
-  { label: '小图', width: 16, height: 16 },
-  { label: '中图', width: 32, height: 32 },
-  { label: '大图', width: 48, height: 48 },
+  { label: '小图', width: 32, height: 32 },
+  { label: '中图', width: 48, height: 48 },
+  { label: '大图', width: 98, height: 98 },
   { label: '自定义', width: 0, height: 0 },
 ]
 

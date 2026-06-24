@@ -3,7 +3,7 @@
 
 import { findNearestColor, hexToRgb, rgbToHex, srgbToOklab, oklabDistance, type RgbColor } from './color-mapper'
 
-export type PixelationMode = 'average' | 'dominant' | 'palette-vote' | 'adaptive' | 'preprocessed'
+export type PixelationMode = 'average' | 'adaptive'
 
 export interface PixelateOptions {
   imageData: Uint8ClampedArray
@@ -23,7 +23,53 @@ export interface PixelateResult {
 }
 
 /**
+ * 估算图像块四角的背景色（取四角 2×2 区域的平均色）
+ */
+function estimateBackgroundColor(
+  data: Uint8ClampedArray,
+  imgWidth: number,
+  startX: number,
+  startY: number,
+  blockWidth: number,
+  blockHeight: number
+): RgbColor | null {
+  const endX = Math.min(startX + blockWidth, imgWidth)
+  const endY = Math.min(startY + blockHeight, Math.floor(data.length / 4 / imgWidth))
+  const sampleSize = Math.max(1, Math.min(2, Math.floor(blockWidth / 2), Math.floor(blockHeight / 2)))
+
+  let rSum = 0, gSum = 0, bSum = 0, count = 0
+
+  // 四个角的采样区域
+  const corners = [
+    { sx: startX, sy: startY },
+    { sx: endX - sampleSize, sy: startY },
+    { sx: startX, sy: endY - sampleSize },
+    { sx: endX - sampleSize, sy: endY - sampleSize },
+  ]
+
+  for (const corner of corners) {
+    for (let dy = 0; dy < sampleSize; dy++) {
+      for (let dx = 0; dx < sampleSize; dx++) {
+        const px = corner.sx + dx
+        const py = corner.sy + dy
+        if (px >= imgWidth || py >= endY) continue
+        const idx = (py * imgWidth + px) * 4
+        if (data[idx + 3] < 128) continue
+        rSum += data[idx]
+        gSum += data[idx + 1]
+        bSum += data[idx + 2]
+        count++
+      }
+    }
+  }
+
+  if (count === 0) return null
+  return { r: Math.round(rSum / count), g: Math.round(gSum / count), b: Math.round(bSum / count) }
+}
+
+/**
  * 计算图像指定区域的代表色
+ * 对 average/adaptive 模式：自动检测并剔除背景色像素，减少边缘杂色
  */
 function calculateCellRepresentativeColor(
   data: Uint8ClampedArray,
@@ -34,36 +80,47 @@ function calculateCellRepresentativeColor(
   blockHeight: number,
   mode: PixelationMode
 ): RgbColor | null {
+  const endX = Math.min(startX + blockWidth, imgWidth)
+  const endY = Math.min(startY + blockHeight, Math.floor(data.length / 4 / imgWidth))
+
+  // adaptive 模式：估算背景色并过滤背景像素，减少边缘杂色
+  const useBgFilter = mode === 'adaptive'
+  const bgColor = useBgFilter ? estimateBackgroundColor(data, imgWidth, startX, startY, blockWidth, blockHeight) : null
+  const BG_DIST_THRESHOLD = 0.03
+
   let rSum = 0
   let gSum = 0
   let bSum = 0
   let pixelCount = 0
 
-  // dominant 模式用 Map 统计颜色频次
   const colorCounts = new Map<string, number>()
   let dominantRgb: RgbColor | null = null
   let maxCount = 0
 
-  const endX = Math.min(startX + blockWidth, imgWidth)
-  const endY = Math.min(startY + blockHeight, Math.floor(data.length / 4 / imgWidth))
-
   for (let y = startY; y < endY; y++) {
     for (let x = startX; x < endX; x++) {
       const index = (y * imgWidth + x) * 4
-      // 忽略完全透明的像素
       if (data[index + 3] < 128) continue
 
       const r = data[index]
       const g = data[index + 1]
       const b = data[index + 2]
+
+      // adaptive 模式：过滤掉与背景色过于接近的像素
+      if (useBgFilter && bgColor) {
+        const pixelOklab = srgbToOklab({ r, g, b })
+        const bgOklab = srgbToOklab(bgColor)
+        const dist = oklabDistance(pixelOklab, bgOklab)
+        if (dist < BG_DIST_THRESHOLD) continue
+      }
+
       pixelCount++
 
-      if (mode === 'average') {
+      if (mode === 'average' || mode === 'adaptive') {
         rSum += r
         gSum += g
         bSum += b
       } else {
-        // dominant 模式：量化到 8-bit 减少 key 数量
         const colorKey = `${r},${g},${b}`
         const count = (colorCounts.get(colorKey) || 0) + 1
         colorCounts.set(colorKey, count)
@@ -77,7 +134,7 @@ function calculateCellRepresentativeColor(
 
   if (pixelCount === 0) return null
 
-  if (mode === 'average') {
+  if (mode === 'average' || mode === 'adaptive') {
     return {
       r: Math.round(rSum / pixelCount),
       g: Math.round(gSum / pixelCount),

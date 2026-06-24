@@ -10,8 +10,8 @@ export type PaletteId = 'MARD' | 'COCO' | '漫漫' | '盼盼' | '咪小窝'
 
 export const useProjectStore = defineStore('project', () => {
   const sourceImage = ref('')
-  const gridWidth = ref(32)
-  const gridHeight = ref(32)
+  const gridWidth = ref(48)
+const gridHeight = ref(48)
   const cellData = ref<string[][]>(createEmptyGrid(32, 32))
   const colorSummary = ref<Record<string, number>>({})
   const paletteId = ref<PaletteId>('MARD')

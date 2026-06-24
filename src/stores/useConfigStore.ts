@@ -5,7 +5,7 @@ import type { PixelationMode } from '../utils/image-processor'
 export const useConfigStore = defineStore('config', () => {
   const defaultGridSize = ref(32)
   const defaultPalette = ref('MARD')
-  const pixelationMode = ref<PixelationMode>('average')
+  const pixelationMode = ref<PixelationMode>('adaptive')
   // 每个品牌选中的色系列表，空数组表示不限制（使用全部色系）
   const selectedSeries = ref<Record<string, string[]>>({})
 

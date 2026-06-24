@@ -131,7 +131,7 @@ function renderThumbnail(item: HistoryItem) {
 function handleLoad(id: string) {
   const success = projectStore.loadFromHistory(id)
   if (success) {
-    uni.navigateTo({ url: '/pages/editor/editor' })
+    uni.navigateTo({ url: '/pages/editor/index' })
   } else {
     uni.showToast({ title: '加载失败', icon: 'none' })
   }

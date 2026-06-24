@@ -37,15 +37,19 @@ interface Props {
   selectedCell?: { x: number; y: number } | null
   /** 对照原图 URL，传入后在 Canvas 上方显示半透明覆盖 */
   compareImage?: string
+  /** 画笔模式：触摸移动时发射 brushPaint 事件而非缩放/平移 */
+  brushMode?: boolean
 }
 
 const props = withDefaults(defineProps<Props>(), {
   selectedCell: null,
   compareImage: '',
+  brushMode: false,
 })
 
 const emit = defineEmits<{
   (e: 'cellClick', payload: { x: number; y: number }): void
+  (e: 'brushPaint', payload: { x: number; y: number }): void
 }>()
 
 const displayWidth = ref(300)
@@ -159,6 +163,15 @@ defineExpose({
 // === 缩放手势处理 ===
 function onViewportTouchStart(event: any) {
   const touches = event.touches || []
+
+  // 画笔模式：单指触摸开始绘制
+  if (props.brushMode && touches.length === 1) {
+    isDragging = false
+    isPinching = false
+    emitBrushAt(touches[0])
+    return
+  }
+
   if (touches.length === 2) {
     isPinching = true
     isDragging = false
@@ -186,8 +199,30 @@ function onViewportTouchStart(event: any) {
   }
 }
 
+/** 根据触摸坐标计算格子并发射 brushPaint 事件 */
+function emitBrushAt(touch: any) {
+  const wrapper = document.getElementById('gridCanvasWrapper')
+  if (!wrapper) return
+  const rect = wrapper.getBoundingClientRect()
+  const offsetX = ((touch.clientX ?? touch.x ?? 0) - rect.left) / scale.value
+  const offsetY = ((touch.clientY ?? touch.y ?? 0) - rect.top) / scale.value
+  const cellSize = displayWidth.value / props.gridWidth
+  const gridX = Math.floor(offsetX / cellSize)
+  const gridY = Math.floor(offsetY / cellSize)
+  if (gridX >= 0 && gridX < props.gridWidth && gridY >= 0 && gridY < props.gridHeight) {
+    emit('brushPaint', { x: gridX, y: gridY })
+  }
+}
+
 function onViewportTouchMove(event: any) {
   const touches = event.touches || []
+
+  // 画笔模式：单指移动时持续绘制
+  if (props.brushMode && touches.length === 1) {
+    emitBrushAt(touches[0])
+    return
+  }
+
   if (isPinching && touches.length === 2) {
     const currentDistance = getPinchDistance(touches)
     scale.value = Math.min(maxScale.value, Math.max(MIN_SCALE, initialScale * (currentDistance / initialPinchDistance)))

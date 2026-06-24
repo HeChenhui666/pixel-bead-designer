@@ -122,7 +122,7 @@ function onColorCellTap(item: { hex: string; code: string }) {
 .page-palette {
   display: flex;
   flex-direction: column;
-  height: 100vh;
+  height: calc(100vh - 50px - env(safe-area-inset-bottom));
   background-color: #f8f8f8;
   padding-top: env(safe-area-inset-top);
   overflow: auto;

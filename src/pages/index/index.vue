@@ -37,7 +37,7 @@ function onImageError(message: string) {
 function handleGenerate() {
   if (!projectStore.hasImage) return
   projectStore.pendingGenerate = true
-  uni.navigateTo({ url: '/pages/editor/editor' })
+  uni.navigateTo({ url: '/pages/editor/index' })
 }
 </script>
 
