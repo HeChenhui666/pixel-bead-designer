@@ -1,14 +1,18 @@
 <template>
   <view class="image-picker">
-    <view v-if="modelValue" class="preview-container" @tap="onTapChoose">
+    <view v-if="modelValue" class="preview-container" @tap="onTapChoose" @catchtap="onTapChoose" @click="onTapChoose" @touchstart="onTapChoose">
       <image
         :src="modelValue"
         mode="aspectFit"
         class="preview-image"
+        @tap="onTapChoose"
+        @catchtap="onTapChoose"
+        @click="onTapChoose"
+        @touchstart="onTapChoose"
       />
       <view class="change-hint">点击更换图片</view>
     </view>
-    <view v-else class="empty-state" @tap="onTapChoose">
+    <view v-else class="empty-state" @tap="onTapChoose" @catchtap="onTapChoose" @click="onTapChoose" @touchstart="onTapChoose">
       <text class="empty-icon">📷</text>
       <text class="empty-text">点击上传图片</text>
     </view>
@@ -31,7 +35,11 @@ const emit = defineEmits<{
   error: [message: string]
 }>()
 
+let choosing = false
+
 function onTapChoose() {
+  if (choosing) return
+  choosing = true
   console.log('[ImagePicker] onTapChoose triggered')
 
   // #ifdef H5
@@ -52,16 +60,19 @@ function onTapChoose() {
       if (fileSize > maxBytes) {
         emit('error', `图片大小超过 ${props.maxSizeMB}MB，请压缩后重试`)
         uni.showToast({ title: '图片过大，请压缩后重试', icon: 'none' })
+        choosing = false
         return
       }
 
       emit('update:modelValue', tempFilePath)
+      choosing = false
     },
     fail: (err) => {
       console.log('[ImagePicker] fail:', err)
       if (err?.errMsg && !err.errMsg.includes('cancel')) {
         uni.showToast({ title: '选择图片失败', icon: 'none' })
       }
+      choosing = false
     },
   })
   // #endif
@@ -76,18 +87,23 @@ function triggerH5FilePicker() {
   input.onchange = (event: Event) => {
     const target = event.target as HTMLInputElement
     const file = target.files?.[0]
-    if (!file) return
+    if (!file) {
+      choosing = false
+      return
+    }
 
     const maxBytes = props.maxSizeMB * 1024 * 1024
     if (file.size > maxBytes) {
       emit('error', `图片大小超过 ${props.maxSizeMB}MB，请压缩后重试`)
       uni.showToast({ title: '图片过大，请压缩后重试', icon: 'none' })
+      choosing = false
       return
     }
 
     const reader = new FileReader()
     reader.onload = () => {
       emit('update:modelValue', reader.result as string)
+      choosing = false
     }
     reader.readAsDataURL(file)
     input.remove()
