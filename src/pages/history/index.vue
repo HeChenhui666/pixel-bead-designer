@@ -44,19 +44,22 @@
         </view>
       </view>
     </scroll-view>
-    <CustomTabBar :current="2" />
+
+    <!-- #ifndef H5 -->
+    <CustomTabBar />
+    <!-- #endif -->
   </view>
 </template>
 
 <script setup lang="ts">
-import { ref, onMounted, nextTick } from 'vue'
+import { ref, onMounted, nextTick, getCurrentInstance } from 'vue'
 import { onShow } from '@dcloudio/uni-app'
 import { useProjectStore } from '../../stores/useProjectStore'
+// #ifndef H5
 import CustomTabBar from '../../custom-tab-bar/index.vue'
+// #endif
 
-onShow(() => {
-  // 自定义 tabBar 通过 prop 控制选中态，无需额外处理
-})
+const instance = getCurrentInstance()
 
 interface HistoryItem {
   id: string
@@ -72,6 +75,11 @@ const projectStore = useProjectStore()
 const historyList = ref<HistoryItem[]>([])
 
 onMounted(() => {
+  refreshList()
+})
+
+onShow(() => {
+  projectStore.currentTab = 2
   refreshList()
 })
 
@@ -118,7 +126,7 @@ function renderThumbnail(item: HistoryItem) {
   // #endif
 
   // #ifndef H5
-  const ctx = uni.createCanvasContext('thumb_' + item.id)
+  const ctx = uni.createCanvasContext('thumb_' + item.id, instance?.proxy)
   ctx.setFillStyle('#FAFAFA')
   ctx.fillRect(0, 0, thumbSize, thumbSize)
 
@@ -167,10 +175,11 @@ function goToUpload() {
 .page-history {
   display: flex;
   flex-direction: column;
-  height: calc(100vh - 50px - var(--safe-bottom, 0px));
+  height: calc(100vh - 50px - var(--safe-area-bottom, 0px));
   background-color: #f8f8f8;
-  padding-top: var(--safe-top, 0px);
+  padding-top: var(--status-bar-height, 0px);
   overflow: auto;
+  box-sizing: border-box;
 }
 
 .header {

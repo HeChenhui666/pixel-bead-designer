@@ -72,7 +72,10 @@
         </view>
       </view>
     </view>
-    <CustomTabBar :current="1" />
+
+    <!-- #ifndef H5 -->
+    <CustomTabBar />
+    <!-- #endif -->
   </view>
 </template>
 
@@ -82,7 +85,9 @@ import { onShow } from '@dcloudio/uni-app'
 import { useProjectStore } from '../../stores/useProjectStore'
 import { getColorList } from '../../utils/color-mapper'
 import type { PaletteId } from '../../stores/useProjectStore'
+// #ifndef H5
 import CustomTabBar from '../../custom-tab-bar/index.vue'
+// #endif
 
 const projectStore = useProjectStore()
 
@@ -92,7 +97,7 @@ const searchKeyword = ref('')
 const selectedColor = ref<{ hex: string; code: string } | null>(null)
 
 onShow(() => {
-  // 每次进入页面同步到当前图纸品牌
+  projectStore.currentTab = 1
   selectedBrand.value = projectStore.paletteId
 })
 
@@ -124,10 +129,11 @@ function onColorCellTap(item: { hex: string; code: string }) {
 .page-palette {
   display: flex;
   flex-direction: column;
-  height: calc(100vh - 50px - var(--safe-bottom, 0px));
+  height: calc(100vh - 50px - var(--safe-area-bottom, 0px));
   background-color: #f8f8f8;
-  padding-top: var(--safe-top, 0px);
+  padding-top: var(--status-bar-height, 0px);
   overflow: auto;
+  box-sizing: border-box;
 }
 
 .header {
@@ -305,7 +311,7 @@ function onColorCellTap(item: { hex: string; code: string }) {
   width: 100%;
   background-color: #ffffff;
   border-radius: 20px 20px 0 0;
-  padding: 24px 20px calc(24px + var(--safe-bottom, 0px));
+  padding: 24px 20px calc(24px + var(--safe-area-bottom, 0px));
   display: flex;
   align-items: center;
   gap: 16px;

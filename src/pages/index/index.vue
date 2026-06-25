@@ -20,7 +20,10 @@
         <text class="btn-text">生成图纸</text>
       </view>
     </view>
-    <CustomTabBar :current="0" />
+
+    <!-- #ifndef H5 -->
+    <CustomTabBar />
+    <!-- #endif -->
   </view>
 </template>
 
@@ -29,12 +32,14 @@ import { onShow } from '@dcloudio/uni-app'
 import { useProjectStore } from '../../stores/useProjectStore'
 import ImagePicker from '../../components/ImagePicker.vue'
 import ParamPanel from '../../components/ParamPanel.vue'
+// #ifndef H5
 import CustomTabBar from '../../custom-tab-bar/index.vue'
+// #endif
 
 const projectStore = useProjectStore()
 
 onShow(() => {
-  // 自定义 tabBar 通过 prop 控制选中态，无需额外处理
+  projectStore.currentTab = 0
 })
 
 function onImageError(message: string) {
@@ -52,10 +57,11 @@ function handleGenerate() {
 .page-index {
   display: flex;
   flex-direction: column;
-  height: calc(100vh - 50px - var(--safe-bottom, 0px));
+  height: calc(100vh - 50px - var(--safe-area-bottom, 0px));
   background-color: #ffffff;
-  padding-top: var(--safe-top, 0px);
+  padding-top: var(--status-bar-height, 0px);
   overflow: auto;
+  box-sizing: border-box;
 }
 
 .top-section {
@@ -69,7 +75,6 @@ function handleGenerate() {
 
 .bottom-action {
   padding: 16px;
-  padding-bottom: calc(16px + var(--safe-bottom, 0px));
   flex-shrink: 0;
 }
 

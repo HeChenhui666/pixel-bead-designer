@@ -36,8 +36,13 @@
 </template>
 
 <script setup lang="ts">
-import { ref, computed, watch, nextTick, onMounted } from 'vue'
+import { ref, computed, watch, nextTick, onMounted, getCurrentInstance } from 'vue'
 import { onShow } from '@dcloudio/uni-app'
+
+const instance = getCurrentInstance()
+
+// 画笔增量绘制计数器：paintCell 先绘制再让 updateCell 触发 watch，watch 见到计数 > 0 则跳过全量重绘
+let pendingIncrementalPaints = 0
 
 interface Props {
   cellData: string[][]
@@ -69,6 +74,21 @@ const scale = ref(1)
 const panX = ref(0)
 const panY = ref(0)
 const MIN_SCALE = 0.2
+
+// App 端：缓存 viewport 的屏幕坐标，用于画笔触摸坐标换算
+let cachedViewportRect = { left: 0, top: 0, width: 0, height: 0 }
+
+function updateViewportRect() {
+  // #ifndef H5
+  uni.createSelectorQuery()
+    .in(instance?.proxy)
+    .select('#canvasViewport')
+    .boundingClientRect((data: any) => {
+      if (data) cachedViewportRect = data
+    })
+    .exec()
+  // #endif
+}
 // 动态最大缩放：保证最大放大时每个格子至少 24px 宽，便于查看和点击
 const maxScale = computed(() => {
   if (!displayWidth.value || !props.gridWidth) return 8
@@ -123,10 +143,14 @@ function updateDisplaySize() {
   displayHeight.value = cellSize * gridHeight
 }
 
-// 监听数据变化重新渲染
+// 监听数据变化重新渲染；画笔增量绘制时跳过全量重绘
 watch(
   () => [props.cellData, props.selectedCell],
   () => {
+    if (pendingIncrementalPaints > 0) {
+      pendingIncrementalPaints = Math.max(0, pendingIncrementalPaints - 1)
+      return
+    }
     nextTick(() => renderGrid())
   },
   { deep: true }
@@ -134,6 +158,7 @@ watch(
 
 onMounted(() => {
   updateDisplaySize()
+  updateViewportRect()
   nextTick(() => renderGrid())
 
   // H5 端：在 viewport 原生 DOM 上绑定滚轮和触摸事件
@@ -152,6 +177,7 @@ onMounted(() => {
 onShow(() => {
   setTimeout(() => {
     updateDisplaySize()
+    updateViewportRect()
     nextTick(() => renderGrid())
   }, 100)
 })
@@ -166,6 +192,15 @@ defineExpose({
     scale.value = 1
     panX.value = 0
     panY.value = 0
+  },
+  paintCell: (x: number, y: number, hex: string) => {
+    pendingIncrementalPaints++
+    // #ifdef H5
+    renderSingleCellH5(x, y, hex)
+    // #endif
+    // #ifndef H5
+    renderSingleCellApp(x, y, hex)
+    // #endif
   },
 })
 
@@ -210,18 +245,25 @@ function onViewportTouchStart(event: any) {
 
 /** 根据触摸坐标计算格子并发射 brushPaint 事件 */
 function emitBrushAt(touch: any) {
+  const touchX = touch.clientX ?? touch.x ?? 0
+  const touchY = touch.clientY ?? touch.y ?? 0
+
   // #ifdef H5
   const wrapper = document.getElementById('gridCanvasWrapper')
   if (!wrapper) return
   const rect = wrapper.getBoundingClientRect()
-  const offsetX = ((touch.clientX ?? touch.x ?? 0) - rect.left) / scale.value
-  const offsetY = ((touch.clientY ?? touch.y ?? 0) - rect.top) / scale.value
+  const offsetX = (touchX - rect.left) / scale.value
+  const offsetY = (touchY - rect.top) / scale.value
   // #endif
 
   // #ifndef H5
-  // App/小程序端：触摸事件坐标已经是相对于 Canvas 的
-  const offsetX = (touch.x ?? touch.clientX ?? 0) / scale.value
-  const offsetY = (touch.y ?? touch.clientY ?? 0) / scale.value
+  // App 端：touch.clientX 是窗口坐标，需减去 canvas 在屏幕上的实际位置
+  // canvas 中心 = viewport 中心 + panX/panY 偏移
+  const vr = cachedViewportRect
+  const canvasLeft = vr.left + vr.width / 2 + panX.value - displayWidth.value * scale.value / 2
+  const canvasTop = vr.top + vr.height / 2 + panY.value - displayHeight.value * scale.value / 2
+  const offsetX = (touchX - canvasLeft) / scale.value
+  const offsetY = (touchY - canvasTop) / scale.value
   // #endif
 
   const cellSize = displayWidth.value / props.gridWidth
@@ -357,8 +399,9 @@ function handleCanvasClick(event: any) {
   // #endif
 
   // #ifndef H5
-  offsetX = (event.detail?.x ?? 0) / scale.value
-  offsetY = (event.detail?.y ?? 0) / scale.value
+  // App 端 event.detail.x/y 是 canvas 元素内部的逻辑坐标，无需除以 scale
+  offsetX = event.detail?.x ?? 0
+  offsetY = event.detail?.y ?? 0
   // #endif
 
   const gridX = Math.floor(offsetX / cellSize)
@@ -490,7 +533,7 @@ watch(() => props.compareImage, (newSrc) => {
 
 // App/小程序端：分批绘制，避免大尺寸网格一次性发送过多 IPC 命令导致崩溃
 async function renderApp(gridWidth: number, gridHeight: number, cellSize: number, dispW: number, dispH: number) {
-  const ctx = uni.createCanvasContext('gridCanvas')
+  const ctx = uni.createCanvasContext('gridCanvas', instance?.proxy)
   if (!ctx) return
 
   // 每批最多 10 行，限制单次 draw() 的命令数量
@@ -597,6 +640,37 @@ function drawGridLines(
     ctx.lineTo(dispW, y * cellSize)
   }
   ctx.stroke()
+}
+
+// 增量单格绘制（App 端）：reserve=true 保留已有画布内容，仅覆盖目标格子
+function renderSingleCellApp(x: number, y: number, hex: string) {
+  const ctx = uni.createCanvasContext('gridCanvas', instance?.proxy)
+  if (!ctx) return
+  const cellSize = displayWidth.value / props.gridWidth
+  ctx.setFillStyle(hex || '#FAFAFA')
+  ctx.fillRect(x * cellSize, y * cellSize, cellSize, cellSize)
+  if (cellSize >= 2) {
+    ctx.setStrokeStyle('#E8E8E8')
+    ctx.setLineWidth(0.5)
+    ctx.strokeRect(x * cellSize, y * cellSize, cellSize, cellSize)
+  }
+  ctx.draw(true)
+}
+
+// 增量单格绘制（H5 端）：直接在现有原生 canvas context 上叠绘，无需重建 canvas
+function renderSingleCellH5(x: number, y: number, hex: string) {
+  const canvas = document.getElementById('gridCanvas') as HTMLCanvasElement | null
+  if (!canvas) return
+  const ctx2d = canvas.getContext('2d')
+  if (!ctx2d) return
+  const cellSize = displayWidth.value / props.gridWidth
+  ctx2d.fillStyle = hex || '#FAFAFA'
+  ctx2d.fillRect(x * cellSize, y * cellSize, cellSize, cellSize)
+  if (cellSize >= 2) {
+    ctx2d.strokeStyle = '#E8E8E8'
+    ctx2d.lineWidth = 0.5
+    ctx2d.strokeRect(x * cellSize, y * cellSize, cellSize, cellSize)
+  }
 }
 </script>
 

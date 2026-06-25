@@ -14,14 +14,11 @@
 </template>
 
 <script setup lang="ts">
-interface Props {
-  /** 当前选中的 tab 索引（0=图片, 1=色卡, 2=草稿箱） */
-  current?: number
-}
+import { computed } from 'vue'
+import { useProjectStore } from '../stores/useProjectStore'
 
-const props = withDefaults(defineProps<Props>(), {
-  current: 0,
-})
+const projectStore = useProjectStore()
+const current = computed(() => projectStore.currentTab)
 
 const tabs = [
   { path: '/pages/index/index', text: '图片', icon: '🖼️' },
@@ -30,7 +27,8 @@ const tabs = [
 ]
 
 function switchTab(index: number) {
-  if (props.current === index) return
+  if (current.value === index) return
+  projectStore.currentTab = index
   uni.switchTab({ url: tabs[index].path })
 }
 </script>
@@ -41,8 +39,8 @@ function switchTab(index: number) {
   bottom: 0;
   left: 0;
   right: 0;
-  height: calc(50px + var(--safe-bottom, 0px));
-  padding-bottom: var(--safe-bottom, 0px);
+  height: calc(50px + var(--safe-area-bottom, 0px));
+  padding-bottom: var(--safe-area-bottom, 0px);
   background-color: #ffffff;
   border-top: 1px solid #e8e8e8;
   display: flex;

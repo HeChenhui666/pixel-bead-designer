@@ -570,8 +570,8 @@ function denoiseGrid(cellData: string[][], gridWidth: number, gridHeight: number
 }
 
 /**
- * H5 端便捷入口：从图片 URL/Base64 加载并像素化
- * App/小程序端应使用 UTs 版本或平台特定 API
+ * 从图片路径加载并像素化。
+ * H5 和 App（webview）均通过浏览器 canvas API 处理；小程序使用 uni 离屏 canvas 降级。
  */
 export async function pixelateImage(options: {
   imagePath: string
@@ -583,50 +583,46 @@ export async function pixelateImage(options: {
 }): Promise<PixelateResult> {
   const { imagePath, gridWidth, gridHeight, mode, paletteId, allowedSeries } = options
 
-  // #ifdef H5
-  return new Promise((resolve, reject) => {
-    const img = new Image()
-    // 不设置 crossOrigin，避免 blob URL / 本地路径加载失败
-    img.onload = () => {
-      try {
-        const canvas = document.createElement('canvas')
-        // 限制最大处理尺寸为 1024px，避免内存溢出
-        const maxDim = 1024
-        let drawWidth = img.width
-        let drawHeight = img.height
-        if (drawWidth > maxDim || drawHeight > maxDim) {
-          const scale = maxDim / Math.max(drawWidth, drawHeight)
-          drawWidth = Math.round(drawWidth * scale)
-          drawHeight = Math.round(drawHeight * scale)
+  // H5 和 App 均为 webview，支持标准浏览器 Image + Canvas API
+  if (typeof document !== 'undefined' && typeof Image !== 'undefined') {
+    return new Promise((resolve, reject) => {
+      const img = new Image()
+      img.onload = () => {
+        try {
+          const maxDim = 1024
+          let drawWidth = img.naturalWidth || img.width
+          let drawHeight = img.naturalHeight || img.height
+          if (drawWidth > maxDim || drawHeight > maxDim) {
+            const scale = maxDim / Math.max(drawWidth, drawHeight)
+            drawWidth = Math.round(drawWidth * scale)
+            drawHeight = Math.round(drawHeight * scale)
+          }
+          const canvas = document.createElement('canvas')
+          canvas.width = drawWidth
+          canvas.height = drawHeight
+          const ctx = canvas.getContext('2d')!
+          ctx.drawImage(img, 0, 0, drawWidth, drawHeight)
+          const imageDataObj = ctx.getImageData(0, 0, drawWidth, drawHeight)
+          resolve(pixelateFromImageData({
+            imageData: imageDataObj.data,
+            imageWidth: drawWidth,
+            imageHeight: drawHeight,
+            gridWidth,
+            gridHeight,
+            mode,
+            paletteId,
+            allowedSeries,
+          }))
+        } catch (err) {
+          reject(err)
         }
-        canvas.width = drawWidth
-        canvas.height = drawHeight
-        const ctx = canvas.getContext('2d')!
-        ctx.drawImage(img, 0, 0, drawWidth, drawHeight)
-        const imageDataObj = ctx.getImageData(0, 0, drawWidth, drawHeight)
-
-        const result = pixelateFromImageData({
-          imageData: imageDataObj.data,
-          imageWidth: drawWidth,
-          imageHeight: drawHeight,
-          gridWidth,
-          gridHeight,
-          mode,
-          paletteId,
-          allowedSeries,
-        })
-        resolve(result)
-      } catch (err) {
-        reject(err)
       }
-    }
-    img.onerror = () => reject(new Error('图片加载失败'))
-    img.src = imagePath
-  })
-  // #endif
+      img.onerror = () => reject(new Error('图片加载失败'))
+      img.src = imagePath
+    })
+  }
 
-  // #ifndef H5
-  // App/小程序端：通过 uni Canvas API 获取像素数据并像素化
+  // 小程序降级：uni 离屏 canvas
   return new Promise((resolve, reject) => {
     uni.getImageInfo({
       src: imagePath,
@@ -639,22 +635,18 @@ export async function pixelateImage(options: {
           drawWidth = Math.round(drawWidth * scale)
           drawHeight = Math.round(drawHeight * scale)
         }
-
-        // 使用 uni.createOffscreenCanvas 创建离屏 Canvas（App 端支持）
         try {
           const offscreen = (uni as any).createOffscreenCanvas({ type: '2d', width: drawWidth, height: drawHeight })
           if (!offscreen) {
-            resolve({ cellData: Array.from({ length: gridHeight }, () => Array(gridWidth).fill('')), elapsedMs: 0 })
+            reject(new Error('createOffscreenCanvas 不可用'))
             return
           }
-
           const ctx = offscreen.getContext('2d')
           const img = offscreen.createImage()
           img.onload = () => {
             ctx.drawImage(img, 0, 0, drawWidth, drawHeight)
             const imageDataObj = ctx.getImageData(0, 0, drawWidth, drawHeight)
-
-            const result = pixelateFromImageData({
+            resolve(pixelateFromImageData({
               imageData: imageDataObj.data,
               imageWidth: drawWidth,
               imageHeight: drawHeight,
@@ -663,18 +655,15 @@ export async function pixelateImage(options: {
               mode,
               paletteId,
               allowedSeries,
-            })
-            resolve(result)
+            }))
           }
-          img.onerror = () => reject(new Error('App端图片加载失败'))
+          img.onerror = () => reject(new Error('图片加载失败'))
           img.src = imagePath
-        } catch (_e) {
-          // createOffscreenCanvas 不可用时降级返回空结果
-          resolve({ cellData: Array.from({ length: gridHeight }, () => Array(gridWidth).fill('')), elapsedMs: 0 })
+        } catch (e) {
+          reject(e)
         }
       },
       fail: () => reject(new Error('图片信息获取失败')),
     })
   })
-  // #endif
 }
