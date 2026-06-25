@@ -1,23 +1,25 @@
 <template>
-  <view class="page-index" :style="{ paddingTop: safeTop + 'px', height: `calc(100vh - 50px - ${safeBottom}px)` }">
-    <!-- 顶部图片预览区 -->
-    <view class="top-section">
-      <ImagePicker v-model="projectStore.sourceImage" @error="onImageError" />
-    </view>
+  <view class="page-wrapper">
+    <view class="page-index" :style="{ paddingTop: safeTop + 'px', paddingBottom: `calc(50px + ${safeBottom}px)` }">
+      <!-- 顶部图片预览区 -->
+      <view class="top-section">
+        <ImagePicker v-model="projectStore.sourceImage" @error="onImageError" />
+      </view>
 
-    <!-- 参数面板 -->
-    <scroll-view scroll-y class="params-scroll">
-      <ParamPanel />
-    </scroll-view>
+      <!-- 参数面板 -->
+      <scroll-view scroll-y class="params-scroll">
+        <ParamPanel />
+      </scroll-view>
 
-    <!-- 底部生成按钮 -->
-    <view class="bottom-action">
-      <view
-        class="generate-btn"
-        :class="{ disabled: !projectStore.hasImage }"
-        @click="handleGenerate"
-      >
-        <text class="btn-text">生成图纸</text>
+      <!-- 底部生成按钮 -->
+      <view class="bottom-action">
+        <view
+          class="generate-btn"
+          :class="{ disabled: !projectStore.hasImage }"
+          @tap="handleGenerate()"
+        >
+          <text class="btn-text">生成图纸</text>
+        </view>
       </view>
     </view>
 
@@ -52,11 +54,18 @@ function handleGenerate() {
 </script>
 
 <style scoped>
+.page-wrapper {
+  display: flex;
+  flex-direction: column;
+  min-height: 100vh;
+  background-color: #ffffff;
+}
+
 .page-index {
   display: flex;
   flex-direction: column;
+  flex: 1;
   background-color: #ffffff;
-  overflow: auto;
   box-sizing: border-box;
 }
 

@@ -53,7 +53,7 @@
     <view v-if="currentSeriesList.length > 0" class="section">
       <view class="series-header">
         <text class="section-title">色系选择</text>
-        <view class="series-toggle-all" @click="toggleAllSeries">
+        <view class="series-toggle-all" @click="toggleAllSeries()">
           <text class="series-toggle-text">{{ isAllSeriesSelected ? '取消全选' : '全选' }}</text>
         </view>
       </view>
@@ -125,9 +125,17 @@ function toggleSeries(series: string) {
 function toggleAllSeries() {
   const paletteId = projectStore.paletteId
   if (isAllSeriesSelected.value) {
-    configStore.selectedSeries[paletteId] = []
+    // 取消全选：清空当前品牌的色系选择
+    configStore.selectedSeries = {
+      ...configStore.selectedSeries,
+      [paletteId]: [],
+    }
   } else {
-    configStore.selectedSeries[paletteId] = [...currentSeriesList.value]
+    // 全选：选中所有可用的色系
+    configStore.selectedSeries = {
+      ...configStore.selectedSeries,
+      [paletteId]: [...currentSeriesList.value],
+    }
   }
 }
 

@@ -8,7 +8,7 @@
       </view>
 
       <!-- 返回按钮（左上角，生成中隐藏） -->
-      <view v-if="!projectStore.isGenerating" class="back-btn" @click="handleBack">
+      <view v-if="!projectStore.isGenerating" class="back-btn" @click="handleBack()">
         <text class="back-btn-text">‹ 返回</text>
       </view>
 
@@ -30,10 +30,10 @@
         <view class="action-btn" @click="showStats = !showStats">
           <text class="action-btn-text">📊 统计</text>
         </view>
-        <view class="action-btn" @click="handleExportLong">
+        <view class="action-btn" @click="handleExportLong()">
           <text class="action-btn-text">💾 导出</text>
         </view>
-        <view class="action-btn" @click="handleSaveHistory">
+        <view class="action-btn" @click="handleSaveHistory()">
           <text class="action-btn-text">📁 保存</text>
         </view>
       </view>
@@ -45,10 +45,10 @@
           @mouseleave.prevent="stopCompare">
           <text class="undo-redo-text">👁</text>
         </view>
-        <view class="undo-redo-btn" :class="{ disabled: !projectStore.canUndo }" @click="handleUndo">
+        <view class="undo-redo-btn" :class="{ disabled: !projectStore.canUndo }" @click="handleUndo()">
           <text class="undo-redo-text">↩</text>
         </view>
-        <view class="undo-redo-btn" :class="{ disabled: !projectStore.canRedo }" @click="handleRedo">
+        <view class="undo-redo-btn" :class="{ disabled: !projectStore.canRedo }" @click="handleRedo()">
           <text class="undo-redo-text">↪</text>
         </view>
       </view>
@@ -69,11 +69,11 @@
       </view>
 
       <!-- 导出预览弹窗 -->
-      <view v-if="previewDataUrl" class="preview-mask" @click="cancelPreview">
+      <view v-if="previewDataUrl" class="preview-mask" @click="cancelPreview()">
         <view class="preview-dialog" @click.stop>
           <view class="preview-header">
             <text class="preview-title">导出预览</text>
-            <view class="preview-close" @click="cancelPreview">
+            <view class="preview-close" @click="cancelPreview()">
               <text class="preview-close-text">✕</text>
             </view>
           </view>
@@ -81,10 +81,10 @@
             <image :src="previewDataUrl" mode="widthFix" class="preview-image" />
           </scroll-view>
           <view class="preview-footer">
-            <view class="preview-btn cancel" @click="cancelPreview">
+            <view class="preview-btn cancel" @click="cancelPreview()">
               <text class="preview-btn-text">取消</text>
             </view>
-            <view class="preview-btn confirm" @click="confirmExport">
+            <view class="preview-btn confirm" @click="confirmExport()">
               <text class="preview-btn-text-confirm">确认导出</text>
             </view>
           </view>
@@ -101,7 +101,7 @@
             @touchend="onDragEnd">
             <view class="drag-indicator" />
           </view>
-          <view class="clear-selection-btn" @click="clearSelection">
+          <view class="clear-selection-btn" @click="clearSelection()">
             <text class="clear-text">✕</text>
           </view>
         </view>
@@ -143,7 +143,7 @@
 
       <!-- 底部工具条 -->
       <view v-if="!projectStore.isGenerating" class="editor-toolbar">
-        <view class="toolbar-item" :class="{ active: brushMode }" @click="toggleBrushMode">
+        <view class="toolbar-item" :class="{ active: brushMode }" @click="toggleBrushMode()">
           <view class="toolbar-icon">🖌️</view>
           <text class="toolbar-label">画笔</text>
         </view>
@@ -164,14 +164,14 @@
         <text class="confirm-title">是否保存到草稿箱？</text>
         <text class="confirm-msg">当前图纸尚未保存，退出后将无法恢复。</text>
         <view class="confirm-buttons">
-          <view class="confirm-btn-discard" @click="doBack">
+          <view class="confirm-btn-discard" @click="doBack()">
             <text class="confirm-btn-discard-text">直接退出</text>
           </view>
-          <view class="confirm-btn-save" @click="saveAndBack">
+          <view class="confirm-btn-save" @click="saveAndBack()">
             <text class="confirm-btn-save-text">保存并退出</text>
           </view>
         </view>
-        <view class="confirm-cancel" @click="cancelBack">
+        <view class="confirm-cancel" @click="cancelBack()">
           <text class="confirm-cancel-text">继续编辑</text>
         </view>
       </view>
@@ -513,6 +513,7 @@ function onCellClick(payload: { x: number; y: number }) {
   flex-direction: column;
   background-color: #fafafa;
   overflow: hidden;
+  min-height: calc(100vh - var(--safe-top, 0px) - var(--safe-bottom, 0px) - 56px);
 }
 
 .editor-container {

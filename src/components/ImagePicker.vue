@@ -1,25 +1,38 @@
 <template>
   <view class="image-picker">
-    <view v-if="modelValue" class="preview-container" @tap="onTapChoose" @catchtap="onTapChoose" @click="onTapChoose" @touchstart="onTapChoose">
-      <image
-        :src="modelValue"
-        mode="aspectFit"
-        class="preview-image"
-        @tap="onTapChoose"
-        @catchtap="onTapChoose"
-        @click="onTapChoose"
-        @touchstart="onTapChoose"
-      />
+    <!-- #ifdef MP-WEIXIN -->
+    <view class="picker-trigger" @tap="onTapChoose()">
+      <view v-if="modelValue" class="preview-container">
+        <image :src="modelValue" mode="aspectFit" class="preview-image" />
+        <view class="change-hint">点击更换图片</view>
+      </view>
+      <view v-else class="empty-state">
+        <text class="empty-icon">📷</text>
+        <text class="empty-text">点击上传图片</text>
+      </view>
+    </view>
+    <!-- #endif -->
+
+    <!-- #ifdef H5 -->
+    <view v-if="modelValue" class="preview-container" @click="onTapChoose()">
+      <image :src="modelValue" mode="aspectFit" class="preview-image" />
       <view class="change-hint">点击更换图片</view>
     </view>
-    <view v-else class="empty-state" @tap="onTapChoose" @catchtap="onTapChoose" @click="onTapChoose" @touchstart="onTapChoose">
+    <view v-else class="empty-state" @click="onTapChoose()">
       <text class="empty-icon">📷</text>
       <text class="empty-text">点击上传图片</text>
     </view>
+    <!-- #endif -->
+
+    <!-- #ifdef H5 -->
+    <input ref="fileInputRef" type="file" accept="image/*" style="display: none;" @change="(onH5FileChange as any)" />
+    <!-- #endif -->
   </view>
 </template>
 
 <script setup lang="ts">
+import { ref } from 'vue'
+
 interface Props {
   modelValue?: string
   maxSizeMB?: number
@@ -35,81 +48,77 @@ const emit = defineEmits<{
   error: [message: string]
 }>()
 
-let choosing = false
+const choosing = ref(false)
+
+// #ifdef H5
+const fileInputRef = ref<HTMLInputElement | null>(null)
+// #endif
 
 function onTapChoose() {
-  if (choosing) return
-  choosing = true
+  if (choosing.value) return
+  choosing.value = true
   console.log('[ImagePicker] onTapChoose triggered')
 
   // #ifdef H5
-  triggerH5FilePicker()
+  fileInputRef.value?.click()
   // #endif
 
   // #ifndef H5
-  uni.chooseImage({
+  uni.chooseMedia({
     count: 1,
-    sizeType: ['compressed'],
+    mediaType: ['image'],
     sourceType: ['album', 'camera'],
+    sizeType: ['compressed'],
     success: (res) => {
-      console.log('[ImagePicker] success:', res.tempFilePaths)
-      const tempFilePath = res.tempFilePaths[0]
-      const fileSize = res.tempFiles?.[0]?.size || 0
+      console.log('[ImagePicker] chooseMedia success:', res.tempFiles)
+      const tempFile = (res.tempFiles as any[])[0]
+      const tempFilePath = tempFile.tempFilePath
+      const fileSize = tempFile.size || 0
       const maxBytes = props.maxSizeMB * 1024 * 1024
 
       if (fileSize > maxBytes) {
         emit('error', `图片大小超过 ${props.maxSizeMB}MB，请压缩后重试`)
         uni.showToast({ title: '图片过大，请压缩后重试', icon: 'none' })
-        choosing = false
-        return
+      } else {
+        emit('update:modelValue', tempFilePath)
       }
-
-      emit('update:modelValue', tempFilePath)
-      choosing = false
+      choosing.value = false
     },
     fail: (err) => {
-      console.log('[ImagePicker] fail:', err)
+      console.log('[ImagePicker] chooseMedia fail:', err)
       if (err?.errMsg && !err.errMsg.includes('cancel')) {
         uni.showToast({ title: '选择图片失败', icon: 'none' })
       }
-      choosing = false
+      choosing.value = false
     },
   })
   // #endif
 }
 
 // #ifdef H5
-function triggerH5FilePicker() {
-  const input = document.createElement('input')
-  input.type = 'file'
-  input.accept = 'image/*'
-  input.style.display = 'none'
-  input.onchange = (event: Event) => {
-    const target = event.target as HTMLInputElement
-    const file = target.files?.[0]
-    if (!file) {
-      choosing = false
-      return
-    }
-
-    const maxBytes = props.maxSizeMB * 1024 * 1024
-    if (file.size > maxBytes) {
-      emit('error', `图片大小超过 ${props.maxSizeMB}MB，请压缩后重试`)
-      uni.showToast({ title: '图片过大，请压缩后重试', icon: 'none' })
-      choosing = false
-      return
-    }
-
-    const reader = new FileReader()
-    reader.onload = () => {
-      emit('update:modelValue', reader.result as string)
-      choosing = false
-    }
-    reader.readAsDataURL(file)
-    input.remove()
+function onH5FileChange(event: Event) {
+  const target = event.target as HTMLInputElement
+  const file = target.files?.[0]
+  if (!file) {
+    choosing.value = false
+    return
   }
-  document.body.appendChild(input)
-  input.click()
+
+  const maxBytes = props.maxSizeMB * 1024 * 1024
+  if (file.size > maxBytes) {
+    emit('error', `图片大小超过 ${props.maxSizeMB}MB，请压缩后重试`)
+    uni.showToast({ title: '图片过大，请压缩后重试', icon: 'none' })
+    choosing.value = false
+    return
+  }
+
+  const reader = new FileReader()
+  reader.onload = () => {
+    emit('update:modelValue', reader.result as string)
+    choosing.value = false
+  }
+  reader.readAsDataURL(file)
+  target.value = ''
 }
 // #endif
 </script>
@@ -117,6 +126,21 @@ function triggerH5FilePicker() {
 <style scoped>
 .image-picker {
   width: 100%;
+}
+
+.picker-trigger {
+  width: 100%;
+  margin: 0;
+  padding: 0;
+  border: none;
+  border-radius: 0;
+  background-color: transparent;
+  line-height: normal;
+  text-align: left;
+}
+
+.picker-trigger::after {
+  display: none;
 }
 
 .preview-container {

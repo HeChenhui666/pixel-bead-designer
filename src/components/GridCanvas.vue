@@ -15,6 +15,16 @@
         transition: isAnimating ? 'transform 0.2s ease-out' : 'none',
       }"
     >
+      <!-- #ifdef MP-WEIXIN -->
+      <canvas
+        type="2d"
+        id="gridCanvas"
+        class="grid-canvas"
+        :style="{ width: displayWidth + 'px', height: displayHeight + 'px' }"
+        @click.stop="handleCanvasClick"
+      />
+      <!-- #endif -->
+      <!-- #ifdef H5 -->
       <canvas
         canvas-id="gridCanvas"
         id="gridCanvas"
@@ -22,6 +32,7 @@
         :style="{ width: displayWidth + 'px', height: displayHeight + 'px' }"
         @click.stop="handleCanvasClick"
       />
+      <!-- #endif -->
       <!-- #ifndef H5 -->
       <image
         v-if="compareImage"
@@ -141,6 +152,11 @@ function updateDisplaySize() {
   const cellSize = Math.max(1, Math.floor(containerWidth / gridWidth))
   displayWidth.value = cellSize * gridWidth
   displayHeight.value = cellSize * gridHeight
+
+  // 尺寸变化时重置缓存的 Canvas context，确保下次渲染时重新设置分辨率
+  // #ifdef MP-WEIXIN
+  mpCanvasCtx = null
+  // #endif
 }
 
 // 监听数据变化重新渲染；画笔增量绘制时跳过全量重绘
@@ -531,46 +547,67 @@ watch(() => props.compareImage, (newSrc) => {
   // #endif
 })
 
-// App/小程序端：分批绘制，避免大尺寸网格一次性发送过多 IPC 命令导致崩溃
+// 小程序端：缓存 Canvas 2D context，避免每次渲染都重新查询
+let mpCanvasCtx: CanvasRenderingContext2D | null = null
+
+/** 获取小程序 Canvas 2D 节点和 context */
+async function getMpCanvasContext(): Promise<CanvasRenderingContext2D | null> {
+  if (mpCanvasCtx) return mpCanvasCtx
+
+  return new Promise((resolve) => {
+    const query = uni.createSelectorQuery().in(instance?.proxy)
+    query.select('#gridCanvas')
+      .node()
+      .exec((res: any[]) => {
+        if (!res || !res[0] || !res[0].node) {
+          console.warn('[GridCanvas] getMpCanvasContext: node not found', res)
+          resolve(null)
+          return
+        }
+        const canvasNode = res[0].node
+        // 设置 Canvas 内部分辨率
+        const dpr = uni.getSystemInfoSync().pixelRatio || 1
+        canvasNode.width = displayWidth.value * dpr
+        canvasNode.height = displayHeight.value * dpr
+        const ctx = canvasNode.getContext('2d') as CanvasRenderingContext2D
+        ctx.scale(dpr, dpr)
+        mpCanvasCtx = ctx
+        resolve(ctx)
+      })
+  })
+}
+
+// 小程序端：使用 Canvas 2D API 绘制
 async function renderApp(gridWidth: number, gridHeight: number, cellSize: number, dispW: number, dispH: number) {
-  const ctx = uni.createCanvasContext('gridCanvas', instance?.proxy)
+  const ctx = await getMpCanvasContext()
   if (!ctx) return
 
-  // 每批最多 10 行，限制单次 draw() 的命令数量
-  const BATCH_SIZE = 10
-  for (let batchStart = 0; batchStart < gridHeight; batchStart += BATCH_SIZE) {
-    const batchEnd = Math.min(batchStart + BATCH_SIZE, gridHeight)
-    for (let y = batchStart; y < batchEnd; y++) {
-      for (let x = 0; x < gridWidth; x++) {
-        const hex = props.cellData[y]?.[x]
-        ctx.setFillStyle(hex || '#FAFAFA')
-        ctx.fillRect(x * cellSize, y * cellSize, cellSize, cellSize)
-      }
+  // 清空画布
+  ctx.clearRect(0, 0, dispW, dispH)
+
+  // 绘制所有格子
+  for (let y = 0; y < gridHeight; y++) {
+    for (let x = 0; x < gridWidth; x++) {
+      const hex = props.cellData[y]?.[x]
+      ctx.fillStyle = hex || '#FAFAFA'
+      ctx.fillRect(x * cellSize, y * cellSize, cellSize, cellSize)
     }
-    // reserve=true 保留上一批已绘内容，callback 等待本批渲染完成再继续
-    await new Promise<void>((resolve) => ctx.draw(batchStart > 0, () => resolve()))
   }
 
   // cellSize < 2 时格子只有 1px，网格线会覆盖整个格子，跳过
   if (cellSize >= 2) {
-    ctx.setStrokeStyle('#E8E8E8')
-    ctx.setLineWidth(0.5)
-    drawGridLines(ctx, gridWidth, gridHeight, cellSize, dispW, dispH)
+    drawGridLines2D(ctx, gridWidth, gridHeight, cellSize, dispW, dispH)
   }
 
   if (props.selectedCell) {
-    ctx.setStrokeStyle('#007AFF')
-    ctx.setLineWidth(2)
+    ctx.strokeStyle = '#007AFF'
+    ctx.lineWidth = 2
     ctx.strokeRect(
       props.selectedCell.x * cellSize,
       props.selectedCell.y * cellSize,
       cellSize,
       cellSize
     )
-  }
-
-  if (cellSize >= 2 || props.selectedCell) {
-    await new Promise<void>((resolve) => ctx.draw(true, () => resolve()))
   }
 }
 
@@ -622,6 +659,30 @@ function drawContent(
 }
 
 // App 端网格线绘制辅助（合并为单次 stroke，减少 IPC 命令数）
+// Canvas 2D 版网格线绘制（小程序端）
+function drawGridLines2D(
+  ctx: CanvasRenderingContext2D,
+  gridWidth: number,
+  gridHeight: number,
+  cellSize: number,
+  dispW: number,
+  dispH: number
+) {
+  ctx.strokeStyle = '#E8E8E8'
+  ctx.lineWidth = 0.5
+  ctx.beginPath()
+  for (let x = 0; x <= gridWidth; x++) {
+    ctx.moveTo(x * cellSize, 0)
+    ctx.lineTo(x * cellSize, dispH)
+  }
+  for (let y = 0; y <= gridHeight; y++) {
+    ctx.moveTo(0, y * cellSize)
+    ctx.lineTo(dispW, y * cellSize)
+  }
+  ctx.stroke()
+}
+
+// 旧版 API 网格线绘制（保留兼容）
 function drawGridLines(
   ctx: any,
   gridWidth: number,
@@ -642,19 +703,17 @@ function drawGridLines(
   ctx.stroke()
 }
 
-// 增量单格绘制（App 端）：reserve=true 保留已有画布内容，仅覆盖目标格子
+// 增量单格绘制（小程序端）：使用 Canvas 2D API
 function renderSingleCellApp(x: number, y: number, hex: string) {
-  const ctx = uni.createCanvasContext('gridCanvas', instance?.proxy)
-  if (!ctx) return
+  if (!mpCanvasCtx) return
   const cellSize = displayWidth.value / props.gridWidth
-  ctx.setFillStyle(hex || '#FAFAFA')
-  ctx.fillRect(x * cellSize, y * cellSize, cellSize, cellSize)
+  mpCanvasCtx.fillStyle = hex || '#FAFAFA'
+  mpCanvasCtx.fillRect(x * cellSize, y * cellSize, cellSize, cellSize)
   if (cellSize >= 2) {
-    ctx.setStrokeStyle('#E8E8E8')
-    ctx.setLineWidth(0.5)
-    ctx.strokeRect(x * cellSize, y * cellSize, cellSize, cellSize)
+    mpCanvasCtx.strokeStyle = '#E8E8E8'
+    mpCanvasCtx.lineWidth = 0.5
+    mpCanvasCtx.strokeRect(x * cellSize, y * cellSize, cellSize, cellSize)
   }
-  ctx.draw(true)
 }
 
 // 增量单格绘制（H5 端）：直接在现有原生 canvas context 上叠绘，无需重建 canvas

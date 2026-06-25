@@ -1,49 +1,51 @@
 <template>
-  <view class="page-history" :style="{ paddingTop: safeTop + 'px', height: `calc(100vh - 50px - ${safeBottom}px)` }">
-    <view class="header">
-      <text class="header-title">草稿箱</text>
-    </view>
-
-    <!-- 空状态 -->
-    <view v-if="historyList.length === 0" class="empty-state">
-      <text class="empty-icon">📦</text>
-      <text class="empty-text">草稿箱是空的</text>
-      <text class="empty-sub">生成图纸后保存，这里会留存记录</text>
-      <view class="empty-btn" @click="goToUpload">
-        <text class="empty-btn-text">去上传图片</text>
+  <view class="page-wrapper">
+    <view class="page-history" :style="{ paddingTop: safeTop + 'px', paddingBottom: `calc(50px + ${safeBottom}px)` }">
+      <view class="header">
+        <text class="header-title">草稿箱</text>
       </view>
-    </view>
 
-    <!-- 历史列表 -->
-    <scroll-view v-else class="history-list" scroll-y>
-      <view
-        v-for="item in historyList"
-        :key="item.id"
-        class="history-item"
-        @click="handleLoad(item.id)"
-      >
-        <!-- 缩略图预览 -->
-        <view class="thumb-wrapper">
-          <canvas
-            :canvas-id="'thumb_' + item.id"
-            :id="'thumb_' + item.id"
-            class="thumb-canvas"
-            style="width: 60px; height: 60px;"
-          />
-        </view>
-
-        <!-- 信息区 -->
-        <view class="item-info">
-          <text class="item-title">{{ item.title }}</text>
-          <text class="item-meta">{{ item.gridWidth }}×{{ item.gridHeight }} · {{ item.paletteId }}</text>
-        </view>
-
-        <!-- 删除按钮 -->
-        <view class="delete-btn" @click.stop="handleDelete(item.id)">
-          <text class="delete-icon">✕</text>
+      <!-- 空状态 -->
+      <view v-if="historyList.length === 0" class="empty-state">
+        <text class="empty-icon">📦</text>
+        <text class="empty-text">草稿箱是空的</text>
+        <text class="empty-sub">生成图纸后保存，这里会留存记录</text>
+        <view class="empty-btn" @tap="goToUpload()">
+          <text class="empty-btn-text">去上传图片</text>
         </view>
       </view>
-    </scroll-view>
+
+      <!-- 历史列表 -->
+      <scroll-view v-else class="history-list" scroll-y>
+        <view
+          v-for="item in historyList"
+          :key="item.id"
+          class="history-item"
+          @tap="handleLoad(item.id)"
+        >
+          <!-- 缩略图预览 -->
+          <view class="thumb-wrapper">
+            <canvas
+              :canvas-id="'thumb_' + item.id"
+              :id="'thumb_' + item.id"
+              class="thumb-canvas"
+              style="width: 60px; height: 60px;"
+            />
+          </view>
+
+          <!-- 信息区 -->
+          <view class="item-info">
+            <text class="item-title">{{ item.title }}</text>
+            <text class="item-meta">{{ item.gridWidth }}×{{ item.gridHeight }} · {{ item.paletteId }}</text>
+          </view>
+
+          <!-- 删除按钮 -->
+          <view class="delete-btn" @tap.stop="handleDelete(item.id)">
+            <text class="delete-icon">✕</text>
+          </view>
+        </view>
+      </scroll-view>
+    </view>
 
     <CustomTabBar />
   </view>
@@ -170,11 +172,18 @@ function goToUpload() {
 </script>
 
 <style scoped>
+.page-wrapper {
+  display: flex;
+  flex-direction: column;
+  min-height: 100vh;
+  background-color: #f8f8f8;
+}
+
 .page-history {
   display: flex;
   flex-direction: column;
+  flex: 1;
   background-color: #f8f8f8;
-  overflow: auto;
   box-sizing: border-box;
 }
 
