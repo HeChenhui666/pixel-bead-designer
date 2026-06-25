@@ -1,5 +1,5 @@
 <template>
-  <view class="page-index">
+  <view class="page-index" :style="{ paddingTop: safeTop + 'px', height: `calc(100vh - 50px - ${safeBottom}px)` }">
     <!-- 顶部图片预览区 -->
     <view class="top-section">
       <ImagePicker v-model="projectStore.sourceImage" @error="onImageError" />
@@ -21,22 +21,20 @@
       </view>
     </view>
 
-    <!-- #ifndef H5 -->
     <CustomTabBar />
-    <!-- #endif -->
   </view>
 </template>
 
 <script setup lang="ts">
 import { onShow } from '@dcloudio/uni-app'
 import { useProjectStore } from '../../stores/useProjectStore'
+import { useSafeArea } from '../../utils/useSafeArea'
 import ImagePicker from '../../components/ImagePicker.vue'
 import ParamPanel from '../../components/ParamPanel.vue'
-// #ifndef H5
 import CustomTabBar from '../../custom-tab-bar/index.vue'
-// #endif
 
 const projectStore = useProjectStore()
+const { safeTop, safeBottom } = useSafeArea()
 
 onShow(() => {
   projectStore.currentTab = 0
@@ -57,9 +55,7 @@ function handleGenerate() {
 .page-index {
   display: flex;
   flex-direction: column;
-  height: calc(100vh - 50px - var(--safe-area-bottom, 0px));
   background-color: #ffffff;
-  padding-top: var(--status-bar-height, 0px);
   overflow: auto;
   box-sizing: border-box;
 }

@@ -1,9 +1,6 @@
-export type Platform = 'app' | 'mp-weixin' | 'h5'
+export type Platform = 'mp-weixin' | 'h5'
 
 export function getPlatform(): Platform {
-  // #ifdef APP-PLUS
-  return 'app'
-  // #endif
   // #ifdef MP-WEIXIN
   return 'mp-weixin'
   // #endif
@@ -19,7 +16,7 @@ export function getAvailableWidth(paddingPx: number = 32): number {
   // #ifdef H5
   return window.innerWidth - paddingPx
   // #endif
-  // #ifndef H5
+  // #ifdef MP-WEIXIN
   const sysInfo = uni.getSystemInfoSync()
   return sysInfo.windowWidth - paddingPx
   // #endif
@@ -32,7 +29,7 @@ export function getDevicePixelRatio(): number {
   // #ifdef H5
   return window.devicePixelRatio || 1
   // #endif
-  // #ifndef H5
+  // #ifdef MP-WEIXIN
   const sysInfo = uni.getSystemInfoSync()
   return sysInfo.pixelRatio || 1
   // #endif

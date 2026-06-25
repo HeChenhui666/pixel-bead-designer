@@ -29,15 +29,14 @@
                     "NSPhotoLibraryUsageDescription" : "用于选择照片生成拼豆图纸",
                     "NSPhotoLibraryAddUsageDescription" : "用于保存生成的拼豆图纸到相册",
                     "NSCameraUsageDescription" : "用于拍照生成拼豆图纸"
-                },
-                "dSYMs" : false
+                }
             },
             "sdkConfigs" : {}
         }
     },
     "quickapp" : {},
     "mp-weixin" : {
-        "appid" : "",
+        "appid" : "wxd691600b59e5599e",
         "setting" : {
             "urlCheck" : false
         },

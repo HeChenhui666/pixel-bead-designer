@@ -1,5 +1,5 @@
 <template>
-  <view class="page-palette">
+  <view class="page-palette" :style="{ paddingTop: safeTop + 'px', height: `calc(100vh - 50px - ${safeBottom}px)` }">
     <view class="header">
       <text class="header-title">色卡</text>
     </view>
@@ -73,9 +73,7 @@
       </view>
     </view>
 
-    <!-- #ifndef H5 -->
     <CustomTabBar />
-    <!-- #endif -->
   </view>
 </template>
 
@@ -83,13 +81,13 @@
 import { ref, computed } from 'vue'
 import { onShow } from '@dcloudio/uni-app'
 import { useProjectStore } from '../../stores/useProjectStore'
+import { useSafeArea } from '../../utils/useSafeArea'
 import { getColorList } from '../../utils/color-mapper'
 import type { PaletteId } from '../../stores/useProjectStore'
-// #ifndef H5
 import CustomTabBar from '../../custom-tab-bar/index.vue'
-// #endif
 
 const projectStore = useProjectStore()
+const { safeTop, safeBottom } = useSafeArea()
 
 const brands: PaletteId[] = ['MARD', 'COCO', '漫漫', '盼盼', '咪小窝']
 const selectedBrand = ref<PaletteId>(projectStore.paletteId)
@@ -129,9 +127,7 @@ function onColorCellTap(item: { hex: string; code: string }) {
 .page-palette {
   display: flex;
   flex-direction: column;
-  height: calc(100vh - 50px - var(--safe-area-bottom, 0px));
   background-color: #f8f8f8;
-  padding-top: var(--status-bar-height, 0px);
   overflow: auto;
   box-sizing: border-box;
 }
@@ -311,7 +307,7 @@ function onColorCellTap(item: { hex: string; code: string }) {
   width: 100%;
   background-color: #ffffff;
   border-radius: 20px 20px 0 0;
-  padding: 24px 20px calc(24px + var(--safe-area-bottom, 0px));
+  padding: 24px 20px calc(24px + env(safe-area-inset-bottom, 0px));
   display: flex;
   align-items: center;
   gap: 16px;

@@ -44,21 +44,15 @@
 		"list": [
 			{
 				"pagePath": "pages/index/index",
-				"text": "图片",
-				"iconPath": "static/tab-icons/image.png",
-				"selectedIconPath": "static/tab-icons/image-active.png"
+				"text": "图片"
 			},
 			{
 				"pagePath": "pages/palette/index",
-				"text": "色卡",
-				"iconPath": "static/tab-icons/palette.png",
-				"selectedIconPath": "static/tab-icons/palette-active.png"
+				"text": "色卡"
 			},
 			{
 				"pagePath": "pages/history/index",
-				"text": "草稿箱",
-				"iconPath": "static/tab-icons/history.png",
-				"selectedIconPath": "static/tab-icons/history-active.png"
+				"text": "草稿箱"
 			}
 		]
 	}

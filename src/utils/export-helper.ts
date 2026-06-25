@@ -475,29 +475,6 @@ export async function exportLongImage(options: LongImageOptions): Promise<string
  * 分享图片
  */
 export async function shareImage(filePath: string, title?: string): Promise<void> {
-  // #ifdef APP-PLUS
-  try {
-    await new Promise<void>((resolve, reject) => {
-      uni.share({
-        provider: 'weixin',
-        scene: 'WXSceneSession',
-        type: 1,
-        imageUrl: filePath,
-        title: title || '我的拼豆图纸',
-        success: () => resolve(),
-        fail: () => reject(new Error('微信分享失败')),
-      })
-    })
-  } catch {
-    // 降级为系统分享
-    uni.shareWithSystem({
-      type: 'image',
-      href: filePath,
-      summary: title || '我的拼豆图纸',
-    })
-  }
-  // #endif
-
   // #ifdef MP-WEIXIN
   uni.showToast({ title: '请使用右上角分享', icon: 'none' })
   // #endif

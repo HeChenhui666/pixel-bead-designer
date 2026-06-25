@@ -1,5 +1,5 @@
 <template>
-  <view class="page-editor">
+  <view class="page-editor" :style="{ paddingTop: safeTop + 'px', paddingBottom: `calc(56px + ${safeBottom}px)`, '--safe-top': safeTop + 'px', '--safe-bottom': safeBottom + 'px' }">
     <view class="editor-container">
       <!-- 生成中 Loading -->
       <view v-if="projectStore.isGenerating" class="loading-overlay">
@@ -151,8 +151,16 @@
     </view>
 
     <!-- 退出确认弹窗（未保存时触发） -->
-    <view v-if="showBackConfirm" class="confirm-mask" @click.stop>
-      <view class="confirm-dialog">
+    <!-- touchstart/end.stop 防止触摸事件穿透到下方 Canvas（App 端 z-index 不能完全阻断触摸路由） -->
+    <view
+      v-if="showBackConfirm"
+      class="confirm-mask"
+      @touchstart.stop
+      @touchmove.stop.prevent
+      @touchend.stop
+      @click.stop
+    >
+      <view class="confirm-dialog" @touchstart.stop @touchend.stop @click.stop>
         <text class="confirm-title">是否保存到草稿箱？</text>
         <text class="confirm-msg">当前图纸尚未保存，退出后将无法恢复。</text>
         <view class="confirm-buttons">
@@ -176,6 +184,7 @@ import { ref, computed, nextTick } from 'vue'
 import { onShow, onBackPress } from '@dcloudio/uni-app'
 import { useProjectStore } from '../../stores/useProjectStore'
 import { useConfigStore } from '../../stores/useConfigStore'
+import { useSafeArea } from '../../utils/useSafeArea'
 import { pixelateImage } from '../../utils/image-processor'
 import { getColorList } from '../../utils/color-mapper'
 import { exportLongImage, generateLongImagePreview } from '../../utils/export-helper'
@@ -184,6 +193,7 @@ import ColorSummary from '../../components/ColorSummary.vue'
 
 const projectStore = useProjectStore()
 const configStore = useConfigStore()
+const { safeTop, safeBottom } = useSafeArea()
 
 const generateElapsed = ref(0)
 const gridCanvasRef = ref<InstanceType<typeof GridCanvas> | null>(null)
@@ -501,12 +511,8 @@ function onCellClick(payload: { x: number; y: number }) {
 .page-editor {
   display: flex;
   flex-direction: column;
-  height: 100vh;
   background-color: #fafafa;
-  padding-top: var(--status-bar-height, 0px);
-  padding-bottom: calc(56px + var(--safe-area-bottom, 0px));
   overflow: hidden;
-  box-sizing: border-box;
 }
 
 .editor-container {
@@ -556,7 +562,7 @@ function onCellClick(payload: { x: number; y: number }) {
 
 .color-palette-bar {
   position: fixed;
-  bottom: calc(56px + var(--safe-area-bottom, 0px));
+  bottom: calc(56px + var(--safe-bottom, 0px));
   left: 0;
   right: 0;
   background-color: #ffffff;
@@ -670,7 +676,7 @@ function onCellClick(payload: { x: number; y: number }) {
 /* 返回按钮 */
 .back-btn {
   position: fixed;
-  top: calc(var(--status-bar-height, 0px) + 8px);
+  top: calc(var(--safe-top, 0px) + 8px);
   left: 12px;
   z-index: 36;
   padding: 6px 14px;
@@ -687,7 +693,7 @@ function onCellClick(payload: { x: number; y: number }) {
 
 .action-bar {
   position: fixed;
-  top: calc(var(--status-bar-height, 0px) + 8px);
+  top: calc(var(--safe-top, 0px) + 8px);
   /* 左侧为返回按钮留出空间 */
   left: 90px;
   right: 0;
@@ -780,7 +786,7 @@ function onCellClick(payload: { x: number; y: number }) {
   transition: transform 0.25s ease;
   display: flex;
   flex-direction: column;
-  padding-top: var(--status-bar-height, 0px);
+  padding-top: var(--safe-top, 0px);
   box-shadow: -4px 0 16px rgba(0, 0, 0, 0.1);
 }
 
@@ -1088,8 +1094,8 @@ function onCellClick(payload: { x: number; y: number }) {
   bottom: 0;
   left: 0;
   right: 0;
-  height: calc(56px + var(--safe-area-bottom, 0px));
-  padding-bottom: var(--safe-area-bottom, 0px);
+  height: calc(56px + var(--safe-bottom, 0px));
+  padding-bottom: var(--safe-bottom, 0px);
   background-color: rgba(30, 30, 30, 0.95);
   backdrop-filter: blur(12px);
   display: flex;
@@ -1137,7 +1143,7 @@ function onCellClick(payload: { x: number; y: number }) {
 /* 画笔色卡选择面板 */
 .brush-palette-panel {
   position: fixed;
-  bottom: calc(56px + var(--safe-area-bottom, 0px));
+  bottom: calc(56px + var(--safe-bottom, 0px));
   left: 0;
   right: 0;
   height: 40vh;

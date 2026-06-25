@@ -1,5 +1,5 @@
 <template>
-  <view class="custom-tab-bar">
+  <view class="custom-tab-bar" :style="{ height: `calc(50px + ${safeBottom}px)`, paddingBottom: safeBottom + 'px' }">
     <view
       v-for="(tab, index) in tabs"
       :key="tab.path"
@@ -16,8 +16,10 @@
 <script setup lang="ts">
 import { computed } from 'vue'
 import { useProjectStore } from '../stores/useProjectStore'
+import { useSafeArea } from '../utils/useSafeArea'
 
 const projectStore = useProjectStore()
+const { safeBottom } = useSafeArea()
 const current = computed(() => projectStore.currentTab)
 
 const tabs = [
@@ -39,8 +41,6 @@ function switchTab(index: number) {
   bottom: 0;
   left: 0;
   right: 0;
-  height: calc(50px + var(--safe-area-bottom, 0px));
-  padding-bottom: var(--safe-area-bottom, 0px);
   background-color: #ffffff;
   border-top: 1px solid #e8e8e8;
   display: flex;

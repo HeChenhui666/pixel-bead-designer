@@ -583,8 +583,33 @@ export async function pixelateImage(options: {
 }): Promise<PixelateResult> {
   const { imagePath, gridWidth, gridHeight, mode, paletteId, allowedSeries } = options
 
-  // H5 和 App 均为 webview，支持标准浏览器 Image + Canvas API
+  // H5 和 App 均为 webview，走浏览器 canvas 流程
+  // App 端：WebView 对 file:// 本地路径有安全限制，new Image() 无法直接加载相册文件；
+  //         需先用 uni.getFileSystemManager().readFile 读取 base64，再作为 data URL 加载
   if (typeof document !== 'undefined' && typeof Image !== 'undefined') {
+    // 尝试将本地文件转为 base64 data URL（App 端 getFileSystemManager 可用；H5 无此 API 则降级为原路径）
+    const resolveImageSrc = (): Promise<string> => {
+      try {
+        const fs = (uni as any)?.getFileSystemManager?.()
+        if (!fs) return Promise.resolve(imagePath)
+        return new Promise((res) => {
+          fs.readFile({
+            filePath: imagePath,
+            encoding: 'base64',
+            success: (r: any) => {
+              const ext = imagePath.split('.').pop()?.toLowerCase() || 'jpeg'
+              const mime = ext === 'png' ? 'image/png' : ext === 'gif' ? 'image/gif' : 'image/jpeg'
+              res(`data:${mime};base64,${r.data}`)
+            },
+            fail: () => res(imagePath),
+          })
+        })
+      } catch {
+        return Promise.resolve(imagePath)
+      }
+    }
+
+    const src = await resolveImageSrc()
     return new Promise((resolve, reject) => {
       const img = new Image()
       img.onload = () => {
@@ -618,7 +643,7 @@ export async function pixelateImage(options: {
         }
       }
       img.onerror = () => reject(new Error('图片加载失败'))
-      img.src = imagePath
+      img.src = src
     })
   }
 

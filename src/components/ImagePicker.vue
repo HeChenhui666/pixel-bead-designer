@@ -1,28 +1,21 @@
 <template>
   <view class="image-picker">
-    <view v-if="modelValue" class="preview-container">
+    <view v-if="modelValue" class="preview-container" @tap="onTapChoose">
       <image
         :src="modelValue"
         mode="aspectFit"
         class="preview-image"
-        @click="chooseImage"
       />
-      <view class="change-hint" @click="chooseImage">点击更换图片</view>
+      <view class="change-hint">点击更换图片</view>
     </view>
-    <view v-else class="empty-state" @click="chooseImage">
+    <view v-else class="empty-state" @tap="onTapChoose">
       <text class="empty-icon">📷</text>
       <text class="empty-text">点击上传图片</text>
     </view>
-
-    <!-- #ifdef H5 -->
-    <!-- H5 端通过 JS 动态创建原生 input 触发文件选择，不使用 template ref -->
-    <!-- #endif -->
   </view>
 </template>
 
 <script setup lang="ts">
-import { getCurrentInstance } from 'vue'
-
 interface Props {
   modelValue?: string
   maxSizeMB?: number
@@ -38,32 +31,39 @@ const emit = defineEmits<{
   error: [message: string]
 }>()
 
-async function chooseImage() {
+function onTapChoose() {
+  console.log('[ImagePicker] onTapChoose triggered')
+
   // #ifdef H5
   triggerH5FilePicker()
   // #endif
 
   // #ifndef H5
-  try {
-    const result = await uni.chooseImage({
-      count: 1,
-      sizeType: ['compressed'],
-      sourceType: ['album', 'camera'],
-    })
-    const tempFilePath = result.tempFilePaths[0]
-    const fileSize = result.tempFiles[0]?.size || 0
-    const maxBytes = props.maxSizeMB * 1024 * 1024
+  uni.chooseImage({
+    count: 1,
+    sizeType: ['compressed'],
+    sourceType: ['album', 'camera'],
+    success: (res) => {
+      console.log('[ImagePicker] success:', res.tempFilePaths)
+      const tempFilePath = res.tempFilePaths[0]
+      const fileSize = res.tempFiles?.[0]?.size || 0
+      const maxBytes = props.maxSizeMB * 1024 * 1024
 
-    if (fileSize > maxBytes) {
-      emit('error', `图片大小超过 ${props.maxSizeMB}MB，请压缩后重试`)
-      uni.showToast({ title: `图片过大，请压缩后重试`, icon: 'none' })
-      return
-    }
+      if (fileSize > maxBytes) {
+        emit('error', `图片大小超过 ${props.maxSizeMB}MB，请压缩后重试`)
+        uni.showToast({ title: '图片过大，请压缩后重试', icon: 'none' })
+        return
+      }
 
-    emit('update:modelValue', tempFilePath)
-  } catch {
-    // user cancelled
-  }
+      emit('update:modelValue', tempFilePath)
+    },
+    fail: (err) => {
+      console.log('[ImagePicker] fail:', err)
+      if (err?.errMsg && !err.errMsg.includes('cancel')) {
+        uni.showToast({ title: '选择图片失败', icon: 'none' })
+      }
+    },
+  })
   // #endif
 }
 
@@ -74,30 +74,26 @@ function triggerH5FilePicker() {
   input.accept = 'image/*'
   input.style.display = 'none'
   input.onchange = (event: Event) => {
-    handleFileChange(event)
+    const target = event.target as HTMLInputElement
+    const file = target.files?.[0]
+    if (!file) return
+
+    const maxBytes = props.maxSizeMB * 1024 * 1024
+    if (file.size > maxBytes) {
+      emit('error', `图片大小超过 ${props.maxSizeMB}MB，请压缩后重试`)
+      uni.showToast({ title: '图片过大，请压缩后重试', icon: 'none' })
+      return
+    }
+
+    const reader = new FileReader()
+    reader.onload = () => {
+      emit('update:modelValue', reader.result as string)
+    }
+    reader.readAsDataURL(file)
     input.remove()
   }
   document.body.appendChild(input)
   input.click()
-}
-
-function handleFileChange(event: Event) {
-  const input = event.target as HTMLInputElement
-  const file = input.files?.[0]
-  if (!file) return
-
-  const maxBytes = props.maxSizeMB * 1024 * 1024
-  if (file.size > maxBytes) {
-    emit('error', `图片大小超过 ${props.maxSizeMB}MB，请压缩后重试`)
-    uni.showToast({ title: `图片过大，请压缩后重试`, icon: 'none' })
-    return
-  }
-
-  const reader = new FileReader()
-  reader.onload = () => {
-    emit('update:modelValue', reader.result as string)
-  }
-  reader.readAsDataURL(file)
 }
 // #endif
 </script>

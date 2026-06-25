@@ -1,5 +1,5 @@
 <template>
-  <view class="page-history">
+  <view class="page-history" :style="{ paddingTop: safeTop + 'px', height: `calc(100vh - 50px - ${safeBottom}px)` }">
     <view class="header">
       <text class="header-title">草稿箱</text>
     </view>
@@ -45,9 +45,7 @@
       </view>
     </scroll-view>
 
-    <!-- #ifndef H5 -->
     <CustomTabBar />
-    <!-- #endif -->
   </view>
 </template>
 
@@ -55,11 +53,11 @@
 import { ref, onMounted, nextTick, getCurrentInstance } from 'vue'
 import { onShow } from '@dcloudio/uni-app'
 import { useProjectStore } from '../../stores/useProjectStore'
-// #ifndef H5
+import { useSafeArea } from '../../utils/useSafeArea'
 import CustomTabBar from '../../custom-tab-bar/index.vue'
-// #endif
 
 const instance = getCurrentInstance()
+const { safeTop, safeBottom } = useSafeArea()
 
 interface HistoryItem {
   id: string
@@ -175,9 +173,7 @@ function goToUpload() {
 .page-history {
   display: flex;
   flex-direction: column;
-  height: calc(100vh - 50px - var(--safe-area-bottom, 0px));
   background-color: #f8f8f8;
-  padding-top: var(--status-bar-height, 0px);
   overflow: auto;
   box-sizing: border-box;
 }
