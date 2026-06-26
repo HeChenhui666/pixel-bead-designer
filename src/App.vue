@@ -6,9 +6,9 @@ onLaunch(() => {
 
   // H5 端通过 JS 注入安全距离 CSS 变量
   // #ifdef H5
-  const sysInfo = uni.getSystemInfoSync();
-  const safeTop = sysInfo.statusBarHeight || 0;
-  const safeBottom = sysInfo.safeAreaInsets?.bottom || 0;
+  const windowInfo = uni.getWindowInfo();
+  const safeTop = windowInfo.statusBarHeight || 0;
+  const safeBottom = windowInfo.safeArea?.bottom || 0;
   document.documentElement.style.setProperty('--safe-top', `${safeTop}px`);
   document.documentElement.style.setProperty('--safe-bottom', `${safeBottom}px`);
   // #endif

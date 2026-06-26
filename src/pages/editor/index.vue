@@ -7,9 +7,22 @@
         <text v-if="generateElapsed > 0" class="loading-sub">{{ generateElapsed }}ms</text>
       </view>
 
-      <!-- 返回按钮（左上角，生成中隐藏） -->
-      <view v-if="!projectStore.isGenerating" class="back-btn" @click="handleBack()">
-        <text class="back-btn-text">‹ 返回</text>
+      <!-- 操作按钮栏（左上角返回+右侧操作，生成中 / 选格时隐藏） -->
+      <view v-if="!projectStore.selectedCell && !projectStore.isGenerating" class="action-bar">
+        <view class="action-btn back-action-btn" @click="handleBack()">
+          <text class="action-btn-text">‹ 返回</text>
+        </view>
+        <view class="action-row">
+          <view class="action-btn" @click="showStats = !showStats">
+            <text class="action-btn-text">📊 统计</text>
+          </view>
+          <view class="action-btn" @click="handleExportLong()">
+            <text class="action-btn-text">💾 导出</text>
+          </view>
+          <view class="action-btn" @click="handleSaveHistory()">
+            <text class="action-btn-text">📁 保存</text>
+          </view>
+        </view>
       </view>
 
       <!-- GridCanvas 组件 -->
@@ -17,32 +30,21 @@
         :grid-height="projectStore.gridHeight" :selected-cell="projectStore.selectedCell"
         :compare-image="isComparing ? projectStore.sourceImage : ''"
         :brush-mode="brushMode"
-        @cell-click="onCellClick"
-        @brush-paint="onBrushPaint" />
+        :canvas-hidden="canvasShouldHide"
+        @cell-click="onCellClick($event)"
+        @brush-paint="onBrushPaint($event)" />
 
       <!-- 生成耗时提示 -->
       <view v-if="!projectStore.isGenerating && generateElapsed > 0" class="elapsed-hint">
         <text>生成耗时 {{ generateElapsed }}ms · {{ projectStore.gridWidth }}×{{ projectStore.gridHeight }}</text>
       </view>
 
-      <!-- 操作按钮栏（右侧，生成中 / 选格时隐藏） -->
-      <view v-if="!projectStore.selectedCell && !projectStore.isGenerating" class="action-bar">
-        <view class="action-btn" @click="showStats = !showStats">
-          <text class="action-btn-text">📊 统计</text>
-        </view>
-        <view class="action-btn" @click="handleExportLong()">
-          <text class="action-btn-text">💾 导出</text>
-        </view>
-        <view class="action-btn" @click="handleSaveHistory()">
-          <text class="action-btn-text">📁 保存</text>
-        </view>
-      </view>
+
 
       <!-- 撤销重做栏（页面中下方，不固定） -->
       <view v-if="!projectStore.selectedCell && !projectStore.isGenerating" class="undo-redo-bar">
-        <view class="undo-redo-btn" :class="{ active: isComparing }" @touchstart.prevent="startCompare"
-          @touchend.prevent="stopCompare" @mousedown.prevent="startCompare" @mouseup.prevent="stopCompare"
-          @mouseleave.prevent="stopCompare">
+        <view class="undo-redo-btn" :class="{ active: isComparing }" @touchstart.prevent="startCompare()"
+          @touchend.prevent="stopCompare()">
           <text class="undo-redo-text">👁</text>
         </view>
         <view class="undo-redo-btn" :class="{ disabled: !projectStore.canUndo }" @click="handleUndo()">
@@ -64,7 +66,7 @@
         </view>
         <scroll-view scroll-y class="drawer-body">
           <ColorSummary :color-summary="projectStore.colorSummary" :palette-id="projectStore.paletteId"
-            @color-tap="onStatsColorTap" />
+            @color-tap="onStatsColorTap($event)" />
         </scroll-view>
       </view>
 
@@ -97,8 +99,8 @@
         <view class="palette-header">
           <text class="cell-coords">选中 ({{ projectStore.selectedCell.x }}, {{ projectStore.selectedCell.y }})</text>
           <!-- 拖动手柄 -->
-          <view class="palette-drag-handle" @touchstart.prevent="onDragStart" @touchmove.prevent="onDragMove"
-            @touchend="onDragEnd">
+          <view class="palette-drag-handle" @touchstart.prevent="onDragStart($event)" @touchmove.prevent="onDragMove($event)"
+            @touchend="onDragEnd()">
             <view class="drag-indicator" />
           </view>
           <view class="clear-selection-btn" @click="clearSelection()">
@@ -186,8 +188,8 @@ import { useProjectStore } from '../../stores/useProjectStore'
 import { useConfigStore } from '../../stores/useConfigStore'
 import { useSafeArea } from '../../utils/useSafeArea'
 import { pixelateImage } from '../../utils/image-processor'
-import { getColorList } from '../../utils/color-mapper'
-import { exportLongImage, generateLongImagePreview } from '../../utils/export-helper'
+import { getColorList, getColorCodeByHex } from '../../utils/color-mapper'
+import { generateLongImagePreview } from '../../utils/export-helper'
 import GridCanvas from '../../components/GridCanvas.vue'
 import ColorSummary from '../../components/ColorSummary.vue'
 
@@ -200,12 +202,14 @@ const gridCanvasRef = ref<InstanceType<typeof GridCanvas> | null>(null)
 const showStats = ref(false)
 const previewDataUrl = ref('')
 const isComparing = ref(false)
-let pendingExportOptions: Parameters<typeof exportLongImage>[0] | null = null
+let pendingExportOptions: Parameters<typeof generateLongImagePreview>[0] | null = null
 
 // 画笔模式
 const brushMode = ref(false)
 const brushColor = ref('')
 const showBrushPalette = ref(false)
+
+// 小程序端 canvas 层级遮挡：稍后定义（依赖 showBackConfirm 等变量）
 
 function toggleBrushMode() {
   if (brushMode.value) {
@@ -247,8 +251,7 @@ function onDragStart(event: TouchEvent) {
 
 function onDragMove(event: TouchEvent) {
   const deltaY = dragStartY - event.touches[0].clientY
-  // @ts-ignore 条件编译：H5/App 二选一
-  const screenHeight = typeof window !== 'undefined' ? window.innerHeight : uni.getSystemInfoSync().windowHeight
+  const screenHeight = uni.getWindowInfo().windowHeight
   const maxHeight = screenHeight * 0.8
   const newHeight = Math.min(maxHeight, Math.max(DEFAULT_PALETTE_HEIGHT, dragStartHeight + deltaY))
   paletteHeight.value = newHeight
@@ -269,6 +272,9 @@ function stopCompare() {
 // 未保存状态追踪
 const hasSavedCurrentWork = ref(true)
 const showBackConfirm = ref(false)
+
+// 弹窗/抽屉/面板显示时隐藏 canvas，解决原生组件层级遮挡
+const canvasShouldHide = computed(() => showBackConfirm.value || showStats.value || !!previewDataUrl.value || showBrushPalette.value)
 
 // 是否有可展示的内容（含从草稿箱加载的情形，此时 hasImage=false）
 const hasContent = computed(() =>
@@ -299,7 +305,6 @@ function cancelBack() {
   showBackConfirm.value = false
 }
 
-// #ifndef H5
 // 拦截 Android 物理返回键 / iOS 手势返回
 onBackPress(() => {
   if (!hasSavedCurrentWork.value && hasContent.value) {
@@ -308,7 +313,6 @@ onBackPress(() => {
   }
   return false
 })
-// #endif
 
 // 当前品牌的颜色列表（仅显示图纸中已使用的颜色 + 常用色）
 const paletteColors = computed(() => {
@@ -359,7 +363,6 @@ function onStatsColorTap(hex: string) {
 
 async function handleExportLong() {
   try {
-    const { getColorCodeByHex } = await import('../../utils/color-mapper')
     const summaryList = Object.entries(projectStore.colorSummary)
       .map(([hex, count]) => ({ hex, code: '', count }))
       .sort((a, b) => b.count - a.count)
@@ -377,17 +380,13 @@ async function handleExportLong() {
       colorCodeMap,
     }
 
-    // H5 端先预览，非 H5 端直接导出
-    // #ifdef H5
-    const dataUrl = generateLongImagePreview(options)
-    if (dataUrl) {
-      previewDataUrl.value = dataUrl
+    // 生成预览图后弹窗展示，用户确认后保存到相册
+    const previewPath = await generateLongImagePreview(options) as unknown as string
+    if (previewPath) {
+      previewDataUrl.value = previewPath
       pendingExportOptions = options
       return
     }
-    // #endif
-
-    await exportLongImage(options)
   } catch (err) {
     console.error('导出失败:', err)
   }
@@ -400,10 +399,40 @@ function cancelPreview() {
 
 async function confirmExport() {
   if (!pendingExportOptions) return
+  const filePath = previewDataUrl.value
   const options = pendingExportOptions
   cancelPreview()
   try {
-    await exportLongImage(options)
+    // 直接将预览图保存到相册
+    if (filePath) {
+      await new Promise<void>((resolve, reject) => {
+        uni.saveImageToPhotosAlbum({
+          filePath,
+          success: () => {
+            uni.showToast({ title: '已保存到相册', icon: 'success' })
+            resolve()
+          },
+          fail: (err: any) => {
+            // 权限不足时引导用户授权
+            if (err.errMsg?.includes('auth deny') || err.errMsg?.includes('auth denied')) {
+              uni.showModal({
+                title: '提示',
+                content: '需要您授权保存到相册',
+                confirmText: '去授权',
+                success: (modalRes: any) => {
+                  if (modalRes.confirm) {
+                    uni.openSetting()
+                  }
+                },
+              })
+            } else {
+              uni.showToast({ title: '保存失败', icon: 'none' })
+            }
+            reject(err)
+          },
+        })
+      })
+    }
   } catch (err) {
     console.error('导出失败:', err)
   }
@@ -674,35 +703,26 @@ function onCellClick(payload: { x: number; y: number }) {
   text-shadow: none;
 }
 
-/* 返回按钮 */
-.back-btn {
-  position: fixed;
-  top: calc(var(--safe-top, 0px) + 8px);
-  left: 12px;
-  z-index: 36;
-  padding: 6px 14px;
-  border-radius: 20px;
-  background-color: rgba(255, 255, 255, 0.95);
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.12);
-}
-
-.back-btn-text {
-  font-size: 14px;
-  color: #007AFF;
-  font-weight: 600;
-}
-
 .action-bar {
   position: fixed;
   top: calc(var(--safe-top, 0px) + 8px);
-  /* 左侧为返回按钮留出空间 */
-  left: 90px;
-  right: 0;
+  left: 12px;
+  right: 12px;
   display: flex;
-  justify-content: center;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 6px;
+  z-index: 36;
+}
+
+.action-row {
+  display: flex;
+  justify-content: flex-start;
   gap: 8px;
-  z-index: 35;
-  padding: 0 12px;
+}
+
+.back-action-btn {
+  /* 返回按钮无需特殊样式，和 action-btn 共用即可 */
 }
 
 .action-btn {

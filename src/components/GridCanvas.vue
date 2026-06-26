@@ -1,11 +1,5 @@
 <template>
-  <view
-    class="grid-canvas-viewport"
-    id="canvasViewport"
-    @touchstart.stop="onViewportTouchStart"
-    @touchmove.stop.prevent="onViewportTouchMove"
-    @touchend.stop="onViewportTouchEnd"
-  >
+  <view class="grid-canvas-viewport" id="canvasViewport">
     <view
       class="grid-canvas-wrapper"
       id="gridCanvasWrapper"
@@ -15,33 +9,29 @@
         transition: isAnimating ? 'transform 0.2s ease-out' : 'none',
       }"
     >
-      <!-- #ifdef MP-WEIXIN -->
       <canvas
+        v-if="!canvasHidden"
         type="2d"
         id="gridCanvas"
         class="grid-canvas"
         :style="{ width: displayWidth + 'px', height: displayHeight + 'px' }"
-        @click.stop="handleCanvasClick"
+        @touchstart="onCanvasTouchStart($event)"
+        @touchmove.stop.prevent="onCanvasTouchMove($event)"
+        @touchend="onCanvasTouchEnd($event)"
       />
-      <!-- #endif -->
-      <!-- #ifdef H5 -->
-      <canvas
-        canvas-id="gridCanvas"
-        id="gridCanvas"
-        class="grid-canvas"
+      <!-- canvasHidden 时用占位 view 维持布局，避免弹窗关闭后 canvas 重新创建需重绘 -->
+      <view
+        v-if="canvasHidden"
+        class="grid-canvas grid-canvas-placeholder"
         :style="{ width: displayWidth + 'px', height: displayHeight + 'px' }"
-        @click.stop="handleCanvasClick"
       />
-      <!-- #endif -->
-      <!-- #ifndef H5 -->
       <image
         v-if="compareImage"
         :src="compareImage"
         mode="aspectFill"
-        class="compare-overlay-app"
+        class="compare-overlay"
         :style="{ width: displayWidth + 'px', height: displayHeight + 'px' }"
       />
-      <!-- #endif -->
     </view>
   </view>
 </template>
@@ -64,12 +54,15 @@ interface Props {
   compareImage?: string
   /** 画笔模式：触摸移动时发射 brushPaint 事件而非缩放/平移 */
   brushMode?: boolean
+  /** 弹窗等覆盖层显示时隐藏 canvas，解决原生组件层级遮挡 */
+  canvasHidden?: boolean
 }
 
 const props = withDefaults(defineProps<Props>(), {
   selectedCell: null,
   compareImage: '',
   brushMode: false,
+  canvasHidden: false,
 })
 
 const emit = defineEmits<{
@@ -86,11 +79,10 @@ const panX = ref(0)
 const panY = ref(0)
 const MIN_SCALE = 0.2
 
-// App 端：缓存 viewport 的屏幕坐标，用于画笔触摸坐标换算
+// 缓存 viewport 的屏幕坐标，用于画笔触摸坐标换算
 let cachedViewportRect = { left: 0, top: 0, width: 0, height: 0 }
 
 function updateViewportRect() {
-  // #ifndef H5
   uni.createSelectorQuery()
     .in(instance?.proxy)
     .select('#canvasViewport')
@@ -98,8 +90,8 @@ function updateViewportRect() {
       if (data) cachedViewportRect = data
     })
     .exec()
-  // #endif
 }
+
 // 动态最大缩放：保证最大放大时每个格子至少 24px 宽，便于查看和点击
 const maxScale = computed(() => {
   if (!displayWidth.value || !props.gridWidth) return 8
@@ -138,31 +130,35 @@ function clampPan() {
 function updateDisplaySize() {
   const gridWidth = props.gridWidth
   const gridHeight = props.gridHeight
-
-  // #ifdef H5
-  const containerWidth = window.innerWidth - 32
-  // #endif
-
-  // #ifndef H5
-  const sysInfo = uni.getSystemInfoSync()
-  const containerWidth = sysInfo.windowWidth - 32
-  // #endif
-
+  const windowInfo = uni.getWindowInfo()
+  const containerWidth = windowInfo.windowWidth - 32
   // cellSize 最小为 1，避免大尺寸网格时算出 0 导致渲染崩溃
   const cellSize = Math.max(1, Math.floor(containerWidth / gridWidth))
   displayWidth.value = cellSize * gridWidth
   displayHeight.value = cellSize * gridHeight
-
   // 尺寸变化时重置缓存的 Canvas context，确保下次渲染时重新设置分辨率
-  // #ifdef MP-WEIXIN
   mpCanvasCtx = null
-  // #endif
 }
+
+// 监听 canvasHidden 变化：隐藏后恢复显示时，canvas 元素被重建，需重置缓存并重绘
+watch(() => props.canvasHidden, (newVal, oldVal) => {
+  if (oldVal && !newVal) {
+    mpCanvasCtx = null
+    nextTick(() => renderGrid())
+  }
+})
 
 // 监听数据变化重新渲染；画笔增量绘制时跳过全量重绘
 watch(
   () => [props.cellData, props.selectedCell],
-  () => {
+  (newVal, oldVal) => {
+    // cellData 整体被替换（undo/redo/重新生成）时必须全量重绘
+    if (newVal[0] !== oldVal[0]) {
+      pendingIncrementalPaints = 0
+      nextTick(() => renderGrid())
+      return
+    }
+    // cellData 原地修改（画笔涂格）：paintCell 已增量绘制，跳过全量重绘
     if (pendingIncrementalPaints > 0) {
       pendingIncrementalPaints = Math.max(0, pendingIncrementalPaints - 1)
       return
@@ -176,18 +172,6 @@ onMounted(() => {
   updateDisplaySize()
   updateViewportRect()
   nextTick(() => renderGrid())
-
-  // H5 端：在 viewport 原生 DOM 上绑定滚轮和触摸事件
-  if (typeof document !== 'undefined') {
-    const viewport = document.getElementById('canvasViewport')
-    if (viewport) {
-      // 鼠标滚轮缩放
-      viewport.addEventListener('wheel', onWheelEvent, { passive: false })
-      // 鼠标拖拽平移（桌面端）
-      viewport.addEventListener('mousedown', onMouseDown)
-      viewport.addEventListener('dblclick', onDoubleClick)
-    }
-  }
 })
 
 onShow(() => {
@@ -211,19 +195,14 @@ defineExpose({
   },
   paintCell: (x: number, y: number, hex: string) => {
     pendingIncrementalPaints++
-    // #ifdef H5
-    renderSingleCellH5(x, y, hex)
-    // #endif
-    // #ifndef H5
-    renderSingleCellApp(x, y, hex)
-    // #endif
+    renderSingleCell(x, y, hex)
   },
 })
 
-// === 缩放手势处理 ===
-function onViewportTouchStart(event: any) {
+// === canvas 触摸事件处理 ===
+// 小程序端 canvas 是原生组件，触摸事件必须绑在 canvas 自身上才能触发
+function onCanvasTouchStart(event: any) {
   const touches = event.touches || []
-
   // 画笔模式：单指触摸开始绘制
   if (props.brushMode && touches.length === 1) {
     isDragging = false
@@ -231,7 +210,10 @@ function onViewportTouchStart(event: any) {
     emitBrushAt(touches[0])
     return
   }
-
+  // 画笔模式下双指仍允许缩放，需重置拖拽状态
+  if (props.brushMode && touches.length === 2) {
+    isDragging = false
+  }
   if (touches.length === 2) {
     isPinching = true
     isDragging = false
@@ -244,12 +226,10 @@ function onViewportTouchStart(event: any) {
     touchStartY = touches[0].clientY ?? touches[0].y ?? 0
     touchStartPanX = panX.value
     touchStartPanY = panY.value
-
-    // 双击检测
+    // 双击检测：在"复位"与"放大到半最大倍率"之间切换
     const now = Date.now()
     if (now - lastTapTime < 300) {
       isAnimating.value = true
-      // 双击在"复位"与"放大到半最大倍率"之间切换
       scale.value = scale.value > 1 ? 1 : Math.round(maxScale.value / 2)
       panX.value = 0
       panY.value = 0
@@ -259,46 +239,13 @@ function onViewportTouchStart(event: any) {
   }
 }
 
-/** 根据触摸坐标计算格子并发射 brushPaint 事件 */
-function emitBrushAt(touch: any) {
-  const touchX = touch.clientX ?? touch.x ?? 0
-  const touchY = touch.clientY ?? touch.y ?? 0
-
-  // #ifdef H5
-  const wrapper = document.getElementById('gridCanvasWrapper')
-  if (!wrapper) return
-  const rect = wrapper.getBoundingClientRect()
-  const offsetX = (touchX - rect.left) / scale.value
-  const offsetY = (touchY - rect.top) / scale.value
-  // #endif
-
-  // #ifndef H5
-  // App 端：touch.clientX 是窗口坐标，需减去 canvas 在屏幕上的实际位置
-  // canvas 中心 = viewport 中心 + panX/panY 偏移
-  const vr = cachedViewportRect
-  const canvasLeft = vr.left + vr.width / 2 + panX.value - displayWidth.value * scale.value / 2
-  const canvasTop = vr.top + vr.height / 2 + panY.value - displayHeight.value * scale.value / 2
-  const offsetX = (touchX - canvasLeft) / scale.value
-  const offsetY = (touchY - canvasTop) / scale.value
-  // #endif
-
-  const cellSize = displayWidth.value / props.gridWidth
-  const gridX = Math.floor(offsetX / cellSize)
-  const gridY = Math.floor(offsetY / cellSize)
-  if (gridX >= 0 && gridX < props.gridWidth && gridY >= 0 && gridY < props.gridHeight) {
-    emit('brushPaint', { x: gridX, y: gridY })
-  }
-}
-
-function onViewportTouchMove(event: any) {
+function onCanvasTouchMove(event: any) {
   const touches = event.touches || []
-
   // 画笔模式：单指移动时持续绘制
   if (props.brushMode && touches.length === 1) {
     emitBrushAt(touches[0])
     return
   }
-
   if (isPinching && touches.length === 2) {
     const currentDistance = getPinchDistance(touches)
     scale.value = Math.min(maxScale.value, Math.max(MIN_SCALE, initialScale * (currentDistance / initialPinchDistance)))
@@ -312,9 +259,51 @@ function onViewportTouchMove(event: any) {
   }
 }
 
-function onViewportTouchEnd() {
+function onCanvasTouchEnd(event: any) {
+  // 检测是否为"点击"（单指触摸且无明显移动），在 touchend 时发射 cellClick
+  if (isDragging && !isPinching) {
+    const movedX = Math.abs(panX.value - touchStartPanX)
+    const movedY = Math.abs(panY.value - touchStartPanY)
+    if (movedX < 5 && movedY < 5) {
+      const changedTouch = event.changedTouches?.[0]
+      if (changedTouch) {
+        const touchX = changedTouch.clientX ?? changedTouch.x ?? 0
+        const touchY = changedTouch.clientY ?? changedTouch.y ?? 0
+        const vr = cachedViewportRect
+        const canvasLeft = vr.left + vr.width / 2 + panX.value - displayWidth.value * scale.value / 2
+        const canvasTop = vr.top + vr.height / 2 + panY.value - displayHeight.value * scale.value / 2
+        const localX = (touchX - canvasLeft) / scale.value
+        const localY = (touchY - canvasTop) / scale.value
+        const cellSize = displayWidth.value / props.gridWidth
+        const gridX = Math.floor(localX / cellSize)
+        const gridY = Math.floor(localY / cellSize)
+        if (gridX >= 0 && gridX < props.gridWidth && gridY >= 0 && gridY < props.gridHeight) {
+          emit('cellClick', { x: gridX, y: gridY })
+        }
+      }
+    }
+  }
   isPinching = false
   isDragging = false
+}
+
+/** 根据 canvas 上的触摸坐标计算格子并发射 brushPaint 事件 */
+function emitBrushAt(touch: any) {
+  const touchX = touch.clientX ?? touch.x ?? 0
+  const touchY = touch.clientY ?? touch.y ?? 0
+  // canvas touch 的 clientX/clientY 是窗口坐标
+  // 需要减去 canvas 在屏幕上的实际位置，再除以 scale 得到逻辑坐标
+  const vr = cachedViewportRect
+  const canvasLeft = vr.left + vr.width / 2 + panX.value - displayWidth.value * scale.value / 2
+  const canvasTop = vr.top + vr.height / 2 + panY.value - displayHeight.value * scale.value / 2
+  const localX = (touchX - canvasLeft) / scale.value
+  const localY = (touchY - canvasTop) / scale.value
+  const cellSize = displayWidth.value / props.gridWidth
+  const gridX = Math.floor(localX / cellSize)
+  const gridY = Math.floor(localY / cellSize)
+  if (gridX >= 0 && gridX < props.gridWidth && gridY >= 0 && gridY < props.gridHeight) {
+    emit('brushPaint', { x: gridX, y: gridY })
+  }
 }
 
 function getPinchDistance(touches: any[]): number {
@@ -323,235 +312,13 @@ function getPinchDistance(touches: any[]): number {
   return Math.sqrt(dx * dx + dy * dy)
 }
 
-// H5 端鼠标滚轮缩放（以鼠标位置为中心，乘法步长保证各缩放层级手感一致）
-function onWheelEvent(e: WheelEvent) {
-  e.preventDefault()
-  e.stopPropagation()
+// === Canvas 2D 渲染 ===
 
-  const oldScale = scale.value
-  const factor = e.deltaY > 0 ? 1 / 1.15 : 1.15
-  const newScale = Math.min(maxScale.value, Math.max(MIN_SCALE, oldScale * factor))
-  if (newScale === oldScale) return
-
-  // 计算鼠标相对于 viewport 中心的偏移，使该点在缩放后保持不动
-  const viewport = document.getElementById('canvasViewport')
-  if (viewport) {
-    const rect = viewport.getBoundingClientRect()
-    const cx = e.clientX - rect.left - rect.width / 2
-    const cy = e.clientY - rect.top - rect.height / 2
-    const ratio = newScale / oldScale
-    panX.value = cx + (panX.value - cx) * ratio
-    panY.value = cy + (panY.value - cy) * ratio
-  }
-
-  scale.value = newScale
-  clampPan()
-}
-
-// H5 端双击切换缩放
-function onDoubleClick() {
-  isAnimating.value = true
-  if (scale.value > 1) {
-    scale.value = 1
-    panX.value = 0
-    panY.value = 0
-  } else {
-    scale.value = Math.round(maxScale.value / 2)
-  }
-  clampPan()
-  setTimeout(() => { isAnimating.value = false }, 200)
-}
-
-// H5 端鼠标拖拽平移
-let mouseDownX = 0
-let mouseDownY = 0
-let mouseDownPanX = 0
-let mouseDownPanY = 0
-let isMouseDragging = false
-
-function onMouseDown(e: MouseEvent) {
-  // 仅左键拖拽
-  if (e.button !== 0) return
-  isMouseDragging = true
-  mouseDownX = e.clientX
-  mouseDownY = e.clientY
-  mouseDownPanX = panX.value
-  mouseDownPanY = panY.value
-
-  const onMouseMove = (moveEvent: MouseEvent) => {
-    if (!isMouseDragging) return
-    panX.value = mouseDownPanX + (moveEvent.clientX - mouseDownX)
-    panY.value = mouseDownPanY + (moveEvent.clientY - mouseDownY)
-  }
-
-  const onMouseUp = () => {
-    isMouseDragging = false
-    document.removeEventListener('mousemove', onMouseMove)
-    document.removeEventListener('mouseup', onMouseUp)
-  }
-
-  document.addEventListener('mousemove', onMouseMove)
-  document.addEventListener('mouseup', onMouseUp)
-}
-
-function handleCanvasClick(event: any) {
-  // 如果正在拖拽或缩放，不触发点击
-  if (isDragging && (Math.abs(panX.value - touchStartPanX) > 5 || Math.abs(panY.value - touchStartPanY) > 5)) return
-
-  const cellSize = displayWidth.value / props.gridWidth
-  let offsetX = 0
-  let offsetY = 0
-
-  // #ifdef H5
-  const target = event.target || event.currentTarget
-  if (target && typeof target.getBoundingClientRect === 'function') {
-    const rect = target.getBoundingClientRect()
-    offsetX = ((event.clientX || event.pageX || 0) - rect.left) / scale.value
-    offsetY = ((event.clientY || event.pageY || 0) - rect.top) / scale.value
-  } else {
-    offsetX = (event.detail?.x ?? event.offsetX ?? 0) / scale.value
-    offsetY = (event.detail?.y ?? event.offsetY ?? 0) / scale.value
-  }
-  // #endif
-
-  // #ifndef H5
-  // App 端 event.detail.x/y 是 canvas 元素内部的逻辑坐标，无需除以 scale
-  offsetX = event.detail?.x ?? 0
-  offsetY = event.detail?.y ?? 0
-  // #endif
-
-  const gridX = Math.floor(offsetX / cellSize)
-  const gridY = Math.floor(offsetY / cellSize)
-
-  if (gridX >= 0 && gridX < props.gridWidth && gridY >= 0 && gridY < props.gridHeight) {
-    emit('cellClick', { x: gridX, y: gridY })
-  }
-}
-
-function renderGrid() {
-  const gridWidth = props.gridWidth
-  const gridHeight = props.gridHeight
-  const dispW = displayWidth.value
-  const dispH = displayHeight.value
-  const cellSize = dispW / gridWidth
-
-  if (gridWidth === 0 || gridHeight === 0 || dispW === 0) return
-
-  // #ifdef H5
-  renderH5(gridWidth, gridHeight, cellSize, dispW, dispH)
-  // #endif
-
-  // #ifndef H5
-  renderApp(gridWidth, gridHeight, cellSize, dispW, dispH)
-  // #endif
-}
-
-// H5 端：动态创建原生 canvas，绕过 UniApp canvas 分辨率限制
-function renderH5(gridWidth: number, gridHeight: number, cellSize: number, dispW: number, dispH: number) {
-  const wrapper = document.getElementById('gridCanvasWrapper')
-  if (!wrapper) return
-
-  // 移除旧 canvas（保留覆盖层 img）
-  const existingOverlay = wrapper.querySelector('.compare-overlay') as HTMLImageElement | null
-  while (wrapper.firstChild) {
-    wrapper.removeChild(wrapper.firstChild)
-  }
-
-  const nativeCanvas = document.createElement('canvas')
-  nativeCanvas.id = 'gridCanvas'
-  nativeCanvas.className = 'grid-canvas'
-  nativeCanvas.style.width = dispW + 'px'
-  nativeCanvas.style.height = dispH + 'px'
-  nativeCanvas.style.cursor = 'pointer'
-  nativeCanvas.addEventListener('click', (e: MouseEvent) => {
-    handleNativeCanvasClick(e, nativeCanvas)
-  })
-  wrapper.appendChild(nativeCanvas)
-
-  // 重新追加覆盖层（如果有）
-  if (existingOverlay) {
-    existingOverlay.style.width = dispW + 'px'
-    existingOverlay.style.height = dispH + 'px'
-    wrapper.appendChild(existingOverlay)
-  } else if (props.compareImage) {
-    appendCompareOverlay(wrapper, props.compareImage, dispW, dispH)
-  }
-
-  const dpr = window.devicePixelRatio || 1
-  // 限制内部分辨率，避免大尺寸网格超出浏览器 Canvas 像素上限（约 16M 像素）
-  const MAX_CANVAS_PIXELS = 4096 * 4096
-  const rawWidth = dispW * dpr
-  const rawHeight = dispH * dpr
-  const totalPixels = rawWidth * rawHeight
-  const effectiveDpr = totalPixels > MAX_CANVAS_PIXELS
-    ? Math.sqrt(MAX_CANVAS_PIXELS / (dispW * dispH))
-    : dpr
-  nativeCanvas.width = Math.round(dispW * effectiveDpr)
-  nativeCanvas.height = Math.round(dispH * effectiveDpr)
-  const ctx = nativeCanvas.getContext('2d')!
-  ctx.scale(effectiveDpr, effectiveDpr)
-
-  drawContent(ctx, gridWidth, gridHeight, cellSize, dispW, dispH)
-}
-
-// H5 端原生 canvas 点击处理
-function handleNativeCanvasClick(event: MouseEvent, canvasEl: HTMLCanvasElement) {
-  if (isDragging && (Math.abs(panX.value - touchStartPanX) > 5 || Math.abs(panY.value - touchStartPanY) > 5)) return
-
-  const rect = canvasEl.getBoundingClientRect()
-  const offsetX = (event.clientX - rect.left) / scale.value
-  const offsetY = (event.clientY - rect.top) / scale.value
-  const cellSize = displayWidth.value / props.gridWidth
-
-  const gridX = Math.floor(offsetX / cellSize)
-  const gridY = Math.floor(offsetY / cellSize)
-
-  if (gridX >= 0 && gridX < props.gridWidth && gridY >= 0 && gridY < props.gridHeight) {
-    emit('cellClick', { x: gridX, y: gridY })
-  }
-}
-
-/** 用原生 DOM 创建/更新对照覆盖层，避免与 Vue 虚拟 DOM 冲突 */
-function appendCompareOverlay(wrapper: HTMLElement, src: string, width: number, height: number) {
-  // 移除已有覆盖层
-  const existing = wrapper.querySelector('.compare-overlay')
-  if (existing) existing.remove()
-
-  if (!src) return
-
-  const img = document.createElement('img')
-  img.className = 'compare-overlay'
-  img.src = src
-  img.style.width = width + 'px'
-  img.style.height = height + 'px'
-  img.style.position = 'absolute'
-  img.style.top = '0'
-  img.style.left = '0'
-  img.style.opacity = '0.6'
-  img.style.pointerEvents = 'none'
-  img.style.borderRadius = '4px'
-  img.style.objectFit = 'cover'
-  wrapper.appendChild(img)
-}
-
-// 监听 compareImage prop 变化，动态更新覆盖层
-watch(() => props.compareImage, (newSrc) => {
-  // #ifdef H5
-  const wrapper = document.getElementById('gridCanvasWrapper')
-  if (!wrapper) return
-  appendCompareOverlay(wrapper, newSrc, displayWidth.value, displayHeight.value)
-  // #endif
-  // #ifndef H5
-  // App端通过 v-if 响应式控制，无需额外操作；触发重渲染确保尺寸同步
-  nextTick(() => renderGrid())
-  // #endif
-})
-
-// 小程序端：缓存 Canvas 2D context，避免每次渲染都重新查询
+// 缓存 Canvas 2D context，避免每次渲染都重新查询
 let mpCanvasCtx: CanvasRenderingContext2D | null = null
 
-/** 获取小程序 Canvas 2D 节点和 context */
-async function getMpCanvasContext(): Promise<CanvasRenderingContext2D | null> {
+/** 获取 Canvas 2D 节点和 context */
+async function getCanvasContext(): Promise<CanvasRenderingContext2D | null> {
   if (mpCanvasCtx) return mpCanvasCtx
 
   return new Promise((resolve) => {
@@ -560,13 +327,12 @@ async function getMpCanvasContext(): Promise<CanvasRenderingContext2D | null> {
       .node()
       .exec((res: any[]) => {
         if (!res || !res[0] || !res[0].node) {
-          console.warn('[GridCanvas] getMpCanvasContext: node not found', res)
+          console.warn('[GridCanvas] getCanvasContext: node not found', res)
           resolve(null)
           return
         }
         const canvasNode = res[0].node
-        // 设置 Canvas 内部分辨率
-        const dpr = uni.getSystemInfoSync().pixelRatio || 1
+        const dpr = uni.getWindowInfo().pixelRatio || 1
         canvasNode.width = displayWidth.value * dpr
         canvasNode.height = displayHeight.value * dpr
         const ctx = canvasNode.getContext('2d') as CanvasRenderingContext2D
@@ -577,15 +343,22 @@ async function getMpCanvasContext(): Promise<CanvasRenderingContext2D | null> {
   })
 }
 
-// 小程序端：使用 Canvas 2D API 绘制
-async function renderApp(gridWidth: number, gridHeight: number, cellSize: number, dispW: number, dispH: number) {
-  const ctx = await getMpCanvasContext()
+function renderGrid() {
+  const gridWidth = props.gridWidth
+  const gridHeight = props.gridHeight
+  const dispW = displayWidth.value
+  const dispH = displayHeight.value
+  const cellSize = dispW / gridWidth
+  if (gridWidth === 0 || gridHeight === 0 || dispW === 0) return
+  renderCanvas(gridWidth, gridHeight, cellSize, dispW, dispH)
+}
+
+async function renderCanvas(gridWidth: number, gridHeight: number, cellSize: number, dispW: number, dispH: number) {
+  const ctx = await getCanvasContext()
   if (!ctx) return
 
-  // 清空画布
   ctx.clearRect(0, 0, dispW, dispH)
 
-  // 绘制所有格子
   for (let y = 0; y < gridHeight; y++) {
     for (let x = 0; x < gridWidth; x++) {
       const hex = props.cellData[y]?.[x]
@@ -595,41 +368,6 @@ async function renderApp(gridWidth: number, gridHeight: number, cellSize: number
   }
 
   // cellSize < 2 时格子只有 1px，网格线会覆盖整个格子，跳过
-  if (cellSize >= 2) {
-    drawGridLines2D(ctx, gridWidth, gridHeight, cellSize, dispW, dispH)
-  }
-
-  if (props.selectedCell) {
-    ctx.strokeStyle = '#007AFF'
-    ctx.lineWidth = 2
-    ctx.strokeRect(
-      props.selectedCell.x * cellSize,
-      props.selectedCell.y * cellSize,
-      cellSize,
-      cellSize
-    )
-  }
-}
-
-// H5 端通用绘制内容（原生 CanvasRenderingContext2D）
-function drawContent(
-  ctx: CanvasRenderingContext2D,
-  gridWidth: number,
-  gridHeight: number,
-  cellSize: number,
-  dispW: number,
-  dispH: number
-) {
-  // Pass 1: 色块
-  for (let y = 0; y < gridHeight; y++) {
-    for (let x = 0; x < gridWidth; x++) {
-      const hex = props.cellData[y]?.[x]
-      ctx.fillStyle = hex || '#FAFAFA'
-      ctx.fillRect(x * cellSize, y * cellSize, cellSize, cellSize)
-    }
-  }
-
-  // Pass 2: 网格线（cellSize < 2 时格子只有 1px，网格线会覆盖整个格子，跳过）
   if (cellSize >= 2) {
     ctx.strokeStyle = '#E8E8E8'
     ctx.lineWidth = 0.5
@@ -645,7 +383,6 @@ function drawContent(
     ctx.stroke()
   }
 
-  // Pass 3: 选中高亮
   if (props.selectedCell) {
     ctx.strokeStyle = '#007AFF'
     ctx.lineWidth = 2
@@ -658,53 +395,13 @@ function drawContent(
   }
 }
 
-// App 端网格线绘制辅助（合并为单次 stroke，减少 IPC 命令数）
-// Canvas 2D 版网格线绘制（小程序端）
-function drawGridLines2D(
-  ctx: CanvasRenderingContext2D,
-  gridWidth: number,
-  gridHeight: number,
-  cellSize: number,
-  dispW: number,
-  dispH: number
-) {
-  ctx.strokeStyle = '#E8E8E8'
-  ctx.lineWidth = 0.5
-  ctx.beginPath()
-  for (let x = 0; x <= gridWidth; x++) {
-    ctx.moveTo(x * cellSize, 0)
-    ctx.lineTo(x * cellSize, dispH)
-  }
-  for (let y = 0; y <= gridHeight; y++) {
-    ctx.moveTo(0, y * cellSize)
-    ctx.lineTo(dispW, y * cellSize)
-  }
-  ctx.stroke()
-}
+// 监听 compareImage prop 变化时触发重渲染（覆盖层通过 v-if 响应式控制）
+watch(() => props.compareImage, () => {
+  nextTick(() => renderGrid())
+})
 
-// 旧版 API 网格线绘制（保留兼容）
-function drawGridLines(
-  ctx: any,
-  gridWidth: number,
-  gridHeight: number,
-  cellSize: number,
-  dispW: number,
-  dispH: number
-) {
-  ctx.beginPath()
-  for (let x = 0; x <= gridWidth; x++) {
-    ctx.moveTo(x * cellSize, 0)
-    ctx.lineTo(x * cellSize, dispH)
-  }
-  for (let y = 0; y <= gridHeight; y++) {
-    ctx.moveTo(0, y * cellSize)
-    ctx.lineTo(dispW, y * cellSize)
-  }
-  ctx.stroke()
-}
-
-// 增量单格绘制（小程序端）：使用 Canvas 2D API
-function renderSingleCellApp(x: number, y: number, hex: string) {
+// 增量单格绘制：使用缓存的 Canvas 2D context 直接叠绘，避免全量重绘闪烁
+function renderSingleCell(x: number, y: number, hex: string) {
   if (!mpCanvasCtx) return
   const cellSize = displayWidth.value / props.gridWidth
   mpCanvasCtx.fillStyle = hex || '#FAFAFA'
@@ -713,22 +410,6 @@ function renderSingleCellApp(x: number, y: number, hex: string) {
     mpCanvasCtx.strokeStyle = '#E8E8E8'
     mpCanvasCtx.lineWidth = 0.5
     mpCanvasCtx.strokeRect(x * cellSize, y * cellSize, cellSize, cellSize)
-  }
-}
-
-// 增量单格绘制（H5 端）：直接在现有原生 canvas context 上叠绘，无需重建 canvas
-function renderSingleCellH5(x: number, y: number, hex: string) {
-  const canvas = document.getElementById('gridCanvas') as HTMLCanvasElement | null
-  if (!canvas) return
-  const ctx2d = canvas.getContext('2d')
-  if (!ctx2d) return
-  const cellSize = displayWidth.value / props.gridWidth
-  ctx2d.fillStyle = hex || '#FAFAFA'
-  ctx2d.fillRect(x * cellSize, y * cellSize, cellSize, cellSize)
-  if (cellSize >= 2) {
-    ctx2d.strokeStyle = '#E8E8E8'
-    ctx2d.lineWidth = 0.5
-    ctx2d.strokeRect(x * cellSize, y * cellSize, cellSize, cellSize)
   }
 }
 </script>
@@ -757,22 +438,17 @@ function renderSingleCellH5(x: number, y: number, hex: string) {
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
 }
 
+.grid-canvas-placeholder {
+  background-color: #ffffff;
+  border-radius: 4px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+}
+
 .compare-overlay {
   position: absolute;
   top: 0;
   left: 0;
   opacity: 0.6;
-  pointer-events: none;
   border-radius: 4px;
 }
-
-/* #ifndef H5 */
-.compare-overlay-app {
-  position: absolute;
-  top: 0;
-  left: 0;
-  opacity: 0.6;
-  border-radius: 4px;
-}
-/* #endif */
 </style>
