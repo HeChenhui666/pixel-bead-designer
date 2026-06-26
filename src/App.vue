@@ -24,6 +24,11 @@ onHide(() => {
 </script>
 
 <style>
+/* 全局 box-sizing（兼容小程序） */
+view, text, image, input, scroll-view, button, form, label, navigator, rich-text, canvas, video, audio, swiper, swiper-item, picker, textarea {
+  box-sizing: border-box;
+}
+
 uni-page-body {
   overflow: hidden;
   height: 100%;

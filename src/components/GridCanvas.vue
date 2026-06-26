@@ -131,7 +131,7 @@ function updateDisplaySize() {
   const gridWidth = props.gridWidth
   const gridHeight = props.gridHeight
   const windowInfo = uni.getWindowInfo()
-  const containerWidth = windowInfo.windowWidth - 32
+  const containerWidth = windowInfo.windowWidth - 8
   // cellSize 最小为 1，避免大尺寸网格时算出 0 导致渲染崩溃
   const cellSize = Math.max(1, Math.floor(containerWidth / gridWidth))
   displayWidth.value = cellSize * gridWidth
@@ -384,8 +384,8 @@ async function renderCanvas(gridWidth: number, gridHeight: number, cellSize: num
   }
 
   if (props.selectedCell) {
-    ctx.strokeStyle = '#007AFF'
-    ctx.lineWidth = 2
+    ctx.strokeStyle = '#7ec8c8'
+    ctx.lineWidth = 1.5
     ctx.strokeRect(
       props.selectedCell.x * cellSize,
       props.selectedCell.y * cellSize,
@@ -433,22 +433,22 @@ function renderSingleCell(x: number, y: number, hex: string) {
 }
 
 .grid-canvas {
-  background-color: #ffffff;
-  border-radius: 4px;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+  background-color: #fefcfb;
+  border-radius: 12px;
+  box-shadow: 0 4px 20px rgba(126, 200, 200, 0.1);
 }
 
 .grid-canvas-placeholder {
-  background-color: #ffffff;
-  border-radius: 4px;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+  background-color: #fefcfb;
+  border-radius: 12px;
+  box-shadow: 0 4px 20px rgba(126, 200, 200, 0.1);
 }
 
 .compare-overlay {
   position: absolute;
   top: 0;
   left: 0;
-  opacity: 0.6;
-  border-radius: 4px;
+  opacity: 0.5;
+  border-radius: 12px;
 }
 </style>

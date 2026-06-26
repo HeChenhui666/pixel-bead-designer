@@ -540,7 +540,7 @@ function onCellClick(payload: { x: number; y: number }) {
 .page-editor {
   display: flex;
   flex-direction: column;
-  background-color: #fafafa;
+  background: linear-gradient(180deg, #fdf9f5 0%, #faf5f0 100%);
   overflow: hidden;
   min-height: calc(100vh - var(--safe-top, 0px) - var(--safe-bottom, 0px) - 56px);
 }
@@ -565,18 +565,19 @@ function onCellClick(payload: { x: number; y: number }) {
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  background-color: rgba(255, 255, 255, 0.9);
+  background-color: rgba(254, 252, 251, 0.92);
   z-index: 30;
 }
 
 .loading-text {
   font-size: 16px;
-  color: #1a1a1a;
+  color: #4a4a4a;
+  font-weight: 500;
 }
 
 .loading-sub {
-  font-size: 14px;
-  color: #666666;
+  font-size: 13px;
+  color: #9ca3af;
   margin-top: 8px;
 }
 
@@ -585,8 +586,8 @@ function onCellClick(payload: { x: number; y: number }) {
   bottom: 12px;
   left: 50%;
   transform: translateX(-50%);
-  font-size: 13px;
-  color: #999999;
+  font-size: 12px;
+  color: #b0a8a0;
   pointer-events: none;
 }
 
@@ -595,10 +596,10 @@ function onCellClick(payload: { x: number; y: number }) {
   bottom: calc(56px + var(--safe-bottom, 0px));
   left: 0;
   right: 0;
-  background-color: #ffffff;
-  border-top: 1px solid #e8e8e8;
-  border-radius: 16px 16px 0 0;
-  box-shadow: 0 -4px 16px rgba(0, 0, 0, 0.08);
+  background-color: #fefcfb;
+  border-top: 1px solid #f0ebe6;
+  border-radius: 20px 20px 0 0;
+  box-shadow: 0 -4px 20px rgba(126, 200, 200, 0.1);
   z-index: 40;
   display: flex;
   flex-direction: column;
@@ -607,16 +608,16 @@ function onCellClick(payload: { x: number; y: number }) {
 .palette-header {
   display: flex;
   align-items: center;
-  padding: 6px 16px;
-  border-bottom: 1px solid #f0f0f0;
+  padding: 10px 16px;
+  border-bottom: 1px solid #f5f2ef;
   flex-shrink: 0;
   position: relative;
 }
 
 .cell-coords {
   font-size: 13px;
-  color: #666666;
-  font-weight: 500;
+  color: #7ec8c8;
+  font-weight: 600;
   flex-shrink: 0;
 }
 
@@ -635,20 +636,22 @@ function onCellClick(payload: { x: number; y: number }) {
   width: 36px;
   height: 4px;
   border-radius: 2px;
-  background-color: #d0d0d0;
+  background-color: #e8e4e0;
 }
 
 .clear-selection-btn {
   margin-left: auto;
-  padding: 4px 12px;
-  border-radius: 14px;
-  background-color: #f0f0f0;
+  padding: 5px 14px;
+  border-radius: 16px;
+  background-color: #f8f6f4;
   flex-shrink: 0;
+  transition: all 0.25s ease;
 }
 
 .clear-text {
   font-size: 12px;
-  color: #666666;
+  color: #9ca3af;
+  font-weight: 500;
 }
 
 .palette-grid-scroll {
@@ -659,44 +662,45 @@ function onCellClick(payload: { x: number; y: number }) {
 .palette-grid {
   display: flex;
   flex-wrap: wrap;
-  gap: 6px;
-  padding: 10px 12px;
+  gap: 8px;
+  padding: 12px 14px;
 }
 
 .palette-swatch {
-  width: 36px;
-  height: 36px;
-  border-radius: 6px;
+  width: 38px;
+  height: 38px;
+  border-radius: 10px;
   display: flex;
   align-items: center;
   justify-content: center;
   border: 2px solid transparent;
   position: relative;
+  transition: all 0.25s ease;
 }
 
 .palette-swatch.active {
-  border-color: #007AFF;
-  box-shadow: 0 0 0 2px rgba(0, 122, 255, 0.3);
+  border-color: #7ec8c8;
+  box-shadow: 0 0 0 3px rgba(126, 200, 200, 0.2);
 }
 
 .swatch-code {
   font-size: 8px;
   color: #ffffff;
-  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.6);
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.5);
   line-height: 1;
   pointer-events: none;
 }
 
 .swatch-check {
   position: absolute;
-  top: -4px;
-  right: -4px;
-  font-size: 10px;
+  top: -5px;
+  right: -5px;
+  font-size: 9px;
   color: #ffffff;
-  background-color: #007AFF;
+  background-color: #7ec8c8;
   border-radius: 50%;
-  width: 14px;
-  height: 14px;
+  width: 15px;
+  height: 15px;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -705,20 +709,20 @@ function onCellClick(payload: { x: number; y: number }) {
 
 .action-bar {
   position: fixed;
-  top: calc(var(--safe-top, 0px) + 8px);
-  left: 12px;
-  right: 12px;
+  top: calc(var(--safe-top, 0px) + 10px);
+  left: 14px;
+  right: 14px;
   display: flex;
   flex-direction: column;
   align-items: flex-start;
-  gap: 6px;
+  gap: 8px;
   z-index: 36;
 }
 
 .action-row {
   display: flex;
   justify-content: flex-start;
-  gap: 8px;
+  gap: 10px;
 }
 
 .back-action-btn {
@@ -726,20 +730,25 @@ function onCellClick(payload: { x: number; y: number }) {
 }
 
 .action-btn {
-  padding: 6px 14px;
+  padding: 7px 16px;
   border-radius: 20px;
-  background-color: rgba(255, 255, 255, 0.95);
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.12);
+  background-color: rgba(254, 252, 251, 0.95);
+  box-shadow: 0 2px 12px rgba(126, 200, 200, 0.15);
+  transition: all 0.25s ease;
+}
+
+.action-btn:active {
+  transform: scale(0.96);
 }
 
 .action-btn.disabled {
-  opacity: 0.35;
+  opacity: 0.4;
 }
 
 .action-btn-text {
   font-size: 12px;
-  color: #007AFF;
-  font-weight: 500;
+  color: #7ec8c8;
+  font-weight: 600;
 }
 
 .undo-redo-bar {
@@ -748,15 +757,20 @@ function onCellClick(payload: { x: number; y: number }) {
   left: 50%;
   transform: translateX(-50%);
   display: flex;
-  gap: 10px;
+  gap: 12px;
   z-index: 30;
 }
 
 .undo-redo-btn {
-  padding: 8px 18px;
-  border-radius: 20px;
-  background-color: rgba(255, 255, 255, 0.95);
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.12);
+  padding: 10px 20px;
+  border-radius: 22px;
+  background-color: rgba(254, 252, 251, 0.95);
+  box-shadow: 0 2px 12px rgba(126, 200, 200, 0.15);
+  transition: all 0.25s ease;
+}
+
+.undo-redo-btn:active {
+  transform: scale(0.95);
 }
 
 .undo-redo-btn.disabled {
@@ -764,7 +778,7 @@ function onCellClick(payload: { x: number; y: number }) {
 }
 
 .undo-redo-btn.active {
-  background-color: #007AFF;
+  background-color: #7ec8c8;
 }
 
 .undo-redo-btn.active .undo-redo-text {
@@ -772,9 +786,9 @@ function onCellClick(payload: { x: number; y: number }) {
 }
 
 .undo-redo-text {
-  font-size: 13px;
-  color: #007AFF;
-  font-weight: 500;
+  font-size: 14px;
+  color: #7ec8c8;
+  font-weight: 600;
 }
 
 .stats-drawer-mask {
@@ -783,11 +797,11 @@ function onCellClick(payload: { x: number; y: number }) {
   left: 0;
   right: 0;
   bottom: 0;
-  background-color: rgba(0, 0, 0, 0.3);
+  background-color: rgba(0, 0, 0, 0.2);
   z-index: 44;
   opacity: 0;
   pointer-events: none;
-  transition: opacity 0.25s ease;
+  transition: opacity 0.3s ease;
 }
 
 .stats-drawer-mask.visible {
@@ -801,14 +815,14 @@ function onCellClick(payload: { x: number; y: number }) {
   right: 0;
   bottom: 0;
   width: 280px;
-  background-color: #ffffff;
+  background-color: #fefcfb;
   z-index: 45;
   transform: translateX(100%);
-  transition: transform 0.25s ease;
+  transition: transform 0.3s ease;
   display: flex;
   flex-direction: column;
   padding-top: var(--safe-top, 0px);
-  box-shadow: -4px 0 16px rgba(0, 0, 0, 0.1);
+  box-shadow: -4px 0 20px rgba(126, 200, 200, 0.12);
 }
 
 .stats-drawer.open {
@@ -819,36 +833,41 @@ function onCellClick(payload: { x: number; y: number }) {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: 16px;
-  border-bottom: 1px solid #f0f0f0;
+  padding: 18px 16px;
+  border-bottom: 1px solid #f5f2ef;
   flex-shrink: 0;
 }
 
 .drawer-title {
   font-size: 17px;
   font-weight: 700;
-  color: #1a1a1a;
+  color: #4a4a4a;
 }
 
 .drawer-close {
-  width: 30px;
-  height: 30px;
+  width: 32px;
+  height: 32px;
   display: flex;
   align-items: center;
   justify-content: center;
   border-radius: 50%;
-  background-color: #f5f5f5;
+  background-color: #f8f6f4;
+  transition: all 0.25s ease;
+}
+
+.drawer-close:active {
+  background-color: #f0eeeb;
 }
 
 .drawer-close-text {
   font-size: 14px;
-  color: #666666;
+  color: #9ca3af;
 }
 
 .drawer-body {
   flex: 1;
   overflow-y: auto;
-  padding: 12px;
+  padding: 14px;
 }
 
 .guide-container {
@@ -865,9 +884,9 @@ function onCellClick(payload: { x: number; y: number }) {
   flex-direction: column;
   align-items: center;
   padding: 40px 32px;
-  border-radius: 16px;
-  background-color: #ffffff;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+  border-radius: 20px;
+  background-color: #fefcfb;
+  box-shadow: 0 4px 16px rgba(126, 200, 200, 0.1);
   margin-bottom: 32px;
 }
 
@@ -878,15 +897,17 @@ function onCellClick(payload: { x: number; y: number }) {
 
 .guide-title {
   font-size: 18px;
-  color: #1a1a1a;
+  color: #4a4a4a;
   text-align: center;
   margin-bottom: 24px;
+  font-weight: 600;
 }
 
 .guide-btn {
   padding: 12px 40px;
-  border-radius: 8px;
-  background-color: #007AFF;
+  border-radius: 24px;
+  background: linear-gradient(135deg, #7ec8c8 0%, #a8d8d8 100%);
+  box-shadow: 0 4px 16px rgba(126, 200, 200, 0.3);
 }
 
 .guide-btn-text {
@@ -913,7 +934,7 @@ function onCellClick(payload: { x: number; y: number }) {
 
 .entry-label {
   font-size: 13px;
-  color: #666666;
+  color: #9ca3af;
 }
 
 .preview-mask {
@@ -922,7 +943,7 @@ function onCellClick(payload: { x: number; y: number }) {
   left: 0;
   right: 0;
   bottom: 0;
-  background-color: rgba(0, 0, 0, 0.5);
+  background-color: rgba(0, 0, 0, 0.3);
   z-index: 50;
   display: flex;
   align-items: center;
@@ -933,84 +954,92 @@ function onCellClick(payload: { x: number; y: number }) {
   width: 90vw;
   max-width: 400px;
   max-height: 80vh;
-  background-color: #ffffff;
-  border-radius: 16px;
+  background-color: #fefcfb;
+  border-radius: 20px;
   display: flex;
   flex-direction: column;
   overflow: hidden;
+  box-shadow: 0 8px 32px rgba(126, 200, 200, 0.15);
 }
 
 .preview-header {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: 14px 16px;
-  border-bottom: 1px solid #f0f0f0;
+  padding: 16px 18px;
+  border-bottom: 1px solid #f5f2ef;
   flex-shrink: 0;
 }
 
 .preview-title {
   font-size: 16px;
   font-weight: 700;
-  color: #1a1a1a;
+  color: #4a4a4a;
 }
 
 .preview-close {
-  width: 28px;
-  height: 28px;
+  width: 30px;
+  height: 30px;
   display: flex;
   align-items: center;
   justify-content: center;
   border-radius: 50%;
-  background-color: #f5f5f5;
+  background-color: #f8f6f4;
+  transition: all 0.25s ease;
+}
+
+.preview-close:active {
+  background-color: #f0eeeb;
 }
 
 .preview-close-text {
   font-size: 13px;
-  color: #666666;
+  color: #9ca3af;
 }
 
 .preview-body {
   flex: 1;
   overflow-y: auto;
-  padding: 12px;
+  padding: 14px;
   display: flex;
   justify-content: center;
 }
 
 .preview-image {
   width: 100%;
-  border-radius: 8px;
+  border-radius: 12px;
 }
 
 .preview-footer {
   display: flex;
-  gap: 10px;
-  padding: 12px 16px;
-  border-top: 1px solid #f0f0f0;
+  gap: 12px;
+  padding: 14px 18px;
+  border-top: 1px solid #f5f2ef;
   flex-shrink: 0;
 }
 
 .preview-btn {
   flex: 1;
-  padding: 10px;
-  border-radius: 8px;
+  padding: 11px;
+  border-radius: 14px;
   display: flex;
   align-items: center;
   justify-content: center;
+  transition: all 0.25s ease;
 }
 
 .preview-btn.cancel {
-  background-color: #f5f5f5;
+  background-color: #f8f6f4;
 }
 
 .preview-btn.confirm {
-  background-color: #007AFF;
+  background: linear-gradient(135deg, #7ec8c8 0%, #a8d8d8 100%);
+  box-shadow: 0 2px 12px rgba(126, 200, 200, 0.25);
 }
 
 .preview-btn-text {
   font-size: 15px;
-  color: #666666;
+  color: #9ca3af;
   font-weight: 500;
 }
 
@@ -1027,7 +1056,7 @@ function onCellClick(payload: { x: number; y: number }) {
   left: 0;
   right: 0;
   bottom: 0;
-  background-color: rgba(0, 0, 0, 0.45);
+  background-color: rgba(0, 0, 0, 0.25);
   z-index: 100;
   display: flex;
   align-items: center;
@@ -1037,61 +1066,64 @@ function onCellClick(payload: { x: number; y: number }) {
 .confirm-dialog {
   width: 80vw;
   max-width: 320px;
-  background-color: #ffffff;
-  border-radius: 16px;
-  padding: 24px 20px 16px;
+  background-color: #fefcfb;
+  border-radius: 20px;
+  padding: 28px 22px 18px;
   display: flex;
   flex-direction: column;
   align-items: center;
+  box-shadow: 0 8px 32px rgba(126, 200, 200, 0.15);
 }
 
 .confirm-title {
   font-size: 17px;
   font-weight: 700;
-  color: #1a1a1a;
-  margin-bottom: 8px;
+  color: #4a4a4a;
+  margin-bottom: 10px;
   text-align: center;
 }
 
 .confirm-msg {
   font-size: 14px;
-  color: #666666;
+  color: #9ca3af;
   text-align: center;
-  margin-bottom: 20px;
-  line-height: 1.5;
+  margin-bottom: 22px;
+  line-height: 1.6;
 }
 
 .confirm-buttons {
   display: flex;
-  gap: 10px;
+  gap: 12px;
   width: 100%;
-  margin-bottom: 12px;
+  margin-bottom: 14px;
 }
 
 .confirm-btn-discard {
   flex: 1;
-  padding: 11px 0;
-  border-radius: 10px;
-  background-color: #f2f2f2;
+  padding: 12px 0;
+  border-radius: 14px;
+  background-color: #f8f6f4;
   display: flex;
   align-items: center;
   justify-content: center;
+  transition: all 0.25s ease;
 }
 
 .confirm-btn-discard-text {
   font-size: 15px;
-  color: #666666;
+  color: #9ca3af;
   font-weight: 500;
 }
 
 .confirm-btn-save {
   flex: 1;
-  padding: 11px 0;
-  border-radius: 10px;
-  background-color: #007AFF;
+  padding: 12px 0;
+  border-radius: 14px;
+  background: linear-gradient(135deg, #7ec8c8 0%, #a8d8d8 100%);
   display: flex;
   align-items: center;
   justify-content: center;
+  box-shadow: 0 2px 12px rgba(126, 200, 200, 0.25);
 }
 
 .confirm-btn-save-text {
@@ -1106,7 +1138,8 @@ function onCellClick(payload: { x: number; y: number }) {
 
 .confirm-cancel-text {
   font-size: 14px;
-  color: #007AFF;
+  color: #7ec8c8;
+  font-weight: 500;
 }
 
 /* 底部工具条 */
@@ -1117,13 +1150,15 @@ function onCellClick(payload: { x: number; y: number }) {
   right: 0;
   height: calc(56px + var(--safe-bottom, 0px));
   padding-bottom: var(--safe-bottom, 0px);
-  background-color: rgba(30, 30, 30, 0.95);
+  background-color: rgba(254, 252, 251, 0.95);
   backdrop-filter: blur(12px);
+  border-top: 1px solid #f0ebe6;
   display: flex;
   align-items: center;
   z-index: 50;
   overflow-x: auto;
   -webkit-overflow-scrolling: touch;
+  box-shadow: 0 -4px 20px rgba(126, 200, 200, 0.08);
 }
 
 .editor-toolbar::-webkit-scrollbar {
@@ -1135,15 +1170,15 @@ function onCellClick(payload: { x: number; y: number }) {
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  gap: 2px;
-  padding: 6px 16px;
-  border-radius: 8px;
+  gap: 3px;
+  padding: 8px 18px;
+  border-radius: 12px;
   flex-shrink: 0;
-  transition: background-color 0.15s ease;
+  transition: all 0.25s ease;
 }
 
 .toolbar-item:active {
-  background-color: rgba(255, 255, 255, 0.12);
+  background-color: rgba(126, 200, 200, 0.1);
 }
 
 .toolbar-icon {
@@ -1153,12 +1188,18 @@ function onCellClick(payload: { x: number; y: number }) {
 
 .toolbar-label {
   font-size: 10px;
-  color: rgba(255, 255, 255, 0.85);
+  color: #9ca3af;
   line-height: 1;
+  font-weight: 500;
 }
 
 .toolbar-item.active {
-  background-color: rgba(0, 122, 255, 0.3);
+  background-color: rgba(126, 200, 200, 0.15);
+}
+
+.toolbar-item.active .toolbar-label {
+  color: #7ec8c8;
+  font-weight: 600;
 }
 
 /* 画笔色卡选择面板 */
@@ -1168,9 +1209,9 @@ function onCellClick(payload: { x: number; y: number }) {
   left: 0;
   right: 0;
   height: 40vh;
-  background-color: #ffffff;
-  border-radius: 16px 16px 0 0;
-  box-shadow: 0 -4px 16px rgba(0, 0, 0, 0.12);
+  background-color: #fefcfb;
+  border-radius: 20px 20px 0 0;
+  box-shadow: 0 -4px 20px rgba(126, 200, 200, 0.12);
   z-index: 55;
   display: flex;
   flex-direction: column;
@@ -1181,26 +1222,31 @@ function onCellClick(payload: { x: number; y: number }) {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: 10px 16px;
-  border-bottom: 1px solid #f0f0f0;
+  padding: 12px 18px;
+  border-bottom: 1px solid #f5f2ef;
   flex-shrink: 0;
 }
 
 .brush-palette-title {
   font-size: 14px;
   font-weight: 600;
-  color: #1a1a1a;
+  color: #4a4a4a;
 }
 
 .brush-palette-close {
-  padding: 4px 10px;
-  border-radius: 12px;
-  background-color: #f0f0f0;
+  padding: 5px 12px;
+  border-radius: 14px;
+  background-color: #f8f6f4;
+  transition: all 0.25s ease;
+}
+
+.brush-palette-close:active {
+  background-color: #f0eeeb;
 }
 
 .brush-palette-close-text {
   font-size: 12px;
-  color: #666666;
+  color: #9ca3af;
 }
 
 .brush-palette-scroll {
@@ -1211,29 +1257,30 @@ function onCellClick(payload: { x: number; y: number }) {
 .brush-palette-grid {
   display: flex;
   flex-wrap: wrap;
-  gap: 6px;
-  padding: 10px 12px;
+  gap: 8px;
+  padding: 12px 14px;
 }
 
 .brush-swatch {
-  width: 36px;
-  height: 36px;
-  border-radius: 6px;
+  width: 38px;
+  height: 38px;
+  border-radius: 10px;
   display: flex;
   align-items: center;
   justify-content: center;
   border: 2px solid transparent;
+  transition: all 0.25s ease;
 }
 
 .brush-swatch.active {
-  border-color: #007AFF;
-  box-shadow: 0 0 0 2px rgba(0, 122, 255, 0.3);
+  border-color: #7ec8c8;
+  box-shadow: 0 0 0 3px rgba(126, 200, 200, 0.2);
 }
 
 .brush-swatch-code {
   font-size: 8px;
   color: #ffffff;
-  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.6);
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.5);
   line-height: 1;
   pointer-events: none;
 }

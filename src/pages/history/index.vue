@@ -176,61 +176,69 @@ function goToUpload() {
   display: flex;
   flex-direction: column;
   min-height: 100vh;
-  background-color: #f8f8f8;
+  background: linear-gradient(180deg, #fdf9f5 0%, #faf5f0 100%);
 }
 
 .page-history {
   display: flex;
   flex-direction: column;
   flex: 1;
-  background-color: #f8f8f8;
+  background: transparent;
   box-sizing: border-box;
 }
 
 .header {
-  padding: 16px 20px;
-  background-color: #ffffff;
-  border-bottom: 1px solid #eeeeee;
+  padding: 20px 22px;
+  background: transparent;
+  border-bottom: 1px solid #efe9e3;
 }
 
 .header-title {
   font-size: 24px;
   font-weight: 700;
-  color: #1a1a1a;
+  color: #4a4a4a;
 }
 
 .history-list {
   flex: 1;
-  padding: 12px;
+  padding: 14px;
 }
 
 .history-item {
   display: flex;
   align-items: center;
   background-color: #ffffff;
-  border-radius: 12px;
-  padding: 12px;
-  margin-bottom: 10px;
-  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.06);
+  border-radius: 16px;
+  padding: 14px;
+  margin-bottom: 12px;
+  box-shadow: 0 2px 12px rgba(126, 200, 200, 0.08);
+  transition: all 0.25s ease;
+  border: 1.5px solid transparent;
+}
+
+.history-item:active {
+  transform: scale(0.98);
+  border-color: #e8f6f6;
 }
 
 .thumb-wrapper {
-  width: 60px;
-  height: 60px;
-  border-radius: 8px;
+  width: 62px;
+  height: 62px;
+  border-radius: 12px;
   overflow: hidden;
-  background-color: #fafafa;
+  background-color: #f8f6f4;
   flex-shrink: 0;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
 }
 
 .thumb-canvas {
-  width: 60px;
-  height: 60px;
+  width: 62px;
+  height: 62px;
 }
 
 .item-info {
   flex: 1;
-  margin-left: 12px;
+  margin-left: 14px;
   display: flex;
   flex-direction: column;
   justify-content: center;
@@ -239,30 +247,35 @@ function goToUpload() {
 .item-title {
   font-size: 15px;
   font-weight: 600;
-  color: #1a1a1a;
-  margin-bottom: 4px;
+  color: #4a4a4a;
+  margin-bottom: 5px;
 }
 
 .item-meta {
   font-size: 12px;
-  color: #999999;
+  color: #b0a8a0;
 }
 
 .delete-btn {
-  width: 32px;
-  height: 32px;
+  width: 34px;
+  height: 34px;
   display: flex;
   align-items: center;
   justify-content: center;
   border-radius: 50%;
-  background-color: #f5f5f5;
+  background-color: #f8f6f4;
   flex-shrink: 0;
-  margin-left: 8px;
+  margin-left: 10px;
+  transition: all 0.25s ease;
+}
+
+.delete-btn:active {
+  background-color: #ffe8e9;
 }
 
 .delete-icon {
   font-size: 14px;
-  color: #cc3333;
+  color: #ff9a9e;
 }
 
 .empty-state {
@@ -275,26 +288,34 @@ function goToUpload() {
 }
 
 .empty-icon {
-  font-size: 48px;
-  margin-bottom: 12px;
+  font-size: 52px;
+  margin-bottom: 14px;
+  opacity: 0.8;
 }
 
 .empty-text {
   font-size: 18px;
-  color: #1a1a1a;
-  margin-bottom: 4px;
+  color: #4a4a4a;
+  margin-bottom: 6px;
+  font-weight: 600;
 }
 
 .empty-sub {
   font-size: 14px;
-  color: #999999;
-  margin-bottom: 24px;
+  color: #b0a8a0;
+  margin-bottom: 28px;
 }
 
 .empty-btn {
-  padding: 12px 32px;
-  border-radius: 8px;
-  background-color: #007AFF;
+  padding: 13px 36px;
+  border-radius: 24px;
+  background: linear-gradient(135deg, #7ec8c8 0%, #a8d8d8 100%);
+  box-shadow: 0 4px 16px rgba(126, 200, 200, 0.3);
+  transition: all 0.25s ease;
+}
+
+.empty-btn:active {
+  transform: scale(0.96);
 }
 
 .empty-btn-text {

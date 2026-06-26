@@ -58,19 +58,19 @@ function handleGenerate() {
   display: flex;
   flex-direction: column;
   min-height: 100vh;
-  background-color: #ffffff;
+  background: linear-gradient(180deg, #fdf9f5 0%, #faf5f0 100%);
 }
 
 .page-index {
   display: flex;
   flex-direction: column;
   flex: 1;
-  background-color: #ffffff;
+  background: transparent;
   box-sizing: border-box;
 }
 
 .top-section {
-  padding: 16px;
+  padding: 20px 16px;
   flex-shrink: 0;
 }
 
@@ -79,7 +79,7 @@ function handleGenerate() {
 }
 
 .bottom-action {
-  padding: 16px;
+  padding: 16px 20px 24px;
   flex-shrink: 0;
 }
 
@@ -87,18 +87,27 @@ function handleGenerate() {
   display: flex;
   align-items: center;
   justify-content: center;
-  height: 48px;
-  border-radius: 8px;
-  background-color: #007AFF;
+  height: 52px;
+  border-radius: 26px;
+  background: linear-gradient(135deg, #7ec8c8 0%, #a8d8d8 100%);
+  box-shadow: 0 4px 16px rgba(126, 200, 200, 0.3);
+  transition: all 0.3s ease;
+}
+
+.generate-btn:active {
+  transform: scale(0.98);
+  box-shadow: 0 2px 8px rgba(126, 200, 200, 0.2);
 }
 
 .generate-btn.disabled {
-  background-color: #cccccc;
+  background: linear-gradient(135deg, #d1d5db 0%, #e5e7eb 100%);
+  box-shadow: none;
 }
 
 .btn-text {
   font-size: 16px;
   color: #ffffff;
   font-weight: 600;
+  letter-spacing: 1px;
 }
 </style>

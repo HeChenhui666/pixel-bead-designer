@@ -4,21 +4,30 @@
     <view class="section">
       <text class="section-title">网格尺寸</text>
       <view class="preset-row">
-        <view v-for="preset in presets" :key="preset.label" class="preset-btn"
+        <view v-for="preset in presets.slice(0, 3)" :key="preset.label" class="preset-btn"
           :class="{ active: isActivePreset(preset) }" @click="selectPreset(preset)">
           <text class="preset-label">{{ preset.label }}</text>
           <text class="preset-size">{{ preset.width }}×{{ preset.height }}</text>
         </view>
       </view>
-      <view v-if="isCustom" class="custom-input-row">
-        <view class="input-group">
-          <text class="input-label">宽</text>
-          <input type="number" :value="projectStore.gridWidth" class="size-input" @input="onWidthInput" />
-        </view>
-        <text class="input-separator">×</text>
-        <view class="input-group">
-          <text class="input-label">高</text>
-          <input type="number" :value="projectStore.gridHeight" class="size-input" @input="onHeightInput" />
+      <!-- 自定义按钮独占一行 -->
+      <view class="custom-preset-row">
+        <view class="preset-btn custom-btn"
+          :class="{ active: isCustom }" @click="selectPreset(presets[3])">
+          <text class="preset-label">自定义</text>
+          <text v-if="!isCustom" class="preset-size">自定义尺寸</text>
+          <!-- 自定义模式下显示输入框 -->
+          <view v-if="isCustom" class="custom-input-inline">
+            <view class="input-group">
+              <text class="input-label">宽</text>
+              <input type="number" :value="projectStore.gridWidth" class="size-input" @input="onWidthInput" />
+            </view>
+            <text class="input-separator">×</text>
+            <view class="input-group">
+              <text class="input-label">高</text>
+              <input type="number" :value="projectStore.gridHeight" class="size-input" @input="onHeightInput" />
+            </view>
+          </view>
         </view>
       </view>
     </view>
@@ -170,107 +179,139 @@ function onHeightInput(event: any) {
 
 <style scoped>
 .param-panel {
-  padding: 16px;
+  padding: 16px 20px;
 }
 
 .section {
-  margin-bottom: 20px;
+  margin-bottom: 24px;
 }
 
 .section-title {
-  font-size: 14px;
-  color: #666666;
-  margin-bottom: 8px;
+  font-size: 13px;
+  color: #9ca3af;
+  margin-bottom: 10px;
   display: block;
+  font-weight: 500;
+  letter-spacing: 0.5px;
 }
 
 .preset-row {
   display: flex;
-  gap: 8px;
+  gap: 10px;
   flex-wrap: wrap;
+}
+
+.custom-preset-row {
+  margin-top: 10px;
 }
 
 .preset-btn {
   display: flex;
   flex-direction: column;
   align-items: center;
-  padding: 10px 16px;
-  border-radius: 8px;
-  background-color: #f5f5f5;
-  min-width: 72px;
+  padding: 12px 18px;
+  border-radius: 14px;
+  background-color: #f8f6f4;
+  min-width: 76px;
+  transition: all 0.25s ease;
+  border: 1.5px solid transparent;
+}
+
+/* 自定义按钮独占一行 */
+.custom-btn {
+  width: 100%;
+  flex-direction: row;
+  justify-content: space-between;
+  align-items: center;
+  padding: 12px 16px;
 }
 
 .preset-btn.active {
-  background-color: #007AFF;
+  background-color: #e8f6f6;
+  border-color: #7ec8c8;
 }
 
 .preset-btn.active .preset-label,
 .preset-btn.active .preset-size {
-  color: #ffffff;
+  color: #5a9e9e;
 }
 
 .preset-label {
   font-size: 14px;
-  color: #1a1a1a;
+  color: #4a4a4a;
+  font-weight: 500;
 }
 
 .preset-size {
-  font-size: 12px;
-  color: #666666;
-  margin-top: 2px;
+  font-size: 11px;
+  color: #b0a8a0;
+  margin-top: 3px;
 }
 
-.custom-input-row {
+/* 自定义按钮内的输入框行 */
+.custom-input-inline {
   display: flex;
   align-items: center;
   gap: 8px;
-  margin-top: 8px;
 }
 
 .input-group {
   display: flex;
   align-items: center;
-  gap: 4px;
+  gap: 6px;
 }
 
 .input-label {
-  font-size: 14px;
-  color: #666666;
+  font-size: 13px;
+  color: #9ca3af;
+  font-weight: 500;
 }
 
 .size-input {
-  width: 64px;
+  width: 60px;
   height: 36px;
-  border: 1px solid #e0e0e0;
-  border-radius: 8px;
+  border: 1.5px solid #e8e4e0;
+  border-radius: 10px;
   text-align: center;
   font-size: 14px;
+  color: #4a4a4a;
+  background-color: #fefcfb;
+  transition: all 0.25s ease;
+}
+
+.size-input:focus {
+  border-color: #7ec8c8;
+  box-shadow: 0 0 0 3px rgba(126, 200, 200, 0.15);
 }
 
 .input-separator {
   font-size: 16px;
-  color: #999999;
+  color: #d1cdc8;
 }
 
 .mode-row {
   display: flex;
-  gap: 8px;
+  gap: 10px;
   flex-wrap: wrap;
 }
 
 .mode-btn {
   flex: 1;
-  padding: 10px;
+  padding: 12px;
   text-align: center;
-  border-radius: 8px;
-  background-color: #f5f5f5;
+  border-radius: 14px;
+  background-color: #f8f6f4;
   font-size: 14px;
-  color: #1a1a1a;
+  color: #4a4a4a;
+  font-weight: 500;
+  transition: all 0.25s ease;
+  border: 1.5px solid transparent;
 }
 
 .mode-btn.active {
-  background-color: #007AFF;
-  color: #ffffff;
+  background-color: #e8f6f6;
+  border-color: #7ec8c8;
+  color: #5a9e9e;
 }
 
 .brand-row {
@@ -280,52 +321,62 @@ function onHeightInput(event: any) {
 }
 
 .brand-tag {
-  padding: 6px 14px;
-  border-radius: 999px;
-  background-color: #f5f5f5;
+  padding: 8px 16px;
+  border-radius: 20px;
+  background-color: #f8f6f4;
   font-size: 13px;
-  color: #1a1a1a;
+  color: #4a4a4a;
+  font-weight: 500;
+  transition: all 0.25s ease;
+  border: 1.5px solid transparent;
 }
 
 .brand-tag.active {
-  background-color: #007AFF;
-  color: #ffffff;
+  background-color: #ffe8e9;
+  border-color: #ffb6b9;
+  color: #d4767a;
 }
 
 .series-header {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  margin-bottom: 8px;
+  margin-bottom: 10px;
 }
 
 .series-toggle-all {
-  padding: 2px 10px;
-  border-radius: 999px;
-  background-color: #f0f0f0;
+  padding: 4px 12px;
+  border-radius: 20px;
+  background-color: #f0eeeb;
+  transition: all 0.25s ease;
 }
 
 .series-toggle-text {
   font-size: 12px;
-  color: #007AFF;
+  color: #7ec8c8;
+  font-weight: 500;
 }
 
 .series-row {
   display: flex;
-  gap: 6px;
+  gap: 8px;
   flex-wrap: wrap;
 }
 
 .series-tag {
-  padding: 5px 12px;
-  border-radius: 999px;
-  background-color: #f5f5f5;
+  padding: 6px 14px;
+  border-radius: 20px;
+  background-color: #f8f6f4;
   font-size: 13px;
-  color: #1a1a1a;
+  color: #4a4a4a;
+  font-weight: 500;
+  transition: all 0.25s ease;
+  border: 1.5px solid transparent;
 }
 
 .series-tag.active {
-  background-color: #007AFF;
-  color: #ffffff;
+  background-color: #e8f6f6;
+  border-color: #7ec8c8;
+  color: #5a9e9e;
 }
 </style>

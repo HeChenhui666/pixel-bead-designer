@@ -41,12 +41,13 @@ function switchTab(index: number) {
   bottom: 0;
   left: 0;
   right: 0;
-  background-color: #ffffff;
-  border-top: 1px solid #e8e8e8;
+  background: linear-gradient(180deg, #fdf9f5 0%, #faf5f0 100%);
+  border-top: 1px solid #efe9e3;
   display: flex;
   align-items: center;
   justify-content: space-around;
   z-index: 999;
+  box-shadow: 0 -4px 20px rgba(126, 200, 200, 0.08);
 }
 
 .tab-item {
@@ -54,29 +55,36 @@ function switchTab(index: number) {
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  gap: 2px;
+  gap: 4px;
   flex: 1;
-  padding: 4px 0;
+  padding: 8px 0;
+  transition: all 0.3s ease;
 }
 
 .tab-icon {
-  font-size: 22px;
+  font-size: 24px;
   line-height: 1;
-  opacity: 0.6;
+  opacity: 0.5;
+  transition: all 0.3s ease;
+  filter: grayscale(0.3);
 }
 
 .tab-item.active .tab-icon {
   opacity: 1;
+  filter: grayscale(0);
+  transform: translateY(-2px);
 }
 
 .tab-label {
-  font-size: 10px;
-  color: #999999;
+  font-size: 11px;
+  color: #b0a8a0;
   line-height: 1;
+  transition: all 0.3s ease;
+  font-weight: 500;
 }
 
 .tab-item.active .tab-label {
-  color: #007AFF;
+  color: #7ec8c8;
   font-weight: 600;
 }
 </style>
