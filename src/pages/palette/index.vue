@@ -284,7 +284,7 @@ function onColorCellTap(item: { hex: string; code: string }) {
   display: flex;
   flex-wrap: wrap;
   padding: 10px 14px 28px;
-  gap: 7.5px;
+  gap: 7px;
 }
 
 .color-cell {
@@ -292,7 +292,7 @@ function onColorCellTap(item: { hex: string; code: string }) {
   flex-direction: column;
   align-items: center;
   gap: 4px;
-  width: 54px;
+  width: calc((100% - 35px) / 6);
 }
 
 .cell-swatch {
