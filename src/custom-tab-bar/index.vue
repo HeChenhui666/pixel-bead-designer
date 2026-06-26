@@ -26,6 +26,7 @@ const tabs = [
   { path: '/pages/index/index', text: '图片', icon: '🖼️' },
   { path: '/pages/palette/index', text: '色卡', icon: '🎨' },
   { path: '/pages/history/index', text: '草稿箱', icon: '📂' },
+  { path: '/pages/about/index', text: '关于', icon: 'ℹ️' },
 ]
 
 function switchTab(index: number) {

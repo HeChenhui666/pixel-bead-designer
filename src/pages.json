@@ -27,6 +27,13 @@
 				"navigationBarTitleText": "草稿箱",
 				"navigationStyle": "custom"
 			}
+		},
+		{
+			"path": "pages/about/index",
+			"style": {
+				"navigationBarTitleText": "关于",
+				"navigationStyle": "custom"
+			}
 		}
 	],
 	"globalStyle": {
@@ -53,6 +60,10 @@
 			{
 				"pagePath": "pages/history/index",
 				"text": "草稿箱"
+			},
+			{
+				"pagePath": "pages/about/index",
+				"text": "关于"
 			}
 		]
 	}

@@ -71,8 +71,11 @@
       </view>
 
       <!-- 导出预览弹窗 -->
-      <view v-if="previewDataUrl" class="preview-mask" @click="cancelPreview()">
-        <view class="preview-dialog" @click.stop>
+      <view v-if="previewDataUrl" class="preview-mask">
+        <!-- 遮罩层：点击此处关闭 -->
+        <view class="preview-overlay" @click="cancelPreview()" />
+        <!-- 对话框：阻止所有点击穿透 -->
+        <view class="preview-dialog" @click.stop @touchstart.stop @touchend.stop>
           <view class="preview-header">
             <text class="preview-title">导出预览</text>
             <view class="preview-close" @click="cancelPreview()">
@@ -94,54 +97,25 @@
       </view>
 
       <!-- 底部色板（选中格子时显示） -->
-      <view v-if="projectStore.selectedCell" class="color-palette-bar" :style="{ height: paletteHeight + 'px' }">
-        
-        <view class="palette-header">
-          <text class="cell-coords">选中 ({{ projectStore.selectedCell.x }}, {{ projectStore.selectedCell.y }})</text>
-          <!-- 拖动手柄 -->
-          <view class="palette-drag-handle" @touchstart.prevent="onDragStart($event)" @touchmove.prevent="onDragMove($event)"
-            @touchend="onDragEnd()">
-            <view class="drag-indicator" />
-          </view>
-          <view class="clear-selection-btn" @click="clearSelection()">
-            <text class="clear-text">✕</text>
-          </view>
-        </view>
-        <scroll-view scroll-y class="palette-grid-scroll" :style="{ flex: 1 }">
-          <view class="palette-grid">
-            <view v-for="color in paletteColors" :key="color.hex" class="palette-swatch"
-              :class="{ active: isCurrentCellColor(color.hex) }" :style="{ backgroundColor: color.hex }"
-              @click="onColorSelect(color.hex)">
-              <text class="swatch-code">{{ color.code }}</text>
-              <text v-if="isCurrentCellColor(color.hex)" class="swatch-check">✓</text>
-            </view>
-          </view>
-        </scroll-view>
-      </view>
+      <ResizableColorPicker
+        v-if="projectStore.selectedCell"
+        :palette-id="projectStore.paletteId"
+        :selected-hex="getCurrentCellHex()"
+        :coords-text="`选中 (${projectStore.selectedCell.x}, ${projectStore.selectedCell.y})`"
+        :show-close="true"
+        @select="onColorSelect($event)"
+        @close="clearSelection()"
+      />
 
       <!-- 画笔色卡选择面板 -->
-      <view v-if="showBrushPalette" class="brush-palette-panel" @touchmove.stop.prevent>
-        <view class="brush-palette-header">
-          <text class="brush-palette-title">选择画笔颜色</text>
-          <view class="brush-palette-close" @click="showBrushPalette = false">
-            <text class="brush-palette-close-text">✕</text>
-          </view>
-        </view>
-        <scroll-view scroll-y class="brush-palette-scroll" :enhanced="true" :show-scrollbar="false">
-          <view class="brush-palette-grid">
-            <view
-              v-for="color in paletteColors"
-              :key="color.hex"
-              class="brush-swatch"
-              :class="{ active: brushColor === color.hex }"
-              :style="{ backgroundColor: color.hex }"
-              @click="selectBrushColor(color.hex)"
-            >
-              <text class="brush-swatch-code">{{ color.code }}</text>
-            </view>
-          </view>
-        </scroll-view>
-      </view>
+      <ColorPicker
+        v-if="showBrushPalette"
+        :palette-id="projectStore.paletteId"
+        :selected-hex="brushColor"
+        title="选择画笔颜色"
+        @select="selectBrushColor($event)"
+        @close="showBrushPalette = false"
+      />
 
       <!-- 底部工具条 -->
       <view v-if="!projectStore.isGenerating" class="editor-toolbar">
@@ -192,6 +166,8 @@ import { getColorList, getColorCodeByHex } from '../../utils/color-mapper'
 import { generateLongImagePreview } from '../../utils/export-helper'
 import GridCanvas from '../../components/GridCanvas.vue'
 import ColorSummary from '../../components/ColorSummary.vue'
+import ColorPicker from '../../components/ColorPicker.vue'
+import ResizableColorPicker from '../../components/ResizableColorPicker.vue'
 
 const projectStore = useProjectStore()
 const configStore = useConfigStore()
@@ -238,28 +214,12 @@ function onBrushPaint(payload: { x: number; y: number }) {
   hasSavedCurrentWork.value = false
 }
 
-// 色卡浮层高度拖动
-const DEFAULT_PALETTE_HEIGHT = 160
-const paletteHeight = ref(DEFAULT_PALETTE_HEIGHT)
-let dragStartY = 0
-let dragStartHeight = 0
+// 未保存状态追踪
+const hasSavedCurrentWork = ref(true)
+const showBackConfirm = ref(false)
 
-function onDragStart(event: TouchEvent) {
-  dragStartY = event.touches[0].clientY
-  dragStartHeight = paletteHeight.value
-}
-
-function onDragMove(event: TouchEvent) {
-  const deltaY = dragStartY - event.touches[0].clientY
-  const screenHeight = uni.getWindowInfo().windowHeight
-  const maxHeight = screenHeight * 0.8
-  const newHeight = Math.min(maxHeight, Math.max(DEFAULT_PALETTE_HEIGHT, dragStartHeight + deltaY))
-  paletteHeight.value = newHeight
-}
-
-function onDragEnd() {
-  // 拖动结束，无需额外处理
-}
+// 弹窗/抽屉/面板显示时隐藏 canvas，解决原生组件层级遮挡
+const canvasShouldHide = computed(() => showBackConfirm.value || showStats.value || !!previewDataUrl.value)
 
 function startCompare() {
   isComparing.value = true
@@ -268,13 +228,6 @@ function startCompare() {
 function stopCompare() {
   isComparing.value = false
 }
-
-// 未保存状态追踪
-const hasSavedCurrentWork = ref(true)
-const showBackConfirm = ref(false)
-
-// 弹窗/抽屉/面板显示时隐藏 canvas，解决原生组件层级遮挡
-const canvasShouldHide = computed(() => showBackConfirm.value || showStats.value || !!previewDataUrl.value || showBrushPalette.value)
 
 // 是否有可展示的内容（含从草稿箱加载的情形，此时 hasImage=false）
 const hasContent = computed(() =>
@@ -329,6 +282,12 @@ function isCurrentCellColor(hex: string): boolean {
   if (!projectStore.selectedCell) return false
   const { x, y } = projectStore.selectedCell
   return projectStore.cellData[y]?.[x] === hex
+}
+
+function getCurrentCellHex(): string {
+  if (!projectStore.selectedCell) return ''
+  const { x, y } = projectStore.selectedCell
+  return projectStore.cellData[y]?.[x] || ''
 }
 
 function onColorSelect(hex: string) {
@@ -542,7 +501,7 @@ function onCellClick(payload: { x: number; y: number }) {
   flex-direction: column;
   background: linear-gradient(180deg, #fdf9f5 0%, #faf5f0 100%);
   overflow: hidden;
-  min-height: calc(100vh - var(--safe-top, 0px) - var(--safe-bottom, 0px) - 56px);
+  min-height: calc(100vh - var(--safe-top, 0px) - var(--safe-bottom, 0px));
 }
 
 .editor-container {
@@ -944,13 +903,24 @@ function onCellClick(payload: { x: number; y: number }) {
   right: 0;
   bottom: 0;
   background-color: rgba(0, 0, 0, 0.3);
-  z-index: 50;
+  z-index: 999;
   display: flex;
   align-items: center;
   justify-content: center;
 }
 
+.preview-overlay {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  z-index: 0;
+}
+
 .preview-dialog {
+  position: relative;
+  z-index: 1;
   width: 90vw;
   max-width: 400px;
   max-height: 80vh;

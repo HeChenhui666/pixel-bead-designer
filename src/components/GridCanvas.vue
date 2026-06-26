@@ -131,7 +131,7 @@ function updateDisplaySize() {
   const gridWidth = props.gridWidth
   const gridHeight = props.gridHeight
   const windowInfo = uni.getWindowInfo()
-  const containerWidth = windowInfo.windowWidth - 8
+  const containerWidth = windowInfo.windowWidth - 2
   // cellSize 最小为 1，避免大尺寸网格时算出 0 导致渲染崩溃
   const cellSize = Math.max(1, Math.floor(containerWidth / gridWidth))
   displayWidth.value = cellSize * gridWidth
@@ -385,7 +385,7 @@ async function renderCanvas(gridWidth: number, gridHeight: number, cellSize: num
 
   if (props.selectedCell) {
     ctx.strokeStyle = '#7ec8c8'
-    ctx.lineWidth = 1.5
+    ctx.lineWidth = 2
     ctx.strokeRect(
       props.selectedCell.x * cellSize,
       props.selectedCell.y * cellSize,

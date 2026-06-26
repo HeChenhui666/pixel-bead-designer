@@ -20,12 +20,12 @@
           <view v-if="isCustom" class="custom-input-inline">
             <view class="input-group">
               <text class="input-label">宽</text>
-              <input type="number" :value="projectStore.gridWidth" class="size-input" @input="onWidthInput" />
+              <input type="number" v-model.number="localWidth" class="size-input" />
             </view>
             <text class="input-separator">×</text>
             <view class="input-group">
               <text class="input-label">高</text>
-              <input type="number" :value="projectStore.gridHeight" class="size-input" @input="onHeightInput" />
+              <input type="number" v-model.number="localHeight" class="size-input" />
             </view>
           </view>
         </view>
@@ -77,7 +77,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, computed } from 'vue'
+import { ref, computed, watch } from 'vue'
 import { useProjectStore } from '../stores/useProjectStore'
 import { useConfigStore } from '../stores/useConfigStore'
 import { getSeriesList } from '../utils/color-mapper'
@@ -102,6 +102,40 @@ const presets: Preset[] = [
 const brands: PaletteId[] = ['MARD', 'COCO', '漫漫', '盼盼', '咪小窝']
 
 const isCustom = ref(false)
+
+// 本地临时变量，用于 v-model 绑定
+const localWidth = ref(projectStore.gridWidth)
+const localHeight = ref(projectStore.gridHeight)
+
+// 监听 store 变化，同步到本地变量（当用户点击预设按钮时）
+watch(() => projectStore.gridWidth, (newVal) => {
+  if (!isCustom.value) {
+    localWidth.value = newVal
+  }
+})
+
+watch(() => projectStore.gridHeight, (newVal) => {
+  if (!isCustom.value) {
+    localHeight.value = newVal
+  }
+})
+
+// 监听本地变量变化，更新 store（当用户在自定义模式下输入时）
+watch(localWidth, (newVal) => {
+  if (isCustom.value && !isNaN(newVal)) {
+    const clampedValue = clampSize(newVal)
+    console.log('[ParamPanel] 宽度变化:', newVal, '→', clampedValue)
+    projectStore.setGridSize(clampedValue, projectStore.gridHeight)
+  }
+})
+
+watch(localHeight, (newVal) => {
+  if (isCustom.value && !isNaN(newVal)) {
+    const clampedValue = clampSize(newVal)
+    console.log('[ParamPanel] 高度变化:', newVal, '→', clampedValue)
+    projectStore.setGridSize(projectStore.gridWidth, clampedValue)
+  }
+})
 
 // 当前品牌可用的色系列表
 const currentSeriesList = computed(() => getSeriesList(projectStore.paletteId))
@@ -156,6 +190,8 @@ function isActivePreset(preset: Preset): boolean {
 function selectPreset(preset: Preset) {
   if (preset.width === 0) {
     isCustom.value = true
+    // 点击自定义按钮时，确保 store 中的宽高值被正确读取
+    console.log('[ParamPanel] 切换到自定义模式，当前 store 宽高:', projectStore.gridWidth, '×', projectStore.gridHeight)
     return
   }
   isCustom.value = false
@@ -163,17 +199,9 @@ function selectPreset(preset: Preset) {
 }
 
 function clampSize(value: number): number {
-  return Math.min(398, Math.max(2, Math.round(value)))
-}
-
-function onWidthInput(event: any) {
-  const value = clampSize(Number(event.detail.value))
-  projectStore.setGridSize(value, projectStore.gridHeight)
-}
-
-function onHeightInput(event: any) {
-  const value = clampSize(Number(event.detail.value))
-  projectStore.setGridSize(projectStore.gridWidth, value)
+  if (isNaN(value) || value < 2) return 2
+  if (value > 398) return 398
+  return Math.round(value)
 }
 </script>
 
@@ -209,10 +237,10 @@ function onHeightInput(event: any) {
   display: flex;
   flex-direction: column;
   align-items: center;
-  padding: 12px 18px;
-  border-radius: 14px;
-  background-color: #f8f6f4;
-  min-width: 76px;
+  padding: 10px 14px;
+  border-radius: 12px;
+  background-color: #f0eeeb;
+  min-width: 70px;
   transition: all 0.25s ease;
   border: 1.5px solid transparent;
 }
@@ -223,7 +251,7 @@ function onHeightInput(event: any) {
   flex-direction: row;
   justify-content: space-between;
   align-items: center;
-  padding: 12px 16px;
+  padding: 10px 14px;
 }
 
 .preset-btn.active {
@@ -237,15 +265,15 @@ function onHeightInput(event: any) {
 }
 
 .preset-label {
-  font-size: 14px;
+  font-size: 13px;
   color: #4a4a4a;
   font-weight: 500;
 }
 
 .preset-size {
-  font-size: 11px;
+  font-size: 10px;
   color: #b0a8a0;
-  margin-top: 3px;
+  margin-top: 2px;
 }
 
 /* 自定义按钮内的输入框行 */
@@ -297,11 +325,11 @@ function onHeightInput(event: any) {
 
 .mode-btn {
   flex: 1;
-  padding: 12px;
+  padding: 10px;
   text-align: center;
-  border-radius: 14px;
-  background-color: #f8f6f4;
-  font-size: 14px;
+  border-radius: 12px;
+  background-color: #f0eeeb;
+  font-size: 13px;
   color: #4a4a4a;
   font-weight: 500;
   transition: all 0.25s ease;
@@ -321,10 +349,10 @@ function onHeightInput(event: any) {
 }
 
 .brand-tag {
-  padding: 8px 16px;
-  border-radius: 20px;
-  background-color: #f8f6f4;
-  font-size: 13px;
+  padding: 7px 14px;
+  border-radius: 18px;
+  background-color: #f0eeeb;
+  font-size: 12px;
   color: #4a4a4a;
   font-weight: 500;
   transition: all 0.25s ease;
