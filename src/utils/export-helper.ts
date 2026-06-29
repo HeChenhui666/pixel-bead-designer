@@ -7,6 +7,8 @@ export interface ExportOptions {
   cellPixelSize?: number
   /** hex → 色号 映射，传入后会在每个格子上绘制色号 */
   colorCodeMap?: Record<string, string>
+  /** 是否显示每5格加粗辅助线 */
+  showGuideLines?: boolean
 }
 
 export interface LongImageOptions extends ExportOptions {
@@ -24,7 +26,8 @@ function renderGridToCanvas(
   gridWidth: number,
   gridHeight: number,
   cellSize: number,
-  colorCodeMap?: Record<string, string>
+  colorCodeMap?: Record<string, string>,
+  showGuideLines?: boolean
 ): HTMLCanvasElement {
   const canvas = document.createElement('canvas')
   const totalWidth = gridWidth * cellSize
@@ -58,6 +61,27 @@ function renderGridToCanvas(
     ctx.stroke()
   }
 
+  // Pass 2.5: 每5格加粗辅助线
+  if (showGuideLines) {
+    ctx.strokeStyle = '#999999'
+    ctx.lineWidth = 2
+    // 竖线：每5列
+    for (let x = 0; x <= gridWidth; x += 5) {
+      ctx.beginPath()
+      ctx.moveTo(x * cellSize, 0)
+      ctx.lineTo(x * cellSize, totalHeight)
+      ctx.stroke()
+    }
+    // 横线：每5行
+    for (let y = 0; y <= gridHeight; y += 5) {
+      ctx.beginPath()
+      ctx.moveTo(0, y * cellSize)
+      ctx.lineTo(totalWidth, y * cellSize)
+      ctx.stroke()
+    }
+  }
+
+  // Pass 3: 色号标注
   // Pass 3: 色号标注
   if (colorCodeMap && Object.keys(colorCodeMap).length > 0) {
     const fontSize = Math.max(9, Math.min(cellSize * 0.35, 14))
@@ -99,10 +123,10 @@ function getBrightness(hex: string): number {
  * 导出网格 PNG（H5 端下载，App/小程序端保存到相册）
  */
 export async function exportGridPNG(options: ExportOptions): Promise<string> {
-  const { cellData, gridWidth, gridHeight, cellPixelSize = DEFAULT_EXPORT_CELL_SIZE, colorCodeMap } = options
+  const { cellData, gridWidth, gridHeight, cellPixelSize = DEFAULT_EXPORT_CELL_SIZE, colorCodeMap, showGuideLines } = options
 
   // #ifdef H5
-  const canvas = renderGridToCanvas(cellData, gridWidth, gridHeight, cellPixelSize, colorCodeMap)
+  const canvas = renderGridToCanvas(cellData, gridWidth, gridHeight, cellPixelSize, colorCodeMap, showGuideLines)
   const dataUrl = canvas.toDataURL('image/png')
   const link = document.createElement('a')
   link.download = `bead-grid-${gridWidth}x${gridHeight}.png`
@@ -143,7 +167,7 @@ export async function exportGridPNG(options: ExportOptions): Promise<string> {
  * 生成长图预览（仅 H5 端返回 dataUrl，不触发下载）
  */
 export function generateLongImagePreview(options: LongImageOptions): string {
-  const { cellData, gridWidth, gridHeight, colorSummary, cellPixelSize = DEFAULT_EXPORT_CELL_SIZE, colorCodeMap } = options
+  const { cellData, gridWidth, gridHeight, colorSummary, cellPixelSize = DEFAULT_EXPORT_CELL_SIZE, colorCodeMap, showGuideLines } = options
   const padding = 40
   const gap = 30
   const swatchSize = 28
@@ -169,7 +193,7 @@ export function generateLongImagePreview(options: LongImageOptions): string {
   ctx.fillStyle = '#FFFFFF'
   ctx.fillRect(0, 0, totalWidth, totalHeight)
 
-  const gridCanvas = renderGridToCanvas(cellData, gridWidth, gridHeight, cellPixelSize, colorCodeMap)
+  const gridCanvas = renderGridToCanvas(cellData, gridWidth, gridHeight, cellPixelSize, colorCodeMap, showGuideLines)
   ctx.drawImage(gridCanvas, padding, padding)
 
   ctx.font = 'bold 14px sans-serif'
@@ -239,6 +263,24 @@ export function generateLongImagePreview(options: LongImageOptions): string {
         }
       }
 
+      // 每5格加粗辅助线
+      if (showGuideLines && cellPixelSize >= 2) {
+        ctx.strokeStyle = '#999999'
+        ctx.lineWidth = 2
+        for (let x = 0; x <= gridWidth; x += 5) {
+          ctx.beginPath()
+          ctx.moveTo(padding + x * cellPixelSize, padding)
+          ctx.lineTo(padding + x * cellPixelSize, padding + gridTotalHeight)
+          ctx.stroke()
+        }
+        for (let y = 0; y <= gridHeight; y += 5) {
+          ctx.beginPath()
+          ctx.moveTo(padding, padding + y * cellPixelSize)
+          ctx.lineTo(padding + gridTotalWidth, padding + y * cellPixelSize)
+          ctx.stroke()
+        }
+      }
+
       // 色号标注
       if (colorCodeMap && cellPixelSize >= 16) {
         ctx.font = `${Math.max(8, Math.floor(cellPixelSize / 3))}px sans-serif`
@@ -248,7 +290,8 @@ export function generateLongImagePreview(options: LongImageOptions): string {
           for (let x = 0; x < gridWidth; x++) {
             const hex = cellData[y]?.[x]
             if (hex && colorCodeMap[hex]) {
-              ctx.fillStyle = '#000000'
+              const brightness = getBrightness(hex)
+              ctx.fillStyle = brightness > 160 ? '#000000' : '#FFFFFF'
               ctx.fillText(colorCodeMap[hex], padding + x * cellPixelSize + cellPixelSize / 2, padding + y * cellPixelSize + cellPixelSize / 2)
             }
           }
@@ -294,7 +337,7 @@ export function generateLongImagePreview(options: LongImageOptions): string {
  * 导出长图（图纸 + 配色表拼接）
  */
 export async function exportLongImage(options: LongImageOptions): Promise<string> {
-  const { cellData, gridWidth, gridHeight, colorSummary, cellPixelSize = DEFAULT_EXPORT_CELL_SIZE, colorCodeMap } = options
+  const { cellData, gridWidth, gridHeight, colorSummary, cellPixelSize = DEFAULT_EXPORT_CELL_SIZE, colorCodeMap, showGuideLines } = options
   const padding = 40
   const gap = 30
   const swatchSize = 28
@@ -323,7 +366,7 @@ export async function exportLongImage(options: LongImageOptions): Promise<string
   ctx.fillRect(0, 0, totalWidth, totalHeight)
 
   // 绘制图纸区域（带色号标注）
-  const gridCanvas = renderGridToCanvas(cellData, gridWidth, gridHeight, cellPixelSize, colorCodeMap)
+  const gridCanvas = renderGridToCanvas(cellData, gridWidth, gridHeight, cellPixelSize, colorCodeMap, showGuideLines)
   ctx.drawImage(gridCanvas, padding, padding)
 
   // 绘制品牌标识
@@ -406,6 +449,24 @@ export async function exportLongImage(options: LongImageOptions): Promise<string
         }
       }
 
+      // 每5格加粗辅助线
+      if (showGuideLines && cellPixelSize >= 2) {
+        ctx.strokeStyle = '#999999'
+        ctx.lineWidth = 2
+        for (let x = 0; x <= gridWidth; x += 5) {
+          ctx.beginPath()
+          ctx.moveTo(padding + x * cellPixelSize, padding)
+          ctx.lineTo(padding + x * cellPixelSize, padding + gridTotalHeight)
+          ctx.stroke()
+        }
+        for (let y = 0; y <= gridHeight; y += 5) {
+          ctx.beginPath()
+          ctx.moveTo(padding, padding + y * cellPixelSize)
+          ctx.lineTo(padding + gridTotalWidth, padding + y * cellPixelSize)
+          ctx.stroke()
+        }
+      }
+
       // 色号标注
       if (colorCodeMap && cellPixelSize >= 16) {
         ctx.font = `${Math.max(8, Math.floor(cellPixelSize / 3))}px sans-serif`
@@ -415,7 +476,8 @@ export async function exportLongImage(options: LongImageOptions): Promise<string
           for (let x = 0; x < gridWidth; x++) {
             const hex = cellData[y]?.[x]
             if (hex && colorCodeMap[hex]) {
-              ctx.fillStyle = '#000000'
+              const brightness = getBrightness(hex)
+              ctx.fillStyle = brightness > 160 ? '#000000' : '#FFFFFF'
               ctx.fillText(
                 colorCodeMap[hex],
                 padding + x * cellPixelSize + cellPixelSize / 2,

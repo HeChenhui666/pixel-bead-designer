@@ -44,6 +44,187 @@
           @click="configStore.pixelationMode = 'average'">
           <text>平均色</text>
         </view>
+        <view class="mode-btn" :class="{ active: configStore.pixelationMode === 'weighted-median' }"
+          @click="configStore.pixelationMode = 'weighted-median'">
+          <text>加权中值</text>
+        </view>
+        <view class="mode-btn" :class="{ active: configStore.pixelationMode === 'gaussian-weighted' }"
+          @click="configStore.pixelationMode = 'gaussian-weighted'">
+          <text>高斯加权</text>
+        </view>
+        <view class="mode-btn" :class="{ active: configStore.pixelationMode === 'edge-aware' }"
+          @click="configStore.pixelationMode = 'edge-aware'">
+          <text>边缘感知</text>
+        </view>
+      </view>
+    </view>
+
+    <!-- 加权中值参数调节（仅 weighted-median 模式显示） -->
+    <view v-if="configStore.pixelationMode === 'weighted-median'" class="section">
+      <text class="section-title">加权中值参数</text>
+      <view class="param-slider-row">
+        <text class="param-label">中心权重</text>
+        <view class="slider-group">
+          <input
+            type="number"
+            :value="configStore.weightedMedianConfig.centerWeight"
+            class="param-input"
+            @input="updateWmConfig('centerWeight', $event)"
+          />
+        </view>
+      </view>
+      <view class="param-slider-row">
+        <text class="param-label">外围权重</text>
+        <view class="slider-group">
+          <input
+            type="number"
+            :value="configStore.weightedMedianConfig.edgeWeight"
+            class="param-input"
+            @input="updateWmConfig('edgeWeight', $event)"
+          />
+        </view>
+      </view>
+      <view class="param-slider-row">
+        <text class="param-label">中心区域</text>
+        <view class="slider-group">
+          <input
+            type="number"
+            :value="Math.round(configStore.weightedMedianConfig.centerRatio * 100)"
+            class="param-input"
+            @input="updateCenterRatio($event)"
+          />
+          <text class="param-unit">%</text>
+        </view>
+      </view>
+      <view class="param-hint-row">
+        <text class="param-hint">中心/外围权重比越大 → 边界越清晰</text>
+      </view>
+      <view class="param-hint-row">
+        <text class="param-hint">中心区域越小 → 加权聚焦越集中</text>
+      </view>
+      <view class="reset-row">
+        <view class="reset-btn" @click="resetWeightedMedianConfig()">
+          <text class="reset-btn-text">恢复初始值</text>
+        </view>
+      </view>
+    </view>
+
+    <!-- 自适应参数调节（仅 adaptive 模式显示） -->
+    <view v-if="configStore.pixelationMode === 'adaptive'" class="section">
+      <text class="section-title">自适应参数</text>
+      <view class="param-slider-row">
+        <text class="param-label">方差阈值</text>
+        <view class="slider-group">
+          <input
+            type="number"
+            :value="configStore.adaptiveConfig.varianceThreshold"
+            class="param-input"
+            @input="updateAdaptiveConfig('varianceThreshold', $event)"
+          />
+        </view>
+      </view>
+      <view class="param-slider-row">
+        <text class="param-label">背景距离</text>
+        <view class="slider-group">
+          <input
+            type="digit"
+            :value="configStore.adaptiveConfig.bgDistThreshold"
+            class="param-input"
+            @input="updateAdaptiveBgDist($event)"
+          />
+        </view>
+      </view>
+      <view class="param-slider-row">
+        <text class="param-label">中心区域</text>
+        <view class="slider-group">
+          <input
+            type="number"
+            :value="Math.round(configStore.adaptiveConfig.centerRatio * 100)"
+            class="param-input"
+            @input="updateAdaptiveCenterRatio($event)"
+          />
+          <text class="param-unit">%</text>
+        </view>
+      </view>
+      <view class="param-hint-row">
+        <text class="param-hint">方差阈值越低 → 更多块用中心子块（边界更清晰）</text>
+      </view>
+      <view class="param-hint-row">
+        <text class="param-hint">背景距离越高 → 更多像素被当作背景过滤（杂色更少）</text>
+      </view>
+      <view class="param-hint-row">
+        <text class="param-hint">中心区域越小 → 高方差块取样更集中</text>
+      </view>
+      <view class="reset-row">
+        <view class="reset-btn" @click="resetAdaptiveConfig()">
+          <text class="reset-btn-text">恢复初始值</text>
+        </view>
+      </view>
+    </view>
+
+    <!-- 高斯加权参数调节（仅 gaussian-weighted 模式显示） -->
+    <view v-if="configStore.pixelationMode === 'gaussian-weighted'" class="section">
+      <text class="section-title">高斯加权参数</text>
+      <view class="param-slider-row">
+        <text class="param-label">Sigma</text>
+        <view class="slider-group">
+          <input
+            type="digit"
+            :value="configStore.gaussianWeightedConfig.sigma"
+            class="param-input"
+            @input="updateGaussianSigma($event)"
+          />
+        </view>
+      </view>
+      <view class="param-hint-row">
+        <text class="param-hint">Sigma 越小 → 权重衰减越快，越聚焦中心（边界清晰）</text>
+      </view>
+      <view class="param-hint-row">
+        <text class="param-hint">Sigma 越大 → 权重分布越均匀，越接近全块平均（平滑还原）</text>
+      </view>
+      <view class="reset-row">
+        <view class="reset-btn" @click="resetGaussianWeightedConfig()">
+          <text class="reset-btn-text">恢复初始值</text>
+        </view>
+      </view>
+    </view>
+
+    <!-- 边缘感知参数调节（仅 edge-aware 模式显示） -->
+    <view v-if="configStore.pixelationMode === 'edge-aware'" class="section">
+      <text class="section-title">边缘感知参数</text>
+      <view class="param-slider-row">
+        <text class="param-label">梯度阈值</text>
+        <view class="slider-group">
+          <input
+            type="number"
+            :value="configStore.edgeAwareConfig.gradientThreshold"
+            class="param-input"
+            @input="updateEdgeAwareConfig('gradientThreshold', $event)"
+          />
+        </view>
+      </view>
+      <view class="param-slider-row">
+        <text class="param-label">窄条宽度</text>
+        <view class="slider-group">
+          <input
+            type="number"
+            :value="Math.round(configStore.edgeAwareConfig.stripWidth * 100)"
+            class="param-input"
+            @input="updateEdgeAwareStripWidth($event)"
+          />
+          <text class="param-unit">%</text>
+        </view>
+      </view>
+      <view class="param-hint-row">
+        <text class="param-hint">梯度阈值越低 → 更多块被识别为有边缘（边界更敏感）</text>
+      </view>
+      <view class="param-hint-row">
+        <text class="param-hint">窄条宽度越小 → 沿边缘取样更精准，边界线更保留</text>
+      </view>
+      <view class="reset-row">
+        <view class="reset-btn" @click="resetEdgeAwareConfig()">
+          <text class="reset-btn-text">恢复初始值</text>
+        </view>
       </view>
     </view>
 
@@ -79,7 +260,7 @@
 <script setup lang="ts">
 import { ref, computed, watch } from 'vue'
 import { useProjectStore } from '../stores/useProjectStore'
-import { useConfigStore } from '../stores/useConfigStore'
+import { useConfigStore, DEFAULT_WEIGHTED_MEDIAN_CONFIG, DEFAULT_ADAPTIVE_CONFIG, DEFAULT_GAUSSIAN_WEIGHTED_CONFIG, DEFAULT_EDGE_AWARE_CONFIG } from '../stores/useConfigStore'
 import { getSeriesList } from '../utils/color-mapper'
 import type { PaletteId } from '../stores/useProjectStore'
 
@@ -202,6 +383,97 @@ function clampSize(value: number): number {
   if (isNaN(value) || value < 2) return 2
   if (value > 398) return 398
   return Math.round(value)
+}
+
+function updateWmConfig(key: 'centerWeight' | 'edgeWeight', event: any) {
+  const raw = Number(event.detail?.value ?? event.target?.value ?? 0)
+  const value = Math.max(1, Math.round(raw))
+  configStore.weightedMedianConfig = {
+    ...configStore.weightedMedianConfig,
+    [key]: value,
+  }
+}
+
+function updateCenterRatio(event: any) {
+  const raw = Number(event.detail?.value ?? event.target?.value ?? 50)
+  const percent = Math.max(10, Math.min(90, Math.round(raw)))
+  const ratio = percent / 100
+  configStore.weightedMedianConfig = {
+    ...configStore.weightedMedianConfig,
+    centerRatio: ratio,
+  }
+}
+
+function updateAdaptiveConfig(key: 'varianceThreshold', event: any) {
+  const raw = Number(event.detail?.value ?? event.target?.value ?? 0)
+  const value = Math.max(100, Math.round(raw))
+  configStore.adaptiveConfig = {
+    ...configStore.adaptiveConfig,
+    [key]: value,
+  }
+}
+
+function updateAdaptiveBgDist(event: any) {
+  const raw = Number(event.detail?.value ?? event.target?.value ?? 0.03)
+  const value = Math.max(0.001, Math.min(0.5, raw))
+  configStore.adaptiveConfig = {
+    ...configStore.adaptiveConfig,
+    bgDistThreshold: value,
+  }
+}
+
+function updateAdaptiveCenterRatio(event: any) {
+  const raw = Number(event.detail?.value ?? event.target?.value ?? 50)
+  const percent = Math.max(10, Math.min(90, Math.round(raw)))
+  const ratio = percent / 100
+  configStore.adaptiveConfig = {
+    ...configStore.adaptiveConfig,
+    centerRatio: ratio,
+  }
+}
+
+function resetWeightedMedianConfig() {
+  configStore.weightedMedianConfig = { ...DEFAULT_WEIGHTED_MEDIAN_CONFIG }
+}
+
+function resetAdaptiveConfig() {
+  configStore.adaptiveConfig = { ...DEFAULT_ADAPTIVE_CONFIG }
+}
+
+function updateGaussianSigma(event: any) {
+  const raw = Number(event.detail?.value ?? event.target?.value ?? 0.4)
+  const value = Math.max(0.1, Math.min(2.0, raw))
+  configStore.gaussianWeightedConfig = {
+    ...configStore.gaussianWeightedConfig,
+    sigma: value,
+  }
+}
+
+function resetGaussianWeightedConfig() {
+  configStore.gaussianWeightedConfig = { ...DEFAULT_GAUSSIAN_WEIGHTED_CONFIG }
+}
+
+function updateEdgeAwareConfig(key: 'gradientThreshold', event: any) {
+  const raw = Number(event.detail?.value ?? event.target?.value ?? 0)
+  const value = Math.max(1, Math.round(raw))
+  configStore.edgeAwareConfig = {
+    ...configStore.edgeAwareConfig,
+    [key]: value,
+  }
+}
+
+function updateEdgeAwareStripWidth(event: any) {
+  const raw = Number(event.detail?.value ?? event.target?.value ?? 30)
+  const percent = Math.max(10, Math.min(90, Math.round(raw)))
+  const ratio = percent / 100
+  configStore.edgeAwareConfig = {
+    ...configStore.edgeAwareConfig,
+    stripWidth: ratio,
+  }
+}
+
+function resetEdgeAwareConfig() {
+  configStore.edgeAwareConfig = { ...DEFAULT_EDGE_AWARE_CONFIG }
 }
 </script>
 
@@ -406,5 +678,87 @@ function clampSize(value: number): number {
   background-color: #e8f6f6;
   border-color: #7ec8c8;
   color: #5a9e9e;
+}
+
+/* 加权中值参数调节 */
+.param-slider-row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 12px;
+}
+
+.param-label {
+  font-size: 13px;
+  color: #4a4a4a;
+  font-weight: 500;
+  min-width: 70px;
+}
+
+.slider-group {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.param-input {
+  width: 60px;
+  height: 36px;
+  border: 1.5px solid #e8e4e0;
+  border-radius: 10px;
+  text-align: center;
+  font-size: 14px;
+  color: #4a4a4a;
+  background-color: #fefcfb;
+  transition: all 0.25s ease;
+}
+
+.param-input:focus {
+  border-color: #7ec8c8;
+  box-shadow: 0 0 0 3px rgba(126, 200, 200, 0.15);
+}
+
+.param-value {
+  font-size: 13px;
+  color: #5a9e9e;
+  font-weight: 500;
+  min-width: 40px;
+  text-align: right;
+}
+
+.param-unit {
+  font-size: 13px;
+  color: #9ca3af;
+  font-weight: 500;
+}
+
+.param-hint-row {
+  margin-bottom: 4px;
+}
+
+.param-hint {
+  font-size: 11px;
+  color: #b0a8a0;
+}
+
+.reset-row {
+  display: flex;
+  justify-content: center;
+  margin-top: 12px;
+}
+
+.reset-btn {
+  padding: 6px 20px;
+  border-radius: 16px;
+  background-color: #f0eeeb;
+  border: 1.5px solid transparent;
+  transition: all 0.25s ease;
+}
+
+.reset-btn-text {
+  font-size: 12px;
+  color: #7ec8c8;
+  font-weight: 500;
 }
 </style>

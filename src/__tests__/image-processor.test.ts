@@ -418,3 +418,302 @@ describe('pixelateFromImageData - preprocessed 模式', () => {
     expect(result.cellData[0].length).toBe(200)
   })
 })
+
+describe('pixelateFromImageData - weighted-median 模式', () => {
+  it('均匀色块 → 与 average 模式结果相同', () => {
+    const imageData = createSolidImageData(255, 0, 0, 64, 64)
+    const avgResult = pixelateFromImageData({
+      imageData,
+      imageWidth: 64,
+      imageHeight: 64,
+      gridWidth: 4,
+      gridHeight: 4,
+      mode: 'average',
+      paletteId: 'MARD',
+    })
+    const wmResult = pixelateFromImageData({
+      imageData,
+      imageWidth: 64,
+      imageHeight: 64,
+      gridWidth: 4,
+      gridHeight: 4,
+      mode: 'weighted-median',
+      paletteId: 'MARD',
+    })
+    for (let y = 0; y < 4; y++) {
+      for (let x = 0; x < 4; x++) {
+        expect(wmResult.cellData[y][x]).toBe(avgResult.cellData[y][x])
+      }
+    }
+  })
+
+  it('75% 主色 + 25% 次色 → 投票结果与纯主色块相同', () => {
+    const width = 64
+    const height = 64
+    const mixedData = new Uint8ClampedArray(width * height * 4)
+    const threshold = Math.floor(0.75 * width * height)
+    for (let i = 0; i < width * height; i++) {
+      const isRed = i < threshold
+      mixedData[i * 4] = isRed ? 255 : 0
+      mixedData[i * 4 + 1] = 0
+      mixedData[i * 4 + 2] = isRed ? 0 : 255
+      mixedData[i * 4 + 3] = 255
+    }
+    const pureRedData = createSolidImageData(255, 0, 0, width, height)
+
+    const mixedResult = pixelateFromImageData({
+      imageData: mixedData,
+      imageWidth: width,
+      imageHeight: height,
+      gridWidth: 1,
+      gridHeight: 1,
+      mode: 'weighted-median',
+      paletteId: 'MARD',
+    })
+    const pureRedResult = pixelateFromImageData({
+      imageData: pureRedData,
+      imageWidth: width,
+      imageHeight: height,
+      gridWidth: 1,
+      gridHeight: 1,
+      mode: 'average',
+      paletteId: 'MARD',
+    })
+
+    expect(mixedResult.cellData[0][0]).toBe(pureRedResult.cellData[0][0])
+  })
+
+  it('左右分色 → 边界处两列颜色不同', () => {
+    const imageData = createSplitImageData([255, 0, 0], [0, 0, 255], 64, 64)
+    const result = pixelateFromImageData({
+      imageData,
+      imageWidth: 64,
+      imageHeight: 64,
+      gridWidth: 4,
+      gridHeight: 2,
+      mode: 'weighted-median',
+      paletteId: 'MARD',
+    })
+
+    expect(result.cellData.length).toBe(2)
+    expect(result.cellData[0].length).toBe(4)
+    expect(result.cellData[0][0]).not.toBe(result.cellData[0][2])
+  })
+
+  it('全透明图像 → 空格子', () => {
+    const data = new Uint8ClampedArray(32 * 32 * 4)
+    const result = pixelateFromImageData({
+      imageData: data,
+      imageWidth: 32,
+      imageHeight: 32,
+      gridWidth: 4,
+      gridHeight: 4,
+      mode: 'weighted-median',
+      paletteId: 'MARD',
+    })
+    for (const row of result.cellData) {
+      for (const hex of row) {
+        expect(hex).toBe('')
+      }
+    }
+  })
+
+  it('200×200 网格 + 1024×1024 图像 < 5000ms', () => {
+    const imageData = createSolidImageData(128, 128, 128, 1024, 1024)
+    const result = pixelateFromImageData({
+      imageData,
+      imageWidth: 1024,
+      imageHeight: 1024,
+      gridWidth: 200,
+      gridHeight: 200,
+      mode: 'weighted-median',
+      paletteId: 'MARD',
+    })
+    expect(result.elapsedMs).toBeLessThan(5000)
+    expect(result.cellData.length).toBe(200)
+    expect(result.cellData[0].length).toBe(200)
+  })
+})
+
+describe('pixelateFromImageData - gaussian-weighted 模式', () => {
+  it('均匀色块 → 与 average 模式结果相同', () => {
+    const imageData = createSolidImageData(255, 0, 0, 64, 64)
+    const avgResult = pixelateFromImageData({
+      imageData,
+      imageWidth: 64,
+      imageHeight: 64,
+      gridWidth: 4,
+      gridHeight: 4,
+      mode: 'average',
+      paletteId: 'MARD',
+    })
+    const gwResult = pixelateFromImageData({
+      imageData,
+      imageWidth: 64,
+      imageHeight: 64,
+      gridWidth: 4,
+      gridHeight: 4,
+      mode: 'gaussian-weighted',
+      paletteId: 'MARD',
+    })
+    for (let y = 0; y < 4; y++) {
+      for (let x = 0; x < 4; x++) {
+        expect(gwResult.cellData[y][x]).toBe(avgResult.cellData[y][x])
+      }
+    }
+  })
+
+  it('左右分色 → 边界处两列颜色不同', () => {
+    const imageData = createSplitImageData([255, 0, 0], [0, 0, 255], 64, 64)
+    const result = pixelateFromImageData({
+      imageData,
+      imageWidth: 64,
+      imageHeight: 64,
+      gridWidth: 4,
+      gridHeight: 2,
+      mode: 'gaussian-weighted',
+      paletteId: 'MARD',
+    })
+    expect(result.cellData[0][0]).not.toBe(result.cellData[0][2])
+  })
+
+  it('全透明图像 → 空格子', () => {
+    const data = new Uint8ClampedArray(32 * 32 * 4)
+    const result = pixelateFromImageData({
+      imageData: data,
+      imageWidth: 32,
+      imageHeight: 32,
+      gridWidth: 4,
+      gridHeight: 4,
+      mode: 'gaussian-weighted',
+      paletteId: 'MARD',
+    })
+    for (const row of result.cellData) {
+      for (const hex of row) {
+        expect(hex).toBe('')
+      }
+    }
+  })
+
+  it('自定义 sigma 参数生效', () => {
+    const imageData = createSolidImageData(128, 128, 128, 64, 64)
+    const defaultResult = pixelateFromImageData({
+      imageData,
+      imageWidth: 64,
+      imageHeight: 64,
+      gridWidth: 4,
+      gridHeight: 4,
+      mode: 'gaussian-weighted',
+      paletteId: 'MARD',
+    })
+    const customResult = pixelateFromImageData({
+      imageData,
+      imageWidth: 64,
+      imageHeight: 64,
+      gridWidth: 4,
+      gridHeight: 4,
+      mode: 'gaussian-weighted',
+      paletteId: 'MARD',
+      gaussianWeightedConfig: { sigma: 1.0 },
+    })
+    // 均匀色块下，不同 sigma 结果应相同
+    for (let y = 0; y < 4; y++) {
+      for (let x = 0; x < 4; x++) {
+        expect(customResult.cellData[y][x]).toBe(defaultResult.cellData[y][x])
+      }
+    }
+  })
+
+  it('200×200 网格 + 1024×1024 图像 < 5000ms', () => {
+    const imageData = createSolidImageData(128, 128, 128, 1024, 1024)
+    const result = pixelateFromImageData({
+      imageData,
+      imageWidth: 1024,
+      imageHeight: 1024,
+      gridWidth: 200,
+      gridHeight: 200,
+      mode: 'gaussian-weighted',
+      paletteId: 'MARD',
+    })
+    expect(result.elapsedMs).toBeLessThan(5000)
+    expect(result.cellData.length).toBe(200)
+    expect(result.cellData[0].length).toBe(200)
+  })
+})
+
+describe('pixelateFromImageData - edge-aware 模式', () => {
+  it('均匀色块 → 与 average 模式结果相同', () => {
+    const imageData = createSolidImageData(100, 150, 200, 64, 64)
+    const avgResult = pixelateFromImageData({
+      imageData,
+      imageWidth: 64,
+      imageHeight: 64,
+      gridWidth: 4,
+      gridHeight: 4,
+      mode: 'average',
+      paletteId: 'MARD',
+    })
+    const eaResult = pixelateFromImageData({
+      imageData,
+      imageWidth: 64,
+      imageHeight: 64,
+      gridWidth: 4,
+      gridHeight: 4,
+      mode: 'edge-aware',
+      paletteId: 'MARD',
+    })
+    for (let y = 0; y < 4; y++) {
+      for (let x = 0; x < 4; x++) {
+        expect(eaResult.cellData[y][x]).toBe(avgResult.cellData[y][x])
+      }
+    }
+  })
+
+  it('左右分色 → 边界处两列颜色不同', () => {
+    const imageData = createSplitImageData([255, 0, 0], [0, 0, 255], 64, 64)
+    const result = pixelateFromImageData({
+      imageData,
+      imageWidth: 64,
+      imageHeight: 64,
+      gridWidth: 4,
+      gridHeight: 2,
+      mode: 'edge-aware',
+      paletteId: 'MARD',
+    })
+    expect(result.cellData[0][0]).not.toBe(result.cellData[0][2])
+  })
+
+  it('全透明图像 → 空格子', () => {
+    const data = new Uint8ClampedArray(32 * 32 * 4)
+    const result = pixelateFromImageData({
+      imageData: data,
+      imageWidth: 32,
+      imageHeight: 32,
+      gridWidth: 4,
+      gridHeight: 4,
+      mode: 'edge-aware',
+      paletteId: 'MARD',
+    })
+    for (const row of result.cellData) {
+      for (const hex of row) {
+        expect(hex).toBe('')
+      }
+    }
+  })
+
+  it('200×200 网格 + 1024×1024 图像 < 5000ms', () => {
+    const imageData = createSolidImageData(128, 128, 128, 1024, 1024)
+    const result = pixelateFromImageData({
+      imageData,
+      imageWidth: 1024,
+      imageHeight: 1024,
+      gridWidth: 200,
+      gridHeight: 200,
+      mode: 'edge-aware',
+      paletteId: 'MARD',
+    })
+    expect(result.elapsedMs).toBeLessThan(5000)
+    expect(result.cellData.length).toBe(200)
+    expect(result.cellData[0].length).toBe(200)
+  })
+})

@@ -85,6 +85,14 @@
           <scroll-view scroll-y class="preview-body">
             <image :src="previewDataUrl" mode="widthFix" class="preview-image" />
           </scroll-view>
+          <view class="preview-actions">
+            <view class="preview-mirror-btn" :class="{ mirrored: isMirrored }" @click="toggleMirror()">
+              <text class="preview-mirror-btn-text">↔ 左右镜像</text>
+            </view>
+            <view class="preview-guide-btn" :class="{ active: showGuideLines }" @click="toggleGuideLines()">
+              <text class="preview-guide-btn-text">⊞ 辅助线</text>
+            </view>
+          </view>
           <view class="preview-footer">
             <view class="preview-btn cancel" @click="cancelPreview()">
               <text class="preview-btn-text">取消</text>
@@ -177,6 +185,8 @@ const generateElapsed = ref(0)
 const gridCanvasRef = ref<InstanceType<typeof GridCanvas> | null>(null)
 const showStats = ref(false)
 const previewDataUrl = ref('')
+const isMirrored = ref(false)
+const showGuideLines = ref(false)
 const isComparing = ref(false)
 let pendingExportOptions: Parameters<typeof generateLongImagePreview>[0] | null = null
 
@@ -354,6 +364,53 @@ async function handleExportLong() {
 function cancelPreview() {
   previewDataUrl.value = ''
   pendingExportOptions = null
+  isMirrored.value = false
+  showGuideLines.value = false
+}
+
+async function toggleGuideLines() {
+  if (!pendingExportOptions) return
+  showGuideLines.value = !showGuideLines.value
+
+  const options = {
+    ...pendingExportOptions,
+    showGuideLines: showGuideLines.value,
+    cellData: isMirrored.value ? pendingExportOptions.cellData.map(row => [...row].reverse()) : pendingExportOptions.cellData,
+  }
+
+  try {
+    const previewPath = await generateLongImagePreview(options) as unknown as string
+    if (previewPath) {
+      previewDataUrl.value = previewPath
+      pendingExportOptions = { ...options }
+    }
+  } catch {
+    showGuideLines.value = !showGuideLines.value
+  }
+}
+
+async function toggleMirror() {
+  if (!pendingExportOptions) return
+  isMirrored.value = !isMirrored.value
+
+  // 左右翻转 cellData：每行反转
+  const mirroredCellData = pendingExportOptions.cellData.map(row => [...row].reverse())
+  const options = {
+    ...pendingExportOptions,
+    cellData: mirroredCellData,
+  }
+
+  // 重新生成预览图（需要 await，小程序端返回 Promise）
+  try {
+    const previewPath = await generateLongImagePreview(options) as unknown as string
+    if (previewPath) {
+      previewDataUrl.value = previewPath
+      pendingExportOptions = { ...options }
+    }
+  } catch {
+    // 生成失败时保持原预览，恢复镜像状态
+    isMirrored.value = !isMirrored.value
+  }
 }
 
 async function confirmExport() {
@@ -464,6 +521,10 @@ async function generateGrid() {
       mode: configStore.pixelationMode,
       paletteId: projectStore.paletteId,
       allowedSeries: configStore.selectedSeries[projectStore.paletteId] || [],
+      weightedMedianConfig: configStore.weightedMedianConfig,
+      adaptiveConfig: configStore.adaptiveConfig,
+      gaussianWeightedConfig: configStore.gaussianWeightedConfig,
+      edgeAwareConfig: configStore.edgeAwareConfig,
     })
 
     // 如果期间有更新的一次 generateGrid 已启动，丢弃旧结果
@@ -1017,6 +1078,59 @@ function onCellClick(payload: { x: number; y: number }) {
   font-size: 15px;
   color: #ffffff;
   font-weight: 600;
+}
+
+.preview-actions {
+  padding: 10px 18px;
+  display: flex;
+  justify-content: center;
+  gap: 12px;
+}
+
+.preview-mirror-btn {
+  padding: 8px 20px;
+  border-radius: 16px;
+  background-color: #f0eeeb;
+  border: 1.5px solid transparent;
+  transition: all 0.25s ease;
+}
+
+.preview-mirror-btn.mirrored {
+  background-color: #e8f6f6;
+  border-color: #7ec8c8;
+}
+
+.preview-mirror-btn-text {
+  font-size: 13px;
+  color: #4a4a4a;
+  font-weight: 500;
+}
+
+.preview-mirror-btn.mirrored .preview-mirror-btn-text {
+  color: #5a9e9e;
+}
+
+.preview-guide-btn {
+  padding: 8px 20px;
+  border-radius: 16px;
+  background-color: #f0eeeb;
+  border: 1.5px solid transparent;
+  transition: all 0.25s ease;
+}
+
+.preview-guide-btn.active {
+  background-color: #f6e8e8;
+  border-color: #c87e7e;
+}
+
+.preview-guide-btn-text {
+  font-size: 13px;
+  color: #4a4a4a;
+  font-weight: 500;
+}
+
+.preview-guide-btn.active .preview-guide-btn-text {
+  color: #9e5a5a;
 }
 
 /* 退出确认弹窗 */
