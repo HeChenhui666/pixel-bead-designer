@@ -10,13 +10,11 @@
           <text class="preset-size">{{ preset.width }}×{{ preset.height }}</text>
         </view>
       </view>
-      <!-- 自定义按钮独占一行 -->
       <view class="custom-preset-row">
         <view class="preset-btn custom-btn"
           :class="{ active: isCustom }" @click="selectPreset(presets[3])">
           <text class="preset-label">自定义</text>
           <text v-if="!isCustom" class="preset-size">自定义尺寸</text>
-          <!-- 自定义模式下显示输入框 -->
           <view v-if="isCustom" class="custom-input-inline">
             <view class="input-group">
               <text class="input-label">宽</text>
@@ -59,10 +57,10 @@
       </view>
     </view>
 
-    <!-- 加权中值参数调节（仅 weighted-median 模式显示） -->
+    <!-- 加权中值参数 -->
     <view v-if="configStore.pixelationMode === 'weighted-median'" class="section">
       <text class="section-title">加权中值参数</text>
-      <view class="param-slider-row">
+      <view class="param-row">
         <text class="param-label">中心权重</text>
         <view class="slider-group">
           <input
@@ -73,7 +71,7 @@
           />
         </view>
       </view>
-      <view class="param-slider-row">
+      <view class="param-row">
         <text class="param-label">外围权重</text>
         <view class="slider-group">
           <input
@@ -84,7 +82,7 @@
           />
         </view>
       </view>
-      <view class="param-slider-row">
+      <view class="param-row">
         <text class="param-label">中心区域</text>
         <view class="slider-group">
           <input
@@ -109,10 +107,10 @@
       </view>
     </view>
 
-    <!-- 自适应参数调节（仅 adaptive 模式显示） -->
+    <!-- 自适应参数 -->
     <view v-if="configStore.pixelationMode === 'adaptive'" class="section">
       <text class="section-title">自适应参数</text>
-      <view class="param-slider-row">
+      <view class="param-row">
         <text class="param-label">方差阈值</text>
         <view class="slider-group">
           <input
@@ -123,7 +121,7 @@
           />
         </view>
       </view>
-      <view class="param-slider-row">
+      <view class="param-row">
         <text class="param-label">背景距离</text>
         <view class="slider-group">
           <input
@@ -134,7 +132,7 @@
           />
         </view>
       </view>
-      <view class="param-slider-row">
+      <view class="param-row">
         <text class="param-label">中心区域</text>
         <view class="slider-group">
           <input
@@ -162,10 +160,10 @@
       </view>
     </view>
 
-    <!-- 高斯加权参数调节（仅 gaussian-weighted 模式显示） -->
+    <!-- 高斯加权参数 -->
     <view v-if="configStore.pixelationMode === 'gaussian-weighted'" class="section">
       <text class="section-title">高斯加权参数</text>
-      <view class="param-slider-row">
+      <view class="param-row">
         <text class="param-label">Sigma</text>
         <view class="slider-group">
           <input
@@ -189,10 +187,10 @@
       </view>
     </view>
 
-    <!-- 边缘感知参数调节（仅 edge-aware 模式显示） -->
+    <!-- 边缘感知参数 -->
     <view v-if="configStore.pixelationMode === 'edge-aware'" class="section">
       <text class="section-title">边缘感知参数</text>
-      <view class="param-slider-row">
+      <view class="param-row">
         <text class="param-label">梯度阈值</text>
         <view class="slider-group">
           <input
@@ -203,7 +201,7 @@
           />
         </view>
       </view>
-      <view class="param-slider-row">
+      <view class="param-row">
         <text class="param-label">窄条宽度</text>
         <view class="slider-group">
           <input
@@ -239,7 +237,7 @@
       </view>
     </view>
 
-    <!-- 色系选择（仅对有字母前缀色号的品牌显示） -->
+    <!-- 色系选择 -->
     <view v-if="currentSeriesList.length > 0" class="section">
       <view class="series-header">
         <text class="section-title">色系选择</text>
@@ -479,11 +477,11 @@ function resetEdgeAwareConfig() {
 
 <style scoped>
 .param-panel {
-  padding: 16px 20px;
+  padding: 12px 16px 24px;
 }
 
 .section {
-  margin-bottom: 24px;
+  margin-bottom: 18px;
 }
 
 .section-title {
@@ -511,13 +509,12 @@ function resetEdgeAwareConfig() {
   align-items: center;
   padding: 10px 14px;
   border-radius: 12px;
-  background-color: #f0eeeb;
+  background-color: #e8e4e0;
   min-width: 70px;
   transition: all 0.25s ease;
-  border: 1.5px solid transparent;
+  border: 1.5px solid #d8d4d0;
 }
 
-/* 自定义按钮独占一行 */
 .custom-btn {
   width: 100%;
   flex-direction: row;
@@ -527,28 +524,29 @@ function resetEdgeAwareConfig() {
 }
 
 .preset-btn.active {
-  background-color: #e8f6f6;
-  border-color: #7ec8c8;
+  background-color: #d4f0f0;
+  border-color: #6bb3b3;
+  box-shadow: 0 2px 8px rgba(126, 200, 200, 0.2);
 }
 
 .preset-btn.active .preset-label,
 .preset-btn.active .preset-size {
-  color: #5a9e9e;
+  color: #4a8a8a;
+  font-weight: 600;
 }
 
 .preset-label {
   font-size: 13px;
-  color: #4a4a4a;
+  color: #5a5a5a;
   font-weight: 500;
 }
 
 .preset-size {
   font-size: 10px;
-  color: #b0a8a0;
+  color: #8a8a8a;
   margin-top: 2px;
 }
 
-/* 自定义按钮内的输入框行 */
 .custom-input-inline {
   display: flex;
   align-items: center;
@@ -600,18 +598,20 @@ function resetEdgeAwareConfig() {
   padding: 10px;
   text-align: center;
   border-radius: 12px;
-  background-color: #f0eeeb;
+  background-color: #e8e4e0;
   font-size: 13px;
-  color: #4a4a4a;
+  color: #5a5a5a;
   font-weight: 500;
   transition: all 0.25s ease;
-  border: 1.5px solid transparent;
+  border: 1.5px solid #d8d4d0;
 }
 
 .mode-btn.active {
-  background-color: #e8f6f6;
-  border-color: #7ec8c8;
-  color: #5a9e9e;
+  background-color: #d4f0f0;
+  border-color: #6bb3b3;
+  color: #4a8a8a;
+  font-weight: 600;
+  box-shadow: 0 2px 8px rgba(126, 200, 200, 0.2);
 }
 
 .brand-row {
@@ -623,18 +623,20 @@ function resetEdgeAwareConfig() {
 .brand-tag {
   padding: 7px 14px;
   border-radius: 18px;
-  background-color: #f0eeeb;
+  background-color: #e8e4e0;
   font-size: 12px;
-  color: #4a4a4a;
+  color: #5a5a5a;
   font-weight: 500;
   transition: all 0.25s ease;
-  border: 1.5px solid transparent;
+  border: 1.5px solid #d8d4d0;
 }
 
 .brand-tag.active {
-  background-color: #ffe8e9;
-  border-color: #ffb6b9;
-  color: #d4767a;
+  background-color: #fde0e2;
+  border-color: #f09ea3;
+  color: #c06065;
+  font-weight: 600;
+  box-shadow: 0 2px 8px rgba(255, 182, 185, 0.25);
 }
 
 .series-header {
@@ -647,14 +649,15 @@ function resetEdgeAwareConfig() {
 .series-toggle-all {
   padding: 4px 12px;
   border-radius: 20px;
-  background-color: #f0eeeb;
+  background-color: #e8e4e0;
+  border: 1.5px solid #d8d4d0;
   transition: all 0.25s ease;
 }
 
 .series-toggle-text {
   font-size: 12px;
-  color: #7ec8c8;
-  font-weight: 500;
+  color: #6bb3b3;
+  font-weight: 600;
 }
 
 .series-row {
@@ -666,22 +669,23 @@ function resetEdgeAwareConfig() {
 .series-tag {
   padding: 6px 14px;
   border-radius: 20px;
-  background-color: #f8f6f4;
+  background-color: #ece8e4;
   font-size: 13px;
-  color: #4a4a4a;
+  color: #5a5a5a;
   font-weight: 500;
   transition: all 0.25s ease;
-  border: 1.5px solid transparent;
+  border: 1.5px solid #dcd8d4;
 }
 
 .series-tag.active {
-  background-color: #e8f6f6;
-  border-color: #7ec8c8;
-  color: #5a9e9e;
+  background-color: #d4f0f0;
+  border-color: #6bb3b3;
+  color: #4a8a8a;
+  font-weight: 600;
+  box-shadow: 0 2px 8px rgba(126, 200, 200, 0.2);
 }
 
-/* 加权中值参数调节 */
-.param-slider-row {
+.param-row {
   display: flex;
   align-items: center;
   gap: 12px;
@@ -719,14 +723,6 @@ function resetEdgeAwareConfig() {
   box-shadow: 0 0 0 3px rgba(126, 200, 200, 0.15);
 }
 
-.param-value {
-  font-size: 13px;
-  color: #5a9e9e;
-  font-weight: 500;
-  min-width: 40px;
-  text-align: right;
-}
-
 .param-unit {
   font-size: 13px;
   color: #9ca3af;
@@ -751,14 +747,19 @@ function resetEdgeAwareConfig() {
 .reset-btn {
   padding: 6px 20px;
   border-radius: 16px;
-  background-color: #f0eeeb;
-  border: 1.5px solid transparent;
+  background-color: #e8e4e0;
+  border: 1.5px solid #d8d4d0;
   transition: all 0.25s ease;
+}
+
+.reset-btn:active {
+  background-color: #dcd8d4;
+  transform: scale(0.97);
 }
 
 .reset-btn-text {
   font-size: 12px;
-  color: #7ec8c8;
-  font-weight: 500;
+  color: #6bb3b3;
+  font-weight: 600;
 }
 </style>

@@ -3,12 +3,8 @@
     <!-- 顶部安全区域占位 -->
     <view class="safe-top-placeholder" :style="{ height: safeTop + 'px' }" />
 
-    <!-- 吸顶区域容器 -->
-    <view class="sticky-header-wrapper">
-      <view class="header">
-        <text class="header-title">色卡</text>
-      </view>
-
+    <!-- 吸顶卡片容器 -->
+    <view class="sticky-card-wrapper">
       <!-- 品牌切换 Tab -->
       <view class="brand-tabs">
         <view
@@ -22,8 +18,8 @@
         </view>
       </view>
 
-      <!-- 搜索框 -->
-      <view class="search-bar">
+      <!-- 搜索卡片 -->
+      <view class="search-card">
         <text class="search-icon">🔍</text>
         <input
           v-model="searchKeyword"
@@ -38,10 +34,14 @@
 
       <!-- 颜色统计行 -->
       <view class="palette-meta">
-        <text class="palette-meta-text">{{ filteredColors.length }} 种颜色</text>
-        <text v-if="isCurrentBrand" class="palette-meta-active">· 当前图纸品牌</text>
+        <view class="meta-badge">
+          <text class="meta-count">{{ filteredColors.length }}</text>
+          <text class="meta-label">种颜色</text>
+        </view>
+        <text v-if="isCurrentBrand" class="palette-meta-active">当前图纸品牌</text>
       </view>
     </view>
+
     <!-- 色块网格 -->
     <scroll-view scroll-y class="color-grid-scroll">
       <view class="color-grid">
@@ -53,7 +53,10 @@
           @click="onColorCellTap(item)"
         >
           <view class="cell-swatch" :style="{ backgroundColor: item.hex }">
-            <text v-if="usedHexes.has(item.hex)" class="cell-usage-dot">●</text>
+            <view v-if="usedHexes.has(item.hex)" class="cell-usage-badge">
+              <text class="cell-usage-dot">●</text>
+              <text class="cell-usage-text">使用中</text>
+            </view>
           </view>
           <text class="cell-code">{{ item.code }}</text>
         </view>
@@ -63,17 +66,28 @@
     <!-- 颜色详情弹窗 -->
     <view v-if="selectedColor" class="detail-mask" @click="selectedColor = null">
       <view class="detail-dialog" @click.stop>
-        <view class="detail-swatch" :style="{ backgroundColor: selectedColor.hex }" />
-        <view class="detail-info">
-          <text class="detail-code">{{ selectedColor.code }}</text>
-          <text class="detail-hex">{{ selectedColor.hex }}</text>
-          <text v-if="usedHexes.has(selectedColor.hex)" class="detail-usage">
-            图纸中使用 {{ projectStore.colorSummary[selectedColor.hex] }} 颗
-          </text>
-          <text v-else class="detail-not-used">图纸中未使用</text>
+        <view class="detail-header">
+          <text class="detail-title">颜色详情</text>
+          <view class="detail-close" @click="selectedColor = null">
+            <text class="detail-close-text">✕</text>
+          </view>
         </view>
-        <view class="detail-close" @click="selectedColor = null">
-          <text class="detail-close-text">✕</text>
+        <view class="detail-content">
+          <view class="detail-swatch" :style="{ backgroundColor: selectedColor.hex }" />
+          <view class="detail-info">
+            <text class="detail-code">{{ selectedColor.code }}</text>
+            <text class="detail-hex">{{ selectedColor.hex }}</text>
+            <view v-if="usedHexes.has(selectedColor.hex)" class="detail-usage-card">
+              <text class="detail-usage-icon">✨</text>
+              <text class="detail-usage-text">
+                图纸中使用 <text class="detail-usage-count">{{ projectStore.colorSummary[selectedColor.hex] }}</text> 颗
+              </text>
+            </view>
+            <view v-else class="detail-not-used-card">
+              <text class="detail-not-used-icon">🌸</text>
+              <text class="detail-not-used-text">图纸中暂未使用</text>
+            </view>
+          </view>
         </view>
       </view>
     </view>
@@ -136,12 +150,13 @@ function onColorCellTap(item: { hex: string; code: string }) {
   z-index: 20;
 }
 
-/* 吸顶区域容器 */
-.sticky-header-wrapper {
+/* 吸顶卡片容器 */
+.sticky-card-wrapper {
   position: sticky;
   top: 0;
   z-index: 10;
   background: linear-gradient(180deg, #fdf9f5 0%, #faf5f0 100%);
+  padding-bottom: 12px;
 }
 
 .page-palette {
@@ -152,83 +167,85 @@ function onColorCellTap(item: { hex: string; code: string }) {
   box-sizing: border-box;
 }
 
-.header {
-  padding: 20px 22px 10px;
-  background: transparent;
-}
-
-.header-title {
-  font-size: 24px;
-  font-weight: 700;
-  color: #4a4a4a;
-}
-
 /* 品牌 Tab */
 .brand-tabs {
   display: flex;
-  background-color: #fefcfb;
-  padding: 0 14px 14px;
+  padding: 12px 16px 10px;
   gap: 10px;
   overflow-x: auto;
   flex-shrink: 0;
+  scrollbar-width: none;
+}
+
+.brand-tabs::-webkit-scrollbar {
+  display: none;
 }
 
 .brand-tab {
-  padding: 8px 18px;
-  border-radius: 20px;
-  background-color: #f8f6f4;
+  padding: 10px 20px;
+  border-radius: 24px;
+  background-color: #ffffff;
   flex-shrink: 0;
-  transition: all 0.25s ease;
-  border: 1.5px solid transparent;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  border: 2px solid #f0ebe5;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
+}
+
+.brand-tab:active {
+  transform: scale(0.95);
 }
 
 .brand-tab.active {
-  background-color: #ffe8e9;
-  border-color: #ffb6b9;
+  background: linear-gradient(135deg, #7ec8c8 0%, #6bb3b3 100%);
+  border-color: #7ec8c8;
+  box-shadow: 0 4px 16px rgba(126, 200, 200, 0.35);
 }
 
 .brand-tab-text {
   font-size: 13px;
-  color: #4a4a4a;
+  color: #6b6b6b;
   font-weight: 500;
+  transition: all 0.3s ease;
 }
 
 .brand-tab.active .brand-tab-text {
-  color: #d4767a;
+  color: #ffffff;
   font-weight: 600;
 }
 
-/* 搜索 */
-.search-bar {
+/* 搜索卡片 */
+.search-card {
   display: flex;
   align-items: center;
-  padding: 10px 18px;
-  gap: 10px;
+  padding: 12px 16px;
+  gap: 12px;
   flex-shrink: 0;
-  border-bottom: 1px solid #efe9e3;
+  background-color: #ffffff;
+  border-radius: 20px;
+  margin: 0 16px 10px;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.06);
+  border: 2px solid #f5f0ea;
 }
 
 .search-icon {
-  font-size: 15px;
-  opacity: 0.6;
+  font-size: 16px;
+  opacity: 0.7;
+  transition: all 0.3s ease;
 }
 
 .search-input {
   flex: 1;
   font-size: 14px;
   color: #4a4a4a;
-  height: 36px;
-  background-color: #f8f6f4;
-  border-radius: 18px;
-  padding: 0 16px;
-  border: 1.5px solid transparent;
-  transition: all 0.25s ease;
+  height: 32px;
+  background-color: transparent;
+  border: none;
+  outline: none;
 }
 
 .search-input:focus {
-  border-color: #7ec8c8;
-  background-color: #ffffff;
-  box-shadow: 0 0 0 3px rgba(126, 200, 200, 0.1);
+  border: none;
+  outline: none;
 }
 
 .search-placeholder {
@@ -236,43 +253,65 @@ function onColorCellTap(item: { hex: string; code: string }) {
 }
 
 .search-clear {
-  width: 22px;
-  height: 22px;
+  width: 24px;
+  height: 24px;
   border-radius: 50%;
-  background-color: #e8e4e0;
+  background-color: #f0ebe5;
   display: flex;
   align-items: center;
   justify-content: center;
-  transition: all 0.25s ease;
+  transition: all 0.3s ease;
 }
 
 .search-clear:active {
-  background-color: #d1cdc8;
+  background-color: #e8e0d8;
+  transform: scale(0.9);
 }
 
 .search-clear-text {
-  font-size: 10px;
+  font-size: 11px;
   color: #9ca3af;
 }
 
 /* 统计行 */
 .palette-meta {
-  padding: 8px 18px;
+  padding: 0 16px 10px;
   display: flex;
   align-items: center;
-  gap: 6px;
+  gap: 10px;
   flex-shrink: 0;
 }
 
-.palette-meta-text {
-  font-size: 12px;
+.meta-badge {
+  display: flex;
+  align-items: baseline;
+  background-color: #ffffff;
+  padding: 6px 14px;
+  border-radius: 16px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
+  border: 1.5px solid #f5f0ea;
+}
+
+.meta-count {
+  font-size: 16px;
+  font-weight: 700;
+  color: #7ec8c8;
+  line-height: 1;
+}
+
+.meta-label {
+  font-size: 11px;
   color: #b0a8a0;
+  margin-left: 4px;
 }
 
 .palette-meta-active {
-  font-size: 12px;
+  font-size: 11px;
   color: #7ec8c8;
   font-weight: 500;
+  background-color: rgba(126, 200, 200, 0.12);
+  padding: 4px 12px;
+  border-radius: 12px;
 }
 
 /* 色块网格 */
@@ -283,42 +322,64 @@ function onColorCellTap(item: { hex: string; code: string }) {
 .color-grid {
   display: flex;
   flex-wrap: wrap;
-  padding: 10px 14px 28px;
-  gap: 7px;
+  padding: 12px 14px 32px;
+  gap: 10px;
 }
 
 .color-cell {
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 4px;
-  width: calc((100% - 35px) / 6);
+  gap: 6px;
+  flex: 0 0 calc(16.666% - 8.333px);
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.color-cell:active {
+  transform: scale(0.92);
 }
 
 .cell-swatch {
-  width: 46px;
-  height: 46px;
-  border-radius: 12px;
-  border: 1.5px solid rgba(0, 0, 0, 0.06);
+  width: 50px;
+  height: 50px;
+  border-radius: 16px;
+  border: 2px solid rgba(0, 0, 0, 0.04);
   position: relative;
   display: flex;
   align-items: flex-end;
   justify-content: flex-end;
-  padding: 3px;
-  transition: all 0.25s ease;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
+  padding: 4px;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.06);
 }
 
 .color-cell.in-use .cell-swatch {
   border-color: #7ec8c8;
-  border-width: 2px;
-  box-shadow: 0 2px 12px rgba(126, 200, 200, 0.2);
+  border-width: 2.5px;
+  box-shadow: 0 4px 16px rgba(126, 200, 200, 0.28);
+}
+
+.cell-usage-badge {
+  display: flex;
+  align-items: center;
+  gap: 3px;
+  background-color: rgba(126, 200, 200, 0.95);
+  padding: 2px 6px;
+  border-radius: 10px;
+  backdrop-filter: blur(4px);
 }
 
 .cell-usage-dot {
-  font-size: 8px;
-  color: #7ec8c8;
+  font-size: 7px;
+  color: #ffffff;
   line-height: 1;
+}
+
+.cell-usage-text {
+  font-size: 8px;
+  color: #ffffff;
+  line-height: 1;
+  font-weight: 600;
 }
 
 .cell-code {
@@ -342,85 +403,156 @@ function onColorCellTap(item: { hex: string; code: string }) {
   left: 0;
   right: 0;
   bottom: 0;
-  background-color: rgba(0, 0, 0, 0.25);
+  background-color: rgba(0, 0, 0, 0.28);
   z-index: 50;
   display: flex;
   align-items: flex-end;
+  animation: fadeIn 0.25s ease;
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
 }
 
 .detail-dialog {
   width: 100%;
-  background-color: #fefcfb;
-  border-radius: 24px 24px 0 0;
-  padding: 28px 22px calc(28px + 50px + env(safe-area-inset-bottom, 0px));
+  background-color: #ffffff;
+  border-radius: 28px 28px 0 0;
+  padding: 0 0 calc(28px + 50px + env(safe-area-inset-bottom, 0px));
+  position: relative;
+  box-shadow: 0 -8px 32px rgba(0, 0, 0, 0.12);
+  animation: slideUp 0.35s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+@keyframes slideUp {
+  from {
+    transform: translateY(100%);
+  }
+  to {
+    transform: translateY(0);
+  }
+}
+
+.detail-header {
   display: flex;
   align-items: center;
-  gap: 18px;
-  position: relative;
-  box-shadow: 0 -4px 24px rgba(126, 200, 200, 0.12);
+  justify-content: space-between;
+  padding: 18px 22px 16px;
+  border-bottom: 1px solid #f5f0ea;
+}
+
+.detail-title {
+  font-size: 18px;
+  font-weight: 700;
+  color: #4a4a4a;
+}
+
+.detail-close {
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  background-color: #f8f6f4;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.3s ease;
+}
+
+.detail-close:active {
+  background-color: #f0eeeb;
+  transform: scale(0.9);
+}
+
+.detail-close-text {
+  font-size: 13px;
+  color: #9ca3af;
+}
+
+.detail-content {
+  padding: 22px;
+  display: flex;
+  align-items: center;
+  gap: 20px;
 }
 
 .detail-swatch {
-  width: 68px;
-  height: 68px;
-  border-radius: 16px;
-  border: 1.5px solid rgba(0, 0, 0, 0.06);
+  width: 76px;
+  height: 76px;
+  border-radius: 20px;
+  border: 2px solid rgba(0, 0, 0, 0.06);
   flex-shrink: 0;
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.06);
+  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.08);
 }
 
 .detail-info {
   flex: 1;
   display: flex;
   flex-direction: column;
-  gap: 5px;
+  gap: 8px;
 }
 
 .detail-code {
-  font-size: 22px;
+  font-size: 24px;
   font-weight: 700;
   color: #4a4a4a;
+  letter-spacing: 0.5px;
 }
 
 .detail-hex {
   font-size: 13px;
   color: #b0a8a0;
+  font-family: monospace;
 }
 
-.detail-usage {
-  font-size: 13px;
-  color: #7ec8c8;
-  margin-top: 3px;
-  font-weight: 500;
-}
-
-.detail-not-used {
-  font-size: 13px;
-  color: #d1cdc8;
-  margin-top: 3px;
-}
-
-.detail-close {
-  position: absolute;
-  top: 18px;
-  right: 18px;
-  width: 30px;
-  height: 30px;
-  border-radius: 50%;
-  background-color: #f8f6f4;
+.detail-usage-card {
   display: flex;
   align-items: center;
-  justify-content: center;
-  transition: all 0.25s ease;
+  gap: 10px;
+  background: linear-gradient(135deg, rgba(126, 200, 200, 0.12) 0%, rgba(107, 179, 179, 0.08) 100%);
+  padding: 12px 16px;
+  border-radius: 16px;
+  border: 1.5px solid rgba(126, 200, 200, 0.25);
 }
 
-.detail-close:active {
-  background-color: #f0eeeb;
+.detail-usage-icon {
+  font-size: 16px;
 }
 
-.detail-close-text {
-  font-size: 12px;
-  color: #9ca3af;
+.detail-usage-text {
+  font-size: 13px;
+  color: #5a5a5a;
+  line-height: 1.4;
+}
+
+.detail-usage-count {
+  font-size: 15px;
+  font-weight: 700;
+  color: #7ec8c8;
+}
+
+.detail-not-used-card {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  background-color: #f8f6f4;
+  padding: 12px 16px;
+  border-radius: 16px;
+  border: 1.5px solid #efe9e3;
+}
+
+.detail-not-used-icon {
+  font-size: 16px;
+}
+
+.detail-not-used-text {
+  font-size: 13px;
+  color: #b0a8a0;
+  line-height: 1.4;
 }
 </style>
 ENDOFFILE; __aone_exit=$?; pwd -P > '/var/folders/g9/4wc_h0_d12l4s9d6wdbt0glw0000gn/T/aone-copilot-cwd-1782455892060-91tccqaxnpg.txt' 2>/dev/null; exit $__aone_exit

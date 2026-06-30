@@ -27,6 +27,11 @@
     <!-- #ifdef H5 -->
     <input ref="fileInputRef" type="file" accept="image/*" style="display: none;" @change="(onH5FileChange as any)" />
     <!-- #endif -->
+
+    <!-- 图片尺寸提示 -->
+    <view v-if="imageSizeText" class="image-size-hint">
+      <text class="size-text">📐 {{ imageSizeText }}</text>
+    </view>
   </view>
 </template>
 
@@ -49,10 +54,23 @@ const emit = defineEmits<{
 }>()
 
 const choosing = ref(false)
+const imageSizeText = ref('')
 
 // #ifdef H5
 const fileInputRef = ref<HTMLInputElement | null>(null)
 // #endif
+
+function formatSizeInfo(width: number, height: number): string {
+  const gcd = (a: number, b: number): number => (b === 0 ? a : gcd(b, a % b))
+  const divisor = gcd(width, height)
+  const ratioW = width / divisor
+  const ratioH = height / divisor
+  if (ratioW > 20 || ratioH > 20) {
+    const ratio = (width / height).toFixed(2)
+    return `${width}×${height} (≈${ratio}:1)`
+  }
+  return `${width}×${height} (${ratioW}:${ratioH})`
+}
 
 function onTapChoose() {
   if (choosing.value) return
@@ -81,6 +99,16 @@ function onTapChoose() {
         uni.showToast({ title: '图片过大，请压缩后重试', icon: 'none' })
       } else {
         emit('update:modelValue', tempFilePath)
+        uni.getImageInfo({
+          src: tempFilePath,
+          success: (info) => {
+            console.log('[ImagePicker] Image size:', info.width, '×', info.height)
+            imageSizeText.value = formatSizeInfo(info.width, info.height)
+          },
+          fail: (err) => {
+            console.error('[ImagePicker] Failed to get image size:', err)
+          },
+        })
       }
       choosing.value = false
     },
@@ -114,7 +142,17 @@ function onH5FileChange(event: Event) {
 
   const reader = new FileReader()
   reader.onload = () => {
-    emit('update:modelValue', reader.result as string)
+    const dataUrl = reader.result as string
+    emit('update:modelValue', dataUrl)
+    const img = new Image()
+    img.onload = () => {
+      console.log('[ImagePicker] H5 image size:', img.naturalWidth, '×', img.naturalHeight)
+      imageSizeText.value = formatSizeInfo(img.naturalWidth, img.naturalHeight)
+    }
+    img.onerror = (err) => {
+      console.error('[ImagePicker] Failed to get H5 image size:', err)
+    }
+    img.src = dataUrl
     choosing.value = false
   }
   reader.readAsDataURL(file)
@@ -188,5 +226,21 @@ function onH5FileChange(event: Event) {
 .empty-text {
   font-size: 16px;
   color: #666666;
+}
+
+.image-size-hint {
+  margin-top: 8px;
+  padding: 6px 12px;
+  background-color: rgba(126, 200, 200, 0.1);
+  border-radius: 8px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.size-text {
+  font-size: 13px;
+  color: #5a9e9e;
+  font-weight: 500;
 }
 </style>
