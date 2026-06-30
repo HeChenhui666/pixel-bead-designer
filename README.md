@@ -1,6 +1,8 @@
-# 拼豆图纸生成器 (Pixel Bead Designer)
+# 灵感一拼 - 拼豆图纸生成器
 
-一款基于 uni-app 开发的跨平台拼豆图纸生成工具，支持上传照片自动生成拼豆网格图纸，提供编辑、导出和分享功能。
+一款基于 uni-app 开发的微信小程序，支持上传照片自动生成拼豆网格图纸，提供编辑、导出和分享功能。
+
+**微信小程序名称：灵感一拼**
 
 ## ✨ 功能特性
 
@@ -11,7 +13,7 @@
 - **草稿管理**：保存和管理历史图纸草稿
 - **长图导出**：支持导出高清长图用于打印或分享
 - **原图对比**：一键对比原图与生成效果
-- **跨平台支持**：支持 H5、微信小程序、App（iOS/Android）等多端运行
+- **微信小程序专属**：专为微信小程序优化，流畅体验
 
 ## 🛠️ 技术栈
 
@@ -69,27 +71,15 @@ npm install
 ### 开发模式
 
 ```bash
-# H5 开发
-npm run dev:h5
-
 # 微信小程序开发
 npm run dev:mp-weixin
-
-# App 开发
-npm run dev:app
 ```
 
 ### 生产构建
 
 ```bash
-# H5 构建
-npm run build:h5
-
 # 微信小程序构建
 npm run build:mp-weixin
-
-# App 构建
-npm run build:app
 ```
 
 ### 类型检查
@@ -100,27 +90,15 @@ npm run type-check
 
 ## 📱 支持平台
 
+目前仅支持**微信小程序**平台。
+
 | 平台 | 命令 | 说明 |
 |------|------|------|
-| H5 | `dev:h5` / `build:h5` | Web 浏览器运行 |
-| 微信小程序 | `dev:mp-weixin` / `build:mp-weixin` | 微信开发者工具 |
-| App (Android) | `dev:app-android` / `build:app-android` | Android 真机/模拟器 |
-| App (iOS) | `dev:app-ios` / `build:app-ios` | iOS 真机/模拟器 |
-| 支付宝小程序 | `dev:mp-alipay` / `build:mp-alipay` | 支付宝开发者工具 |
-| 百度小程序 | `dev:mp-baidu` / `build:mp-baidu` | 百度开发者工具 |
-| 抖音小程序 | `dev:mp-toutiao` / `build:mp-toutiao` | 抖音开发者工具 |
-| QQ 小程序 | `dev:mp-qq` / `build:mp-qq` | QQ 开发者工具 |
-| 快手小程序 | `dev:mp-kuaishou` / `build:mp-kuaishou` | 快手开发者工具 |
-| 鸿蒙应用 | `dev:mp-harmony` / `build:mp-harmony` | HarmonyOS 平台 |
+| 微信小程序 | `dev:mp-weixin` / `build:mp-weixin` | 微信开发者工具预览与发布 |
 
 ## 🔧 权限说明
 
-### Android
-- `READ_MEDIA_IMAGES`：读取相册图片
-- `WRITE_EXTERNAL_STORAGE`：保存图纸到本地
-- `CAMERA`：拍照生成图纸
-
-### iOS
+### 微信小程序
 - 相册访问权限：用于选择照片生成拼豆图纸
 - 相册写入权限：用于保存生成的拼豆图纸到相册
 - 相机权限：用于拍照生成拼豆图纸
