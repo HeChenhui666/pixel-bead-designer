@@ -1,8 +1,11 @@
 <template>
   <view class="param-panel">
     <!-- 网格尺寸 -->
-    <view class="section">
-      <text class="section-title">网格尺寸</text>
+    <view class="card">
+      <view class="card-header">
+        <view class="card-dot" />
+        <text class="card-title">网格尺寸</text>
+      </view>
       <view class="preset-row">
         <view v-for="preset in presets.slice(0, 3)" :key="preset.label" class="preset-btn"
           :class="{ active: isActivePreset(preset) }" @click="selectPreset(preset)">
@@ -31,8 +34,11 @@
     </view>
 
     <!-- 像素化模式 -->
-    <view class="section">
-      <text class="section-title">像素化模式</text>
+    <view class="card">
+      <view class="card-header">
+        <view class="card-dot" />
+        <text class="card-title">像素化模式</text>
+      </view>
       <view class="mode-row">
         <view class="mode-btn" :class="{ active: configStore.pixelationMode === 'adaptive' }"
           @click="configStore.pixelationMode = 'adaptive'">
@@ -58,46 +64,35 @@
     </view>
 
     <!-- 加权中值参数 -->
-    <view v-if="configStore.pixelationMode === 'weighted-median'" class="section">
-      <text class="section-title">加权中值参数</text>
+    <view v-if="configStore.pixelationMode === 'weighted-median'" class="card">
+      <view class="card-header">
+        <view class="card-dot accent" />
+        <text class="card-title">加权中值参数</text>
+      </view>
       <view class="param-row">
         <text class="param-label">中心权重</text>
         <view class="slider-group">
-          <input
-            type="number"
-            :value="configStore.weightedMedianConfig.centerWeight"
-            class="param-input"
-            @input="updateWmConfig('centerWeight', $event)"
-          />
+          <input type="number" :value="configStore.weightedMedianConfig.centerWeight"
+            class="param-input" @input="updateWmConfig('centerWeight', $event)" />
         </view>
       </view>
       <view class="param-row">
         <text class="param-label">外围权重</text>
         <view class="slider-group">
-          <input
-            type="number"
-            :value="configStore.weightedMedianConfig.edgeWeight"
-            class="param-input"
-            @input="updateWmConfig('edgeWeight', $event)"
-          />
+          <input type="number" :value="configStore.weightedMedianConfig.edgeWeight"
+            class="param-input" @input="updateWmConfig('edgeWeight', $event)" />
         </view>
       </view>
       <view class="param-row">
         <text class="param-label">中心区域</text>
         <view class="slider-group">
-          <input
-            type="number"
-            :value="Math.round(configStore.weightedMedianConfig.centerRatio * 100)"
-            class="param-input"
-            @input="updateCenterRatio($event)"
-          />
+          <input type="number" :value="Math.round(configStore.weightedMedianConfig.centerRatio * 100)"
+            class="param-input" @input="updateCenterRatio($event)" />
           <text class="param-unit">%</text>
         </view>
       </view>
-      <view class="param-hint-row">
+      <view class="hints">
         <text class="param-hint">中心/外围权重比越大 → 边界越清晰</text>
-      </view>
-      <view class="param-hint-row">
         <text class="param-hint">中心区域越小 → 加权聚焦越集中</text>
       </view>
       <view class="reset-row">
@@ -108,49 +103,36 @@
     </view>
 
     <!-- 自适应参数 -->
-    <view v-if="configStore.pixelationMode === 'adaptive'" class="section">
-      <text class="section-title">自适应参数</text>
+    <view v-if="configStore.pixelationMode === 'adaptive'" class="card">
+      <view class="card-header">
+        <view class="card-dot accent" />
+        <text class="card-title">自适应参数</text>
+      </view>
       <view class="param-row">
         <text class="param-label">方差阈值</text>
         <view class="slider-group">
-          <input
-            type="number"
-            :value="configStore.adaptiveConfig.varianceThreshold"
-            class="param-input"
-            @input="updateAdaptiveConfig('varianceThreshold', $event)"
-          />
+          <input type="number" :value="configStore.adaptiveConfig.varianceThreshold"
+            class="param-input" @input="updateAdaptiveConfig('varianceThreshold', $event)" />
         </view>
       </view>
       <view class="param-row">
         <text class="param-label">背景距离</text>
         <view class="slider-group">
-          <input
-            type="digit"
-            :value="configStore.adaptiveConfig.bgDistThreshold"
-            class="param-input"
-            @input="updateAdaptiveBgDist($event)"
-          />
+          <input type="digit" :value="configStore.adaptiveConfig.bgDistThreshold"
+            class="param-input" @input="updateAdaptiveBgDist($event)" />
         </view>
       </view>
       <view class="param-row">
         <text class="param-label">中心区域</text>
         <view class="slider-group">
-          <input
-            type="number"
-            :value="Math.round(configStore.adaptiveConfig.centerRatio * 100)"
-            class="param-input"
-            @input="updateAdaptiveCenterRatio($event)"
-          />
+          <input type="number" :value="Math.round(configStore.adaptiveConfig.centerRatio * 100)"
+            class="param-input" @input="updateAdaptiveCenterRatio($event)" />
           <text class="param-unit">%</text>
         </view>
       </view>
-      <view class="param-hint-row">
+      <view class="hints">
         <text class="param-hint">方差阈值越低 → 更多块用中心子块（边界更清晰）</text>
-      </view>
-      <view class="param-hint-row">
         <text class="param-hint">背景距离越高 → 更多像素被当作背景过滤（杂色更少）</text>
-      </view>
-      <view class="param-hint-row">
         <text class="param-hint">中心区域越小 → 高方差块取样更集中</text>
       </view>
       <view class="reset-row">
@@ -161,23 +143,20 @@
     </view>
 
     <!-- 高斯加权参数 -->
-    <view v-if="configStore.pixelationMode === 'gaussian-weighted'" class="section">
-      <text class="section-title">高斯加权参数</text>
+    <view v-if="configStore.pixelationMode === 'gaussian-weighted'" class="card">
+      <view class="card-header">
+        <view class="card-dot accent" />
+        <text class="card-title">高斯加权参数</text>
+      </view>
       <view class="param-row">
         <text class="param-label">Sigma</text>
         <view class="slider-group">
-          <input
-            type="digit"
-            :value="configStore.gaussianWeightedConfig.sigma"
-            class="param-input"
-            @input="updateGaussianSigma($event)"
-          />
+          <input type="digit" :value="configStore.gaussianWeightedConfig.sigma"
+            class="param-input" @input="updateGaussianSigma($event)" />
         </view>
       </view>
-      <view class="param-hint-row">
+      <view class="hints">
         <text class="param-hint">Sigma 越小 → 权重衰减越快，越聚焦中心（边界清晰）</text>
-      </view>
-      <view class="param-hint-row">
         <text class="param-hint">Sigma 越大 → 权重分布越均匀，越接近全块平均（平滑还原）</text>
       </view>
       <view class="reset-row">
@@ -188,35 +167,28 @@
     </view>
 
     <!-- 边缘感知参数 -->
-    <view v-if="configStore.pixelationMode === 'edge-aware'" class="section">
-      <text class="section-title">边缘感知参数</text>
+    <view v-if="configStore.pixelationMode === 'edge-aware'" class="card">
+      <view class="card-header">
+        <view class="card-dot accent" />
+        <text class="card-title">边缘感知参数</text>
+      </view>
       <view class="param-row">
         <text class="param-label">梯度阈值</text>
         <view class="slider-group">
-          <input
-            type="number"
-            :value="configStore.edgeAwareConfig.gradientThreshold"
-            class="param-input"
-            @input="updateEdgeAwareConfig('gradientThreshold', $event)"
-          />
+          <input type="number" :value="configStore.edgeAwareConfig.gradientThreshold"
+            class="param-input" @input="updateEdgeAwareConfig('gradientThreshold', $event)" />
         </view>
       </view>
       <view class="param-row">
         <text class="param-label">窄条宽度</text>
         <view class="slider-group">
-          <input
-            type="number"
-            :value="Math.round(configStore.edgeAwareConfig.stripWidth * 100)"
-            class="param-input"
-            @input="updateEdgeAwareStripWidth($event)"
-          />
+          <input type="number" :value="Math.round(configStore.edgeAwareConfig.stripWidth * 100)"
+            class="param-input" @input="updateEdgeAwareStripWidth($event)" />
           <text class="param-unit">%</text>
         </view>
       </view>
-      <view class="param-hint-row">
+      <view class="hints">
         <text class="param-hint">梯度阈值越低 → 更多块被识别为有边缘（边界更敏感）</text>
-      </view>
-      <view class="param-hint-row">
         <text class="param-hint">窄条宽度越小 → 沿边缘取样更精准，边界线更保留</text>
       </view>
       <view class="reset-row">
@@ -227,8 +199,11 @@
     </view>
 
     <!-- 品牌选择 -->
-    <view class="section">
-      <text class="section-title">拼豆品牌</text>
+    <view class="card">
+      <view class="card-header">
+        <view class="card-dot pink" />
+        <text class="card-title">拼豆品牌</text>
+      </view>
       <view class="brand-row">
         <view v-for="brand in brands" :key="brand" class="brand-tag"
           :class="{ active: projectStore.paletteId === brand }" @click="projectStore.paletteId = brand">
@@ -238,9 +213,10 @@
     </view>
 
     <!-- 色系选择 -->
-    <view v-if="currentSeriesList.length > 0" class="section">
-      <view class="series-header">
-        <text class="section-title">色系选择</text>
+    <view v-if="currentSeriesList.length > 0" class="card">
+      <view class="card-header">
+        <view class="card-dot" />
+        <text class="card-title">色系选择</text>
         <view class="series-toggle-all" @click="toggleAllSeries()">
           <text class="series-toggle-text">{{ isAllSeriesSelected ? '取消全选' : '全选' }}</text>
         </view>
@@ -281,47 +257,31 @@ const presets: Preset[] = [
 const brands: PaletteId[] = ['MARD', 'COCO', '漫漫', '盼盼', '咪小窝']
 
 const isCustom = ref(false)
-
-// 本地临时变量，用于 v-model 绑定
 const localWidth = ref(projectStore.gridWidth)
 const localHeight = ref(projectStore.gridHeight)
 
-// 监听 store 变化，同步到本地变量（当用户点击预设按钮时）
 watch(() => projectStore.gridWidth, (newVal) => {
-  if (!isCustom.value) {
-    localWidth.value = newVal
-  }
+  if (!isCustom.value) localWidth.value = newVal
 })
 
 watch(() => projectStore.gridHeight, (newVal) => {
-  if (!isCustom.value) {
-    localHeight.value = newVal
-  }
+  if (!isCustom.value) localHeight.value = newVal
 })
 
-// 监听本地变量变化，更新 store（当用户在自定义模式下输入时）
 watch(localWidth, (newVal) => {
   if (isCustom.value && !isNaN(newVal)) {
-    const clampedValue = clampSize(newVal)
-    console.log('[ParamPanel] 宽度变化:', newVal, '→', clampedValue)
-    projectStore.setGridSize(clampedValue, projectStore.gridHeight)
+    projectStore.setGridSize(clampSize(newVal), projectStore.gridHeight)
   }
 })
 
 watch(localHeight, (newVal) => {
   if (isCustom.value && !isNaN(newVal)) {
-    const clampedValue = clampSize(newVal)
-    console.log('[ParamPanel] 高度变化:', newVal, '→', clampedValue)
-    projectStore.setGridSize(projectStore.gridWidth, clampedValue)
+    projectStore.setGridSize(projectStore.gridWidth, clampSize(newVal))
   }
 })
 
-// 当前品牌可用的色系列表
 const currentSeriesList = computed(() => getSeriesList(projectStore.paletteId))
-
-// 当前品牌已选中的色系
 const currentSelectedSeries = computed(() => configStore.selectedSeries[projectStore.paletteId] || [])
-
 const isAllSeriesSelected = computed(() => {
   const list = currentSeriesList.value
   const selected = currentSelectedSeries.value
@@ -336,28 +296,17 @@ function toggleSeries(series: string) {
   const paletteId = projectStore.paletteId
   const current = [...(configStore.selectedSeries[paletteId] || [])]
   const index = current.indexOf(series)
-  if (index >= 0) {
-    current.splice(index, 1)
-  } else {
-    current.push(series)
-  }
+  if (index >= 0) current.splice(index, 1)
+  else current.push(series)
   configStore.selectedSeries[paletteId] = current
 }
 
 function toggleAllSeries() {
   const paletteId = projectStore.paletteId
   if (isAllSeriesSelected.value) {
-    // 取消全选：清空当前品牌的色系选择
-    configStore.selectedSeries = {
-      ...configStore.selectedSeries,
-      [paletteId]: [],
-    }
+    configStore.selectedSeries = { ...configStore.selectedSeries, [paletteId]: [] }
   } else {
-    // 全选：选中所有可用的色系
-    configStore.selectedSeries = {
-      ...configStore.selectedSeries,
-      [paletteId]: [...currentSeriesList.value],
-    }
+    configStore.selectedSeries = { ...configStore.selectedSeries, [paletteId]: [...currentSeriesList.value] }
   }
 }
 
@@ -367,12 +316,7 @@ function isActivePreset(preset: Preset): boolean {
 }
 
 function selectPreset(preset: Preset) {
-  if (preset.width === 0) {
-    isCustom.value = true
-    // 点击自定义按钮时，确保 store 中的宽高值被正确读取
-    console.log('[ParamPanel] 切换到自定义模式，当前 store 宽高:', projectStore.gridWidth, '×', projectStore.gridHeight)
-    return
-  }
+  if (preset.width === 0) { isCustom.value = true; return }
   isCustom.value = false
   projectStore.setGridSize(preset.width, preset.height)
 }
@@ -385,114 +329,100 @@ function clampSize(value: number): number {
 
 function updateWmConfig(key: 'centerWeight' | 'edgeWeight', event: any) {
   const raw = Number(event.detail?.value ?? event.target?.value ?? 0)
-  const value = Math.max(1, Math.round(raw))
-  configStore.weightedMedianConfig = {
-    ...configStore.weightedMedianConfig,
-    [key]: value,
-  }
+  configStore.weightedMedianConfig = { ...configStore.weightedMedianConfig, [key]: Math.max(1, Math.round(raw)) }
 }
 
 function updateCenterRatio(event: any) {
   const raw = Number(event.detail?.value ?? event.target?.value ?? 50)
-  const percent = Math.max(10, Math.min(90, Math.round(raw)))
-  const ratio = percent / 100
-  configStore.weightedMedianConfig = {
-    ...configStore.weightedMedianConfig,
-    centerRatio: ratio,
-  }
+  configStore.weightedMedianConfig = { ...configStore.weightedMedianConfig, centerRatio: Math.max(10, Math.min(90, Math.round(raw))) / 100 }
 }
 
 function updateAdaptiveConfig(key: 'varianceThreshold', event: any) {
   const raw = Number(event.detail?.value ?? event.target?.value ?? 0)
-  const value = Math.max(100, Math.round(raw))
-  configStore.adaptiveConfig = {
-    ...configStore.adaptiveConfig,
-    [key]: value,
-  }
+  configStore.adaptiveConfig = { ...configStore.adaptiveConfig, [key]: Math.max(100, Math.round(raw)) }
 }
 
 function updateAdaptiveBgDist(event: any) {
   const raw = Number(event.detail?.value ?? event.target?.value ?? 0.03)
-  const value = Math.max(0.001, Math.min(0.5, raw))
-  configStore.adaptiveConfig = {
-    ...configStore.adaptiveConfig,
-    bgDistThreshold: value,
-  }
+  configStore.adaptiveConfig = { ...configStore.adaptiveConfig, bgDistThreshold: Math.max(0.001, Math.min(0.5, raw)) }
 }
 
 function updateAdaptiveCenterRatio(event: any) {
   const raw = Number(event.detail?.value ?? event.target?.value ?? 50)
-  const percent = Math.max(10, Math.min(90, Math.round(raw)))
-  const ratio = percent / 100
-  configStore.adaptiveConfig = {
-    ...configStore.adaptiveConfig,
-    centerRatio: ratio,
-  }
+  configStore.adaptiveConfig = { ...configStore.adaptiveConfig, centerRatio: Math.max(10, Math.min(90, Math.round(raw))) / 100 }
 }
 
-function resetWeightedMedianConfig() {
-  configStore.weightedMedianConfig = { ...DEFAULT_WEIGHTED_MEDIAN_CONFIG }
-}
-
-function resetAdaptiveConfig() {
-  configStore.adaptiveConfig = { ...DEFAULT_ADAPTIVE_CONFIG }
-}
+function resetWeightedMedianConfig() { configStore.weightedMedianConfig = { ...DEFAULT_WEIGHTED_MEDIAN_CONFIG } }
+function resetAdaptiveConfig() { configStore.adaptiveConfig = { ...DEFAULT_ADAPTIVE_CONFIG } }
 
 function updateGaussianSigma(event: any) {
   const raw = Number(event.detail?.value ?? event.target?.value ?? 0.4)
-  const value = Math.max(0.1, Math.min(2.0, raw))
-  configStore.gaussianWeightedConfig = {
-    ...configStore.gaussianWeightedConfig,
-    sigma: value,
-  }
+  configStore.gaussianWeightedConfig = { ...configStore.gaussianWeightedConfig, sigma: Math.max(0.1, Math.min(2.0, raw)) }
 }
 
-function resetGaussianWeightedConfig() {
-  configStore.gaussianWeightedConfig = { ...DEFAULT_GAUSSIAN_WEIGHTED_CONFIG }
-}
+function resetGaussianWeightedConfig() { configStore.gaussianWeightedConfig = { ...DEFAULT_GAUSSIAN_WEIGHTED_CONFIG } }
 
 function updateEdgeAwareConfig(key: 'gradientThreshold', event: any) {
   const raw = Number(event.detail?.value ?? event.target?.value ?? 0)
-  const value = Math.max(1, Math.round(raw))
-  configStore.edgeAwareConfig = {
-    ...configStore.edgeAwareConfig,
-    [key]: value,
-  }
+  configStore.edgeAwareConfig = { ...configStore.edgeAwareConfig, [key]: Math.max(1, Math.round(raw)) }
 }
 
 function updateEdgeAwareStripWidth(event: any) {
   const raw = Number(event.detail?.value ?? event.target?.value ?? 30)
-  const percent = Math.max(10, Math.min(90, Math.round(raw)))
-  const ratio = percent / 100
-  configStore.edgeAwareConfig = {
-    ...configStore.edgeAwareConfig,
-    stripWidth: ratio,
-  }
+  configStore.edgeAwareConfig = { ...configStore.edgeAwareConfig, stripWidth: Math.max(10, Math.min(90, Math.round(raw))) / 100 }
 }
 
-function resetEdgeAwareConfig() {
-  configStore.edgeAwareConfig = { ...DEFAULT_EDGE_AWARE_CONFIG }
-}
+function resetEdgeAwareConfig() { configStore.edgeAwareConfig = { ...DEFAULT_EDGE_AWARE_CONFIG } }
 </script>
 
 <style scoped>
 .param-panel {
-  padding: 12px 16px 24px;
+  padding: 4px 16px 24px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
 }
 
-.section {
-  margin-bottom: 18px;
+/* 白色卡片 */
+.card {
+  background: #ffffff;
+  border-radius: 18px;
+  padding: 16px;
+  box-shadow: 0 2px 12px rgba(0, 0, 0, 0.05), 0 0 0 1px rgba(0, 0, 0, 0.03);
 }
 
-.section-title {
+.card-header {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 14px;
+}
+
+.card-dot {
+  width: 6px;
+  height: 6px;
+  border-radius: 3px;
+  background: #7ec8c8;
+  flex-shrink: 0;
+}
+
+.card-dot.accent {
+  background: #a8d8d8;
+}
+
+.card-dot.pink {
+  background: #ffb6b9;
+}
+
+.card-title {
   font-size: 13px;
-  color: #9ca3af;
-  margin-bottom: 10px;
-  display: block;
-  font-weight: 500;
-  letter-spacing: 0.5px;
+  color: #6b6b6b;
+  font-weight: 600;
+  letter-spacing: 0.3px;
+  flex: 1;
 }
 
+/* 预设按钮 */
 .preset-row {
   display: flex;
   gap: 10px;
@@ -509,10 +439,14 @@ function resetEdgeAwareConfig() {
   align-items: center;
   padding: 10px 14px;
   border-radius: 12px;
-  background-color: #e8e4e0;
+  background-color: #f7f5f3;
   min-width: 70px;
-  transition: all 0.25s ease;
-  border: 1.5px solid #d8d4d0;
+  transition: all 0.22s ease;
+  border: 1.5px solid #ede9e4;
+}
+
+.preset-btn:active {
+  transform: scale(0.96);
 }
 
 .custom-btn {
@@ -524,9 +458,8 @@ function resetEdgeAwareConfig() {
 }
 
 .preset-btn.active {
-  background-color: #d4f0f0;
-  border-color: #6bb3b3;
-  box-shadow: 0 2px 8px rgba(126, 200, 200, 0.2);
+  background: linear-gradient(135deg, rgba(126, 200, 200, 0.14) 0%, rgba(107, 179, 179, 0.08) 100%);
+  border-color: #7ec8c8;
 }
 
 .preset-btn.active .preset-label,
@@ -543,8 +476,8 @@ function resetEdgeAwareConfig() {
 
 .preset-size {
   font-size: 10px;
-  color: #8a8a8a;
-  margin-top: 2px;
+  color: #9ca3af;
+  margin-top: 3px;
 }
 
 .custom-input-inline {
@@ -568,13 +501,13 @@ function resetEdgeAwareConfig() {
 .size-input {
   width: 60px;
   height: 36px;
-  border: 1.5px solid #e8e4e0;
+  border: 1.5px solid #ede9e4;
   border-radius: 10px;
   text-align: center;
   font-size: 14px;
   color: #4a4a4a;
   background-color: #fefcfb;
-  transition: all 0.25s ease;
+  transition: all 0.22s ease;
 }
 
 .size-input:focus {
@@ -587,33 +520,38 @@ function resetEdgeAwareConfig() {
   color: #d1cdc8;
 }
 
+/* 模式按钮 */
 .mode-row {
   display: flex;
-  gap: 10px;
+  gap: 8px;
   flex-wrap: wrap;
 }
 
 .mode-btn {
   flex: 1;
-  padding: 10px;
+  padding: 10px 8px;
   text-align: center;
   border-radius: 12px;
-  background-color: #e8e4e0;
-  font-size: 13px;
-  color: #5a5a5a;
+  background-color: #f7f5f3;
+  font-size: 12px;
+  color: #6b6b6b;
   font-weight: 500;
-  transition: all 0.25s ease;
-  border: 1.5px solid #d8d4d0;
+  transition: all 0.22s ease;
+  border: 1.5px solid #ede9e4;
+}
+
+.mode-btn:active {
+  transform: scale(0.96);
 }
 
 .mode-btn.active {
-  background-color: #d4f0f0;
-  border-color: #6bb3b3;
+  background: linear-gradient(135deg, rgba(126, 200, 200, 0.14) 0%, rgba(107, 179, 179, 0.08) 100%);
+  border-color: #7ec8c8;
   color: #4a8a8a;
   font-weight: 600;
-  box-shadow: 0 2px 8px rgba(126, 200, 200, 0.2);
 }
 
+/* 品牌标签 */
 .brand-row {
   display: flex;
   gap: 8px;
@@ -621,41 +559,39 @@ function resetEdgeAwareConfig() {
 }
 
 .brand-tag {
-  padding: 7px 14px;
-  border-radius: 18px;
-  background-color: #e8e4e0;
-  font-size: 12px;
-  color: #5a5a5a;
+  padding: 8px 16px;
+  border-radius: 20px;
+  background-color: #f7f5f3;
+  font-size: 13px;
+  color: #6b6b6b;
   font-weight: 500;
-  transition: all 0.25s ease;
-  border: 1.5px solid #d8d4d0;
+  transition: all 0.22s ease;
+  border: 1.5px solid #ede9e4;
+}
+
+.brand-tag:active {
+  transform: scale(0.96);
 }
 
 .brand-tag.active {
-  background-color: #fde0e2;
-  border-color: #f09ea3;
+  background: linear-gradient(135deg, rgba(255, 182, 185, 0.2) 0%, rgba(255, 154, 158, 0.12) 100%);
+  border-color: #ffb6b9;
   color: #c06065;
-  font-weight: 600;
-  box-shadow: 0 2px 8px rgba(255, 182, 185, 0.25);
+  font-weight: 700;
 }
 
-.series-header {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  margin-bottom: 10px;
-}
-
+/* 色系 */
 .series-toggle-all {
-  padding: 4px 12px;
-  border-radius: 20px;
-  background-color: #e8e4e0;
-  border: 1.5px solid #d8d4d0;
-  transition: all 0.25s ease;
+  margin-left: auto;
+  padding: 3px 12px;
+  border-radius: 16px;
+  background: rgba(126, 200, 200, 0.12);
+  border: 1px solid rgba(126, 200, 200, 0.3);
+  transition: all 0.22s ease;
 }
 
 .series-toggle-text {
-  font-size: 12px;
+  font-size: 11px;
   color: #6bb3b3;
   font-weight: 600;
 }
@@ -669,22 +605,26 @@ function resetEdgeAwareConfig() {
 .series-tag {
   padding: 6px 14px;
   border-radius: 20px;
-  background-color: #ece8e4;
-  font-size: 13px;
-  color: #5a5a5a;
+  background-color: #f7f5f3;
+  font-size: 12px;
+  color: #6b6b6b;
   font-weight: 500;
-  transition: all 0.25s ease;
-  border: 1.5px solid #dcd8d4;
+  transition: all 0.22s ease;
+  border: 1.5px solid #ede9e4;
+}
+
+.series-tag:active {
+  transform: scale(0.96);
 }
 
 .series-tag.active {
-  background-color: #d4f0f0;
-  border-color: #6bb3b3;
+  background: linear-gradient(135deg, rgba(126, 200, 200, 0.14) 0%, rgba(107, 179, 179, 0.08) 100%);
+  border-color: #7ec8c8;
   color: #4a8a8a;
   font-weight: 600;
-  box-shadow: 0 2px 8px rgba(126, 200, 200, 0.2);
 }
 
+/* 参数行 */
 .param-row {
   display: flex;
   align-items: center;
@@ -694,7 +634,7 @@ function resetEdgeAwareConfig() {
 
 .param-label {
   font-size: 13px;
-  color: #4a4a4a;
+  color: #5a5a5a;
   font-weight: 500;
   min-width: 70px;
 }
@@ -707,15 +647,15 @@ function resetEdgeAwareConfig() {
 }
 
 .param-input {
-  width: 60px;
-  height: 36px;
-  border: 1.5px solid #e8e4e0;
+  width: 72px;
+  height: 38px;
+  border: 1.5px solid #ede9e4;
   border-radius: 10px;
   text-align: center;
   font-size: 14px;
   color: #4a4a4a;
-  background-color: #fefcfb;
-  transition: all 0.25s ease;
+  background-color: #fafaf9;
+  transition: all 0.22s ease;
 }
 
 .param-input:focus {
@@ -729,31 +669,37 @@ function resetEdgeAwareConfig() {
   font-weight: 500;
 }
 
-.param-hint-row {
-  margin-bottom: 4px;
+.hints {
+  background: rgba(126, 200, 200, 0.06);
+  border-radius: 10px;
+  padding: 10px 12px;
+  margin-bottom: 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
 }
 
 .param-hint {
   font-size: 11px;
-  color: #b0a8a0;
+  color: #9ca3af;
+  line-height: 1.5;
 }
 
 .reset-row {
   display: flex;
   justify-content: center;
-  margin-top: 12px;
 }
 
 .reset-btn {
-  padding: 6px 20px;
+  padding: 7px 22px;
   border-radius: 16px;
-  background-color: #e8e4e0;
-  border: 1.5px solid #d8d4d0;
-  transition: all 0.25s ease;
+  background: #f7f5f3;
+  border: 1.5px solid #ede9e4;
+  transition: all 0.22s ease;
 }
 
 .reset-btn:active {
-  background-color: #dcd8d4;
+  background: #ede9e4;
   transform: scale(0.97);
 }
 

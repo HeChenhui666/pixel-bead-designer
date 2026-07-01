@@ -1,14 +1,22 @@
 <template>
-  <view class="custom-tab-bar" :style="{ height: `calc(50px + ${safeBottom}px)`, paddingBottom: safeBottom + 'px' }">
-    <view
-      v-for="(tab, index) in tabs"
-      :key="tab.path"
-      class="tab-item"
-      :class="{ active: current === index }"
-      @click="switchTab(index)"
-    >
-      <text class="tab-icon">{{ tab.icon }}</text>
-      <text class="tab-label">{{ tab.text }}</text>
+  <view class="tab-bar-wrap" :style="{ paddingBottom: safeBottom + 'px' }">
+    <view class="custom-tab-bar">
+      <view
+        v-for="(tab, index) in tabs"
+        :key="tab.path"
+        class="tab-item"
+        :class="{ active: current === index }"
+        @click="switchTab(index)"
+      >
+        <view class="tab-item-inner" :class="{ active: current === index }">
+          <uni-icons
+            :type="tab.icon"
+            :size="current === index ? 22 : 20"
+            :color="current === index ? '#ffffff' : '#b0a8a0'"
+          />
+          <text class="tab-label" :class="{ active: current === index }">{{ tab.text }}</text>
+        </view>
+      </view>
     </view>
   </view>
 </template>
@@ -23,10 +31,10 @@ const { safeBottom } = useSafeArea()
 const current = computed(() => projectStore.currentTab)
 
 const tabs = [
-  { path: '/pages/index/index', text: '图片', icon: '🖼️' },
-  { path: '/pages/palette/index', text: '色卡', icon: '🎨' },
-  { path: '/pages/history/index', text: '草稿箱', icon: '📂' },
-  { path: '/pages/about/index', text: '关于', icon: 'ℹ️' },
+  { path: '/pages/index/index', text: '图片', icon: 'image' },
+  { path: '/pages/palette/index', text: '色卡', icon: 'color' },
+  { path: '/pages/history/index', text: '草稿箱', icon: 'list' },
+  { path: '/pages/about/index', text: '关于', icon: 'info' },
 ]
 
 function switchTab(index: number) {
@@ -37,55 +45,68 @@ function switchTab(index: number) {
 </script>
 
 <style scoped>
-.custom-tab-bar {
+.tab-bar-wrap {
   position: fixed;
   bottom: 0;
   left: 0;
   right: 0;
-  background: linear-gradient(180deg, #fdf9f5 0%, #faf5f0 100%);
-  border-top: 1px solid #efe9e3;
+  z-index: 999;
+  padding-left: 14px;
+  padding-right: 14px;
+  padding-top: 8px;
+  background: transparent;
+  pointer-events: none;
+}
+
+.custom-tab-bar {
   display: flex;
   align-items: center;
   justify-content: space-around;
-  z-index: 999;
-  box-shadow: 0 -4px 20px rgba(126, 200, 200, 0.08);
+  background: #ffffff;
+  border-radius: 28px;
+  padding: 6px;
+  box-shadow:
+    0 8px 32px rgba(126, 200, 200, 0.18),
+    0 2px 12px rgba(0, 0, 0, 0.08),
+    0 0 0 1px rgba(126, 200, 200, 0.1);
+  pointer-events: auto;
 }
 
 .tab-item {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 2px;
+}
+
+.tab-item-inner {
   display: flex;
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  gap: 4px;
-  flex: 1;
-  padding: 8px 0;
-  transition: all 0.3s ease;
+  gap: 3px;
+  width: 100%;
+  padding: 8px 4px;
+  border-radius: 20px;
+  transition: all 0.28s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
-.tab-icon {
-  font-size: 24px;
-  line-height: 1;
-  opacity: 0.5;
-  transition: all 0.3s ease;
-  filter: grayscale(0.3);
-}
-
-.tab-item.active .tab-icon {
-  opacity: 1;
-  filter: grayscale(0);
-  transform: translateY(-2px);
+.tab-item-inner.active {
+  background: linear-gradient(135deg, #7ec8c8 0%, #5ab0b0 100%);
+  box-shadow: 0 4px 14px rgba(126, 200, 200, 0.45);
 }
 
 .tab-label {
-  font-size: 11px;
+  font-size: 10px;
   color: #b0a8a0;
-  line-height: 1;
-  transition: all 0.3s ease;
   font-weight: 500;
+  line-height: 1;
+  transition: all 0.28s ease;
 }
 
-.tab-item.active .tab-label {
-  color: #7ec8c8;
-  font-weight: 600;
+.tab-label.active {
+  color: #ffffff;
+  font-weight: 700;
 }
 </style>

@@ -1,6 +1,14 @@
 <template>
   <view class="page-wrapper">
-    <view class="page-index" :style="{ paddingTop: safeTop + 'px', paddingBottom: `calc(50px + ${safeBottom}px)` }">
+    <view class="page-index" :style="{ paddingTop: safeTop + 'px', paddingBottom: `calc(80px + ${safeBottom}px)` }">
+      <!-- 顶部标题区 -->
+      <view class="app-header">
+        <view class="header-main">
+          <text class="app-title">拼豆图纸</text>
+          <text class="app-subtitle">将图片一键转为拼豆图纸</text>
+        </view>
+      </view>
+
       <!-- 图片上传区 -->
       <view class="upload-section">
         <ImagePicker v-model="projectStore.sourceImage" @error="onImageError" />
@@ -18,6 +26,7 @@
           :class="{ disabled: !projectStore.hasImage }"
           @tap="handleGenerate()"
         >
+          <uni-icons v-if="projectStore.hasImage" type="compose" size="18" color="#ffffff" />
           <text class="btn-text">生成图纸</text>
         </view>
       </view>
@@ -69,25 +78,34 @@ function handleGenerate() {
   box-sizing: border-box;
 }
 
-.upload-section {
-  padding: 16px 16px 12px;
+/* 顶部标题区 */
+.app-header {
+  padding: 20px 20px 12px;
   flex-shrink: 0;
 }
 
-.image-size-hint {
-  margin-top: 8px;
-  padding: 6px 12px;
-  background-color: rgba(126, 200, 200, 0.1);
-  border-radius: 8px;
+.header-main {
   display: flex;
-  align-items: center;
-  justify-content: center;
+  flex-direction: column;
+  gap: 4px;
 }
 
-.size-text {
+.app-title {
+  font-size: 26px;
+  font-weight: 800;
+  color: #3d3d3d;
+  letter-spacing: -0.5px;
+}
+
+.app-subtitle {
   font-size: 13px;
-  color: #5a9e9e;
-  font-weight: 500;
+  color: #b0a8a0;
+  font-weight: 400;
+}
+
+.upload-section {
+  padding: 0 16px 12px;
+  flex-shrink: 0;
 }
 
 .params-scroll {
@@ -96,7 +114,7 @@ function handleGenerate() {
 }
 
 .bottom-action {
-  padding: 16px 16px calc(24px + env(safe-area-inset-bottom, 0px));
+  padding: 12px 16px calc(20px + env(safe-area-inset-bottom, 0px));
   flex-shrink: 0;
   background: linear-gradient(180deg, rgba(253, 249, 245, 0) 0%, rgba(253, 249, 245, 0.95) 30%, #fdf9f5 100%);
 }
@@ -105,40 +123,24 @@ function handleGenerate() {
   display: flex;
   align-items: center;
   justify-content: center;
-  height: 52px;
-  border-radius: 26px;
-  background: linear-gradient(135deg, #7ec8c8 0%, #6bb3b3 100%);
-  box-shadow: 0 6px 20px rgba(126, 200, 200, 0.35);
+  gap: 8px;
+  height: 54px;
+  border-radius: 27px;
+  background: linear-gradient(135deg, #7ec8c8 0%, #5ab0b0 100%);
+  box-shadow: 0 6px 24px rgba(126, 200, 200, 0.40);
   transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
   position: relative;
   overflow: hidden;
 }
 
-.generate-btn::before {
-  content: '';
-  position: absolute;
-  top: 0;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  background: linear-gradient(135deg, rgba(255, 255, 255, 0.2) 0%, rgba(255, 255, 255, 0) 100%);
-  opacity: 0;
-  transition: opacity 0.25s ease;
-}
-
 .generate-btn:active {
   transform: scale(0.97);
-  box-shadow: 0 3px 12px rgba(126, 200, 200, 0.25);
-}
-
-.generate-btn:active::before {
-  opacity: 1;
+  box-shadow: 0 3px 14px rgba(126, 200, 200, 0.30);
 }
 
 .generate-btn.disabled {
   background: linear-gradient(135deg, #d1d5db 0%, #e5e7eb 100%);
   box-shadow: none;
-  cursor: not-allowed;
 }
 
 .generate-btn.disabled:active {
@@ -150,6 +152,6 @@ function handleGenerate() {
   color: #ffffff;
   font-weight: 700;
   letter-spacing: 1.5px;
-  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.08);
 }
 </style>

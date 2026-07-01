@@ -1,10 +1,18 @@
 <template>
-  <view class="page-palette" :style="{ height: `calc(100vh - 50px - ${safeBottom}px)` }">
+  <view class="page-palette" :style="{ height: `calc(100vh - 80px - ${safeBottom}px)` }">
     <!-- 顶部安全区域占位 -->
     <view class="safe-top-placeholder" :style="{ height: safeTop + 'px' }" />
 
     <!-- 吸顶卡片容器 -->
     <view class="sticky-card-wrapper">
+      <view class="header">
+        <text class="header-title">色卡库</text>
+        <view class="meta-badge">
+          <text class="meta-count">{{ filteredColors.length }}</text>
+          <text class="meta-label"> 种颜色</text>
+        </view>
+      </view>
+
       <!-- 品牌切换 Tab -->
       <view class="brand-tabs">
         <view
@@ -15,12 +23,13 @@
           @click="selectBrand(brand)"
         >
           <text class="brand-tab-text">{{ brand }}</text>
+          <view v-if="isCurrentBrand && selectedBrand === brand" class="current-dot" />
         </view>
       </view>
 
       <!-- 搜索卡片 -->
       <view class="search-card">
-        <text class="search-icon">🔍</text>
+        <uni-icons type="search" size="16" color="#b0a8a0" />
         <input
           v-model="searchKeyword"
           class="search-input"
@@ -28,17 +37,8 @@
           placeholder-class="search-placeholder"
         />
         <view v-if="searchKeyword" class="search-clear" @click="searchKeyword = ''">
-          <text class="search-clear-text">✕</text>
+          <uni-icons type="closeempty" size="12" color="#9ca3af" />
         </view>
-      </view>
-
-      <!-- 颜色统计行 -->
-      <view class="palette-meta">
-        <view class="meta-badge">
-          <text class="meta-count">{{ filteredColors.length }}</text>
-          <text class="meta-label">种颜色</text>
-        </view>
-        <text v-if="isCurrentBrand" class="palette-meta-active">当前图纸品牌</text>
       </view>
     </view>
 
@@ -54,7 +54,6 @@
         >
           <view class="cell-swatch" :style="{ backgroundColor: item.hex }">
             <view v-if="usedHexes.has(item.hex)" class="cell-usage-badge">
-              <text class="cell-usage-dot">●</text>
               <text class="cell-usage-text">使用中</text>
             </view>
           </view>
@@ -66,10 +65,11 @@
     <!-- 颜色详情弹窗 -->
     <view v-if="selectedColor" class="detail-mask" @click="selectedColor = null">
       <view class="detail-dialog" @click.stop>
+        <view class="drag-handle" />
         <view class="detail-header">
           <text class="detail-title">颜色详情</text>
           <view class="detail-close" @click="selectedColor = null">
-            <text class="detail-close-text">✕</text>
+            <uni-icons type="closeempty" size="15" color="#9ca3af" />
           </view>
         </view>
         <view class="detail-content">
@@ -119,13 +119,11 @@ onShow(() => {
 })
 
 const isCurrentBrand = computed(() => selectedBrand.value === projectStore.paletteId)
-
 const allColors = computed(() => getColorList(selectedBrand.value))
 
 const filteredColors = computed(() => {
   const kw = searchKeyword.value.trim().toUpperCase()
   if (!kw) return allColors.value
-  // 仅按色卡号（code）搜索
   return allColors.value.filter((c) => c.code.toUpperCase().includes(kw))
 })
 
@@ -142,7 +140,6 @@ function onColorCellTap(item: { hex: string; code: string }) {
 </script>
 
 <style scoped>
-/* 顶部安全区域占位 */
 .safe-top-placeholder {
   flex-shrink: 0;
   background: linear-gradient(180deg, #fdf9f5 0%, #faf5f0 100%);
@@ -150,13 +147,12 @@ function onColorCellTap(item: { hex: string; code: string }) {
   z-index: 20;
 }
 
-/* 吸顶卡片容器 */
 .sticky-card-wrapper {
   position: sticky;
   top: 0;
   z-index: 10;
   background: linear-gradient(180deg, #fdf9f5 0%, #faf5f0 100%);
-  padding-bottom: 12px;
+  padding-bottom: 10px;
 }
 
 .page-palette {
@@ -167,70 +163,101 @@ function onColorCellTap(item: { hex: string; code: string }) {
   box-sizing: border-box;
 }
 
+/* 标题行 */
+.header {
+  padding: 18px 18px 12px;
+  display: flex;
+  align-items: baseline;
+  gap: 10px;
+}
+
+.header-title {
+  font-size: 26px;
+  font-weight: 800;
+  color: #3d3d3d;
+  letter-spacing: -0.5px;
+}
+
+.meta-badge {
+  display: flex;
+  align-items: baseline;
+}
+
+.meta-count {
+  font-size: 15px;
+  font-weight: 700;
+  color: #7ec8c8;
+}
+
+.meta-label {
+  font-size: 12px;
+  color: #b0a8a0;
+}
+
 /* 品牌 Tab */
 .brand-tabs {
   display: flex;
-  padding: 12px 16px 10px;
-  gap: 10px;
+  padding: 0 16px 10px;
+  gap: 8px;
   overflow-x: auto;
   flex-shrink: 0;
   scrollbar-width: none;
 }
 
-.brand-tabs::-webkit-scrollbar {
-  display: none;
-}
+.brand-tabs::-webkit-scrollbar { display: none; }
 
 .brand-tab {
-  padding: 10px 20px;
-  border-radius: 24px;
+  position: relative;
+  padding: 9px 18px;
+  border-radius: 22px;
   background-color: #ffffff;
   flex-shrink: 0;
-  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-  border: 2px solid #f0ebe5;
+  transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+  border: 1.5px solid #ede9e3;
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
+  display: flex;
+  align-items: center;
+  gap: 6px;
 }
 
-.brand-tab:active {
-  transform: scale(0.95);
-}
+.brand-tab:active { transform: scale(0.95); }
 
 .brand-tab.active {
-  background: linear-gradient(135deg, #7ec8c8 0%, #6bb3b3 100%);
+  background: linear-gradient(135deg, #7ec8c8 0%, #5ab0b0 100%);
   border-color: #7ec8c8;
-  box-shadow: 0 4px 16px rgba(126, 200, 200, 0.35);
+  box-shadow: 0 4px 14px rgba(126, 200, 200, 0.35);
 }
 
 .brand-tab-text {
   font-size: 13px;
   color: #6b6b6b;
   font-weight: 500;
-  transition: all 0.3s ease;
+  transition: all 0.25s ease;
 }
 
 .brand-tab.active .brand-tab-text {
   color: #ffffff;
-  font-weight: 600;
+  font-weight: 700;
+}
+
+.current-dot {
+  width: 5px;
+  height: 5px;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.8);
 }
 
 /* 搜索卡片 */
 .search-card {
   display: flex;
   align-items: center;
-  padding: 12px 16px;
-  gap: 12px;
+  padding: 11px 16px;
+  gap: 10px;
   flex-shrink: 0;
   background-color: #ffffff;
-  border-radius: 20px;
+  border-radius: 18px;
   margin: 0 16px 10px;
-  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.06);
-  border: 2px solid #f5f0ea;
-}
-
-.search-icon {
-  font-size: 16px;
-  opacity: 0.7;
-  transition: all 0.3s ease;
+  box-shadow: 0 2px 12px rgba(0, 0, 0, 0.05), 0 0 0 1px rgba(0, 0, 0, 0.03);
 }
 
 .search-input {
@@ -243,86 +270,31 @@ function onColorCellTap(item: { hex: string; code: string }) {
   outline: none;
 }
 
-.search-input:focus {
-  border: none;
-  outline: none;
-}
-
-.search-placeholder {
-  color: #c0c4cc;
-}
+.search-placeholder { color: #c0c4cc; }
 
 .search-clear {
-  width: 24px;
-  height: 24px;
+  width: 22px;
+  height: 22px;
   border-radius: 50%;
   background-color: #f0ebe5;
   display: flex;
   align-items: center;
   justify-content: center;
-  transition: all 0.3s ease;
+  transition: all 0.22s ease;
 }
 
 .search-clear:active {
-  background-color: #e8e0d8;
+  background-color: #e5e0d8;
   transform: scale(0.9);
 }
 
-.search-clear-text {
-  font-size: 11px;
-  color: #9ca3af;
-}
-
-/* 统计行 */
-.palette-meta {
-  padding: 0 16px 10px;
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  flex-shrink: 0;
-}
-
-.meta-badge {
-  display: flex;
-  align-items: baseline;
-  background-color: #ffffff;
-  padding: 6px 14px;
-  border-radius: 16px;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
-  border: 1.5px solid #f5f0ea;
-}
-
-.meta-count {
-  font-size: 16px;
-  font-weight: 700;
-  color: #7ec8c8;
-  line-height: 1;
-}
-
-.meta-label {
-  font-size: 11px;
-  color: #b0a8a0;
-  margin-left: 4px;
-}
-
-.palette-meta-active {
-  font-size: 11px;
-  color: #7ec8c8;
-  font-weight: 500;
-  background-color: rgba(126, 200, 200, 0.12);
-  padding: 4px 12px;
-  border-radius: 12px;
-}
-
 /* 色块网格 */
-.color-grid-scroll {
-  flex: 1;
-}
+.color-grid-scroll { flex: 1; }
 
 .color-grid {
   display: flex;
   flex-wrap: wrap;
-  padding: 12px 14px 32px;
+  padding: 10px 14px 32px;
   gap: 10px;
 }
 
@@ -332,12 +304,10 @@ function onColorCellTap(item: { hex: string; code: string }) {
   align-items: center;
   gap: 6px;
   flex: 0 0 calc(16.666% - 8.333px);
-  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
-.color-cell:active {
-  transform: scale(0.92);
-}
+.color-cell:active { transform: scale(0.9); }
 
 .cell-swatch {
   width: 50px;
@@ -347,39 +317,29 @@ function onColorCellTap(item: { hex: string; code: string }) {
   position: relative;
   display: flex;
   align-items: flex-end;
-  justify-content: flex-end;
+  justify-content: center;
   padding: 4px;
-  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.06);
+  transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+  box-shadow: 0 3px 10px rgba(0, 0, 0, 0.08);
 }
 
 .color-cell.in-use .cell-swatch {
   border-color: #7ec8c8;
   border-width: 2.5px;
-  box-shadow: 0 4px 16px rgba(126, 200, 200, 0.28);
+  box-shadow: 0 4px 14px rgba(126, 200, 200, 0.3);
 }
 
 .cell-usage-badge {
-  display: flex;
-  align-items: center;
-  gap: 3px;
-  background-color: rgba(126, 200, 200, 0.95);
-  padding: 2px 6px;
-  border-radius: 10px;
-  backdrop-filter: blur(4px);
-}
-
-.cell-usage-dot {
-  font-size: 7px;
-  color: #ffffff;
-  line-height: 1;
+  background-color: rgba(126, 200, 200, 0.92);
+  padding: 2px 5px;
+  border-radius: 8px;
 }
 
 .cell-usage-text {
-  font-size: 8px;
+  font-size: 7px;
   color: #ffffff;
   line-height: 1;
-  font-weight: 600;
+  font-weight: 700;
 }
 
 .cell-code {
@@ -393,61 +353,58 @@ function onColorCellTap(item: { hex: string; code: string }) {
 
 .color-cell.in-use .cell-code {
   color: #7ec8c8;
-  font-weight: 600;
+  font-weight: 700;
 }
 
 /* 详情弹窗 */
 .detail-mask {
   position: fixed;
-  top: 0;
-  left: 0;
-  right: 0;
-  bottom: 0;
+  top: 0; left: 0; right: 0; bottom: 0;
   background-color: rgba(0, 0, 0, 0.28);
   z-index: 50;
   display: flex;
   align-items: flex-end;
-  animation: fadeIn 0.25s ease;
+  animation: fadeIn 0.22s ease;
 }
 
 @keyframes fadeIn {
-  from {
-    opacity: 0;
-  }
-  to {
-    opacity: 1;
-  }
+  from { opacity: 0; }
+  to { opacity: 1; }
 }
 
 .detail-dialog {
   width: 100%;
   background-color: #ffffff;
   border-radius: 28px 28px 0 0;
-  padding: 0 0 calc(28px + 50px + env(safe-area-inset-bottom, 0px));
+  padding: 0 0 calc(28px + 80px + env(safe-area-inset-bottom, 0px));
   position: relative;
-  box-shadow: 0 -8px 32px rgba(0, 0, 0, 0.12);
-  animation: slideUp 0.35s cubic-bezier(0.4, 0, 0.2, 1);
+  box-shadow: 0 -8px 32px rgba(0, 0, 0, 0.1);
+  animation: slideUp 0.32s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
 @keyframes slideUp {
-  from {
-    transform: translateY(100%);
-  }
-  to {
-    transform: translateY(0);
-  }
+  from { transform: translateY(100%); }
+  to { transform: translateY(0); }
+}
+
+.drag-handle {
+  width: 36px;
+  height: 4px;
+  border-radius: 2px;
+  background: #ede9e3;
+  margin: 12px auto 4px;
 }
 
 .detail-header {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: 18px 22px 16px;
+  padding: 12px 20px 14px;
   border-bottom: 1px solid #f5f0ea;
 }
 
 .detail-title {
-  font-size: 18px;
+  font-size: 17px;
   font-weight: 700;
   color: #4a4a4a;
 }
@@ -456,37 +413,32 @@ function onColorCellTap(item: { hex: string; code: string }) {
   width: 32px;
   height: 32px;
   border-radius: 50%;
-  background-color: #f8f6f4;
+  background-color: #f5f2ef;
   display: flex;
   align-items: center;
   justify-content: center;
-  transition: all 0.3s ease;
+  transition: all 0.22s ease;
 }
 
 .detail-close:active {
-  background-color: #f0eeeb;
+  background-color: #ede9e4;
   transform: scale(0.9);
 }
 
-.detail-close-text {
-  font-size: 13px;
-  color: #9ca3af;
-}
-
 .detail-content {
-  padding: 22px;
+  padding: 20px;
   display: flex;
   align-items: center;
-  gap: 20px;
+  gap: 18px;
 }
 
 .detail-swatch {
   width: 76px;
   height: 76px;
-  border-radius: 20px;
+  border-radius: 22px;
   border: 2px solid rgba(0, 0, 0, 0.06);
   flex-shrink: 0;
-  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.08);
+  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.1);
 }
 
 .detail-info {
@@ -498,8 +450,8 @@ function onColorCellTap(item: { hex: string; code: string }) {
 
 .detail-code {
   font-size: 24px;
-  font-weight: 700;
-  color: #4a4a4a;
+  font-weight: 800;
+  color: #3d3d3d;
   letter-spacing: 0.5px;
 }
 
@@ -512,16 +464,14 @@ function onColorCellTap(item: { hex: string; code: string }) {
 .detail-usage-card {
   display: flex;
   align-items: center;
-  gap: 10px;
-  background: linear-gradient(135deg, rgba(126, 200, 200, 0.12) 0%, rgba(107, 179, 179, 0.08) 100%);
-  padding: 12px 16px;
-  border-radius: 16px;
-  border: 1.5px solid rgba(126, 200, 200, 0.25);
+  gap: 8px;
+  background: rgba(126, 200, 200, 0.1);
+  padding: 10px 14px;
+  border-radius: 14px;
+  border: 1px solid rgba(126, 200, 200, 0.2);
 }
 
-.detail-usage-icon {
-  font-size: 16px;
-}
+.detail-usage-icon, .detail-not-used-icon { font-size: 15px; }
 
 .detail-usage-text {
   font-size: 13px;
@@ -538,15 +488,11 @@ function onColorCellTap(item: { hex: string; code: string }) {
 .detail-not-used-card {
   display: flex;
   align-items: center;
-  gap: 10px;
+  gap: 8px;
   background-color: #f8f6f4;
-  padding: 12px 16px;
-  border-radius: 16px;
-  border: 1.5px solid #efe9e3;
-}
-
-.detail-not-used-icon {
-  font-size: 16px;
+  padding: 10px 14px;
+  border-radius: 14px;
+  border: 1px solid #ede9e3;
 }
 
 .detail-not-used-text {
@@ -555,4 +501,3 @@ function onColorCellTap(item: { hex: string; code: string }) {
   line-height: 1.4;
 }
 </style>
-ENDOFFILE; __aone_exit=$?; pwd -P > '/var/folders/g9/4wc_h0_d12l4s9d6wdbt0glw0000gn/T/aone-copilot-cwd-1782455892060-91tccqaxnpg.txt' 2>/dev/null; exit $__aone_exit

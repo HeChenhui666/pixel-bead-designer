@@ -4,11 +4,17 @@
     <view class="picker-trigger" @tap="onTapChoose()">
       <view v-if="modelValue" class="preview-container">
         <image :src="modelValue" mode="aspectFit" class="preview-image" />
-        <view class="change-hint">点击更换图片</view>
+        <view class="change-hint">
+          <uni-icons type="camera" size="14" color="#ffffff" />
+          <text class="change-hint-text">点击更换图片</text>
+        </view>
       </view>
       <view v-else class="empty-state">
-        <text class="empty-icon">📷</text>
-        <text class="empty-text">点击上传图片</text>
+        <view class="empty-icon-wrap">
+          <uni-icons type="image" size="36" color="#7ec8c8" />
+        </view>
+        <text class="empty-text">点击选择图片</text>
+        <text class="empty-sub">支持从相册或拍照导入</text>
       </view>
     </view>
     <!-- #endif -->
@@ -16,11 +22,17 @@
     <!-- #ifdef H5 -->
     <view v-if="modelValue" class="preview-container" @click="onTapChoose()">
       <image :src="modelValue" mode="aspectFit" class="preview-image" />
-      <view class="change-hint">点击更换图片</view>
+      <view class="change-hint">
+        <uni-icons type="camera" size="14" color="#ffffff" />
+        <text class="change-hint-text">点击更换图片</text>
+      </view>
     </view>
     <view v-else class="empty-state" @click="onTapChoose()">
-      <text class="empty-icon">📷</text>
-      <text class="empty-text">点击上传图片</text>
+      <view class="empty-icon-wrap">
+        <uni-icons type="image" size="36" color="#7ec8c8" />
+      </view>
+      <text class="empty-text">点击选择图片</text>
+      <text class="empty-sub">支持从相册或拍照导入</text>
     </view>
     <!-- #endif -->
 
@@ -30,7 +42,8 @@
 
     <!-- 图片尺寸提示 -->
     <view v-if="imageSizeText" class="image-size-hint">
-      <text class="size-text">📐 {{ imageSizeText }}</text>
+      <uni-icons type="info" size="13" color="#7ec8c8" />
+      <text class="size-text">{{ imageSizeText }}</text>
     </view>
   </view>
 </template>
@@ -75,7 +88,6 @@ function formatSizeInfo(width: number, height: number): string {
 function onTapChoose() {
   if (choosing.value) return
   choosing.value = true
-  console.log('[ImagePicker] onTapChoose triggered')
 
   // #ifdef H5
   fileInputRef.value?.click()
@@ -88,7 +100,6 @@ function onTapChoose() {
     sourceType: ['album', 'camera'],
     sizeType: ['compressed'],
     success: (res) => {
-      console.log('[ImagePicker] chooseMedia success:', res.tempFiles)
       const tempFile = (res.tempFiles as any[])[0]
       const tempFilePath = tempFile.tempFilePath
       const fileSize = tempFile.size || 0
@@ -102,18 +113,14 @@ function onTapChoose() {
         uni.getImageInfo({
           src: tempFilePath,
           success: (info) => {
-            console.log('[ImagePicker] Image size:', info.width, '×', info.height)
             imageSizeText.value = formatSizeInfo(info.width, info.height)
           },
-          fail: (err) => {
-            console.error('[ImagePicker] Failed to get image size:', err)
-          },
+          fail: () => {},
         })
       }
       choosing.value = false
     },
     fail: (err) => {
-      console.log('[ImagePicker] chooseMedia fail:', err)
       if (err?.errMsg && !err.errMsg.includes('cancel')) {
         uni.showToast({ title: '选择图片失败', icon: 'none' })
       }
@@ -146,11 +153,7 @@ function onH5FileChange(event: Event) {
     emit('update:modelValue', dataUrl)
     const img = new Image()
     img.onload = () => {
-      console.log('[ImagePicker] H5 image size:', img.naturalWidth, '×', img.naturalHeight)
       imageSizeText.value = formatSizeInfo(img.naturalWidth, img.naturalHeight)
-    }
-    img.onerror = (err) => {
-      console.error('[ImagePicker] Failed to get H5 image size:', err)
     }
     img.src = dataUrl
     choosing.value = false
@@ -168,8 +171,6 @@ function onH5FileChange(event: Event) {
 
 .picker-trigger {
   width: 100%;
-  margin: 0;
-  padding: 0;
   border: none;
   border-radius: 0;
   background-color: transparent;
@@ -184,14 +185,14 @@ function onH5FileChange(event: Event) {
 .preview-container {
   position: relative;
   width: 100%;
-  border-radius: 12px;
+  border-radius: 20px;
   overflow: hidden;
   background-color: #f5f5f5;
 }
 
 .preview-image {
   width: 100%;
-  height: 240px;
+  height: 220px;
 }
 
 .change-hint {
@@ -199,11 +200,18 @@ function onH5FileChange(event: Event) {
   bottom: 0;
   left: 0;
   right: 0;
-  padding: 8px;
-  text-align: center;
-  font-size: 12px;
+  padding: 10px 14px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  background: linear-gradient(180deg, transparent 0%, rgba(0, 0, 0, 0.45) 100%);
+}
+
+.change-hint-text {
+  font-size: 13px;
   color: #ffffff;
-  background-color: rgba(0, 0, 0, 0.4);
+  font-weight: 500;
 }
 
 .empty-state {
@@ -212,34 +220,50 @@ function onH5FileChange(event: Event) {
   align-items: center;
   justify-content: center;
   width: 100%;
-  height: 240px;
-  border: 2px dashed #e0e0e0;
-  border-radius: 12px;
-  background-color: #fafafa;
+  height: 220px;
+  border-radius: 20px;
+  background: linear-gradient(135deg, rgba(126, 200, 200, 0.08) 0%, rgba(168, 216, 216, 0.05) 100%);
+  border: 1.5px dashed rgba(126, 200, 200, 0.4);
+  gap: 0;
 }
 
-.empty-icon {
-  font-size: 48px;
-  margin-bottom: 12px;
+.empty-icon-wrap {
+  width: 72px;
+  height: 72px;
+  border-radius: 22px;
+  background: rgba(126, 200, 200, 0.12);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-bottom: 14px;
 }
 
 .empty-text {
   font-size: 16px;
-  color: #666666;
+  color: #5a8888;
+  font-weight: 600;
+  margin-bottom: 6px;
+}
+
+.empty-sub {
+  font-size: 12px;
+  color: #b0c8c8;
+  font-weight: 400;
 }
 
 .image-size-hint {
-  margin-top: 8px;
-  padding: 6px 12px;
-  background-color: rgba(126, 200, 200, 0.1);
-  border-radius: 8px;
+  margin-top: 10px;
+  padding: 7px 14px;
+  background-color: rgba(126, 200, 200, 0.08);
+  border-radius: 10px;
   display: flex;
   align-items: center;
   justify-content: center;
+  gap: 6px;
 }
 
 .size-text {
-  font-size: 13px;
+  font-size: 12px;
   color: #5a9e9e;
   font-weight: 500;
 }

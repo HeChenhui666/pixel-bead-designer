@@ -3,24 +3,31 @@
     <view class="editor-container">
       <!-- 生成中 Loading -->
       <view v-if="projectStore.isGenerating" class="loading-overlay">
-        <text class="loading-text">正在生成图纸...</text>
-        <text v-if="generateElapsed > 0" class="loading-sub">{{ generateElapsed }}ms</text>
+        <view class="loading-card">
+          <view class="loading-spinner" />
+          <text class="loading-text">正在生成图纸...</text>
+          <text v-if="generateElapsed > 0" class="loading-sub">{{ generateElapsed }}ms</text>
+        </view>
       </view>
 
-      <!-- 操作按钮栏（左上角返回+右侧操作，生成中 / 选格时隐藏） -->
+      <!-- 操作按钮栏 -->
       <view v-if="!projectStore.selectedCell && !projectStore.isGenerating" class="action-bar">
-        <view class="action-btn back-action-btn" @click="handleBack()">
-          <text class="action-btn-text">‹ 返回</text>
+        <view class="action-btn back-btn" @click="handleBack()">
+          <uni-icons type="left" size="16" color="#5a9e9e" />
+          <text class="action-btn-text">返回</text>
         </view>
         <view class="action-row">
           <view class="action-btn" @click="showStats = !showStats">
-            <text class="action-btn-text">📊 统计</text>
+            <uni-icons type="bars" size="15" color="#5a9e9e" />
+            <text class="action-btn-text">统计</text>
           </view>
           <view class="action-btn" @click="handleExportLong()">
-            <text class="action-btn-text">💾 导出</text>
+            <uni-icons type="download" size="15" color="#5a9e9e" />
+            <text class="action-btn-text">导出</text>
           </view>
           <view class="action-btn" @click="handleSaveHistory()">
-            <text class="action-btn-text">📁 保存</text>
+            <uni-icons type="cloud-upload" size="15" color="#5a9e9e" />
+            <text class="action-btn-text">保存</text>
           </view>
         </view>
       </view>
@@ -36,17 +43,16 @@
 
       <!-- 生成耗时提示 -->
       <view v-if="!projectStore.isGenerating && generateElapsed > 0" class="elapsed-hint">
-        <text>生成耗时 {{ generateElapsed }}ms · {{ projectStore.gridWidth }}×{{ projectStore.gridHeight }}</text>
+        <text>{{ generateElapsed }}ms · {{ projectStore.gridWidth }}×{{ projectStore.gridHeight }}</text>
       </view>
 
-
-
-      <!-- 撤销重做栏（页面中下方，不固定） -->
+      <!-- 撤销重做栏 -->
       <view v-if="!projectStore.selectedCell && !projectStore.isGenerating" class="undo-redo-bar">
         <view class="undo-redo-btn" :class="{ active: isComparing }" @touchstart.prevent="startCompare()"
           @touchend.prevent="stopCompare()">
-          <text class="undo-redo-text">👁</text>
+          <uni-icons type="eye" :size="18" :color="isComparing ? '#ffffff' : '#7ec8c8'" />
         </view>
+        <view class="undo-redo-divider" />
         <view class="undo-redo-btn" :class="{ disabled: !projectStore.canUndo }" @click="handleUndo()">
           <text class="undo-redo-text">↩</text>
         </view>
@@ -61,7 +67,7 @@
         <view class="drawer-header">
           <text class="drawer-title">色号统计</text>
           <view class="drawer-close" @click="showStats = false">
-            <text class="drawer-close-text">✕</text>
+            <uni-icons type="closeempty" size="16" color="#9ca3af" />
           </view>
         </view>
         <scroll-view scroll-y class="drawer-body">
@@ -72,14 +78,12 @@
 
       <!-- 导出预览弹窗 -->
       <view v-if="previewDataUrl" class="preview-mask">
-        <!-- 遮罩层：点击此处关闭 -->
         <view class="preview-overlay" @click="cancelPreview()" />
-        <!-- 对话框：阻止所有点击穿透 -->
         <view class="preview-dialog" @click.stop @touchstart.stop @touchend.stop>
           <view class="preview-header">
             <text class="preview-title">导出预览</text>
             <view class="preview-close" @click="cancelPreview()">
-              <text class="preview-close-text">✕</text>
+              <uni-icons type="closeempty" size="15" color="#9ca3af" />
             </view>
           </view>
           <scroll-view scroll-y class="preview-body">
@@ -98,6 +102,7 @@
               <text class="preview-btn-text">取消</text>
             </view>
             <view class="preview-btn confirm" @click="confirmExport()">
+              <uni-icons type="download" size="15" color="#ffffff" />
               <text class="preview-btn-text-confirm">确认导出</text>
             </view>
           </view>
@@ -128,14 +133,15 @@
       <!-- 底部工具条 -->
       <view v-if="!projectStore.isGenerating" class="editor-toolbar">
         <view class="toolbar-item" :class="{ active: brushMode }" @click="toggleBrushMode()">
-          <view class="toolbar-icon">🖌️</view>
-          <text class="toolbar-label">画笔</text>
+          <view class="toolbar-icon-wrap" :class="{ active: brushMode }">
+            <uni-icons type="compose" :size="20" :color="brushMode ? '#ffffff' : '#9ca3af'" />
+          </view>
+          <text class="toolbar-label" :class="{ active: brushMode }">画笔</text>
         </view>
       </view>
     </view>
 
-    <!-- 退出确认弹窗（未保存时触发） -->
-    <!-- touchstart/end.stop 防止触摸事件穿透到下方 Canvas（App 端 z-index 不能完全阻断触摸路由） -->
+    <!-- 退出确认弹窗 -->
     <view
       v-if="showBackConfirm"
       class="confirm-mask"
@@ -190,21 +196,16 @@ const showGuideLines = ref(false)
 const isComparing = ref(false)
 let pendingExportOptions: Parameters<typeof generateLongImagePreview>[0] | null = null
 
-// 画笔模式
 const brushMode = ref(false)
 const brushColor = ref('')
 const showBrushPalette = ref(false)
 
-// 小程序端 canvas 层级遮挡：稍后定义（依赖 showBackConfirm 等变量）
-
 function toggleBrushMode() {
   if (brushMode.value) {
-    // 关闭画笔
     brushMode.value = false
     showBrushPalette.value = false
     projectStore.selectedCell = null
   } else {
-    // 开启画笔：先弹出色卡选择
     showBrushPalette.value = true
   }
 }
@@ -218,33 +219,22 @@ function selectBrushColor(hex: string) {
 
 function onBrushPaint(payload: { x: number; y: number }) {
   if (!brushMode.value || !brushColor.value) return
-  // 先增量绘制单格（避免 watch 触发全量重绘闪烁），再更新 store 数据
   gridCanvasRef.value?.paintCell(payload.x, payload.y, brushColor.value)
   projectStore.updateCell(payload.x, payload.y, brushColor.value)
   hasSavedCurrentWork.value = false
 }
 
-// 未保存状态追踪
 const hasSavedCurrentWork = ref(true)
 const showBackConfirm = ref(false)
-
-// 弹窗/抽屉/面板显示时隐藏 canvas，解决原生组件层级遮挡
 const canvasShouldHide = computed(() => showBackConfirm.value || showStats.value || !!previewDataUrl.value)
 
-function startCompare() {
-  isComparing.value = true
-}
+function startCompare() { isComparing.value = true }
+function stopCompare() { isComparing.value = false }
 
-function stopCompare() {
-  isComparing.value = false
-}
-
-// 是否有可展示的内容（含从草稿箱加载的情形，此时 hasImage=false）
 const hasContent = computed(() =>
   projectStore.hasImage || projectStore.cellData.some(row => row.some(hex => !!hex))
 )
 
-// ===== 返回导航 =====
 function handleBack() {
   if (!hasSavedCurrentWork.value && hasContent.value) {
     showBackConfirm.value = true
@@ -268,7 +258,6 @@ function cancelBack() {
   showBackConfirm.value = false
 }
 
-// 拦截 Android 物理返回键 / iOS 手势返回
 onBackPress(() => {
   if (!hasSavedCurrentWork.value && hasContent.value) {
     showBackConfirm.value = true
@@ -277,11 +266,9 @@ onBackPress(() => {
   return false
 })
 
-// 当前品牌的颜色列表（仅显示图纸中已使用的颜色 + 常用色）
 const paletteColors = computed(() => {
   const allowedSeries = configStore.selectedSeries[projectStore.paletteId] || []
   const allColors = getColorList(projectStore.paletteId, allowedSeries.length > 0 ? allowedSeries : undefined)
-  // 优先显示图纸中已使用的颜色
   const usedHexes = new Set(Object.keys(projectStore.colorSummary))
   const usedColors = allColors.filter((c) => usedHexes.has(c.hex))
   const unusedColors = allColors.filter((c) => !usedHexes.has(c.hex))
@@ -307,9 +294,7 @@ function onColorSelect(hex: string) {
   hasSavedCurrentWork.value = false
 }
 
-function clearSelection() {
-  projectStore.selectedCell = null
-}
+function clearSelection() { projectStore.selectedCell = null }
 
 function handleUndo() {
   if (!projectStore.canUndo) return
@@ -348,13 +333,10 @@ async function handleExportLong() {
       paletteId: projectStore.paletteId,
       colorCodeMap,
     }
-
-    // 生成预览图后弹窗展示，用户确认后保存到相册
     const previewPath = await generateLongImagePreview(options) as unknown as string
     if (previewPath) {
       previewDataUrl.value = previewPath
       pendingExportOptions = options
-      return
     }
   } catch (err) {
     console.error('导出失败:', err)
@@ -371,75 +353,43 @@ function cancelPreview() {
 async function toggleGuideLines() {
   if (!pendingExportOptions) return
   showGuideLines.value = !showGuideLines.value
-
   const options = {
     ...pendingExportOptions,
     showGuideLines: showGuideLines.value,
     cellData: isMirrored.value ? pendingExportOptions.cellData.map(row => [...row].reverse()) : pendingExportOptions.cellData,
   }
-
   try {
     const previewPath = await generateLongImagePreview(options) as unknown as string
-    if (previewPath) {
-      previewDataUrl.value = previewPath
-      pendingExportOptions = { ...options }
-    }
-  } catch {
-    showGuideLines.value = !showGuideLines.value
-  }
+    if (previewPath) { previewDataUrl.value = previewPath; pendingExportOptions = { ...options } }
+  } catch { showGuideLines.value = !showGuideLines.value }
 }
 
 async function toggleMirror() {
   if (!pendingExportOptions) return
   isMirrored.value = !isMirrored.value
-
-  // 左右翻转 cellData：每行反转
   const mirroredCellData = pendingExportOptions.cellData.map(row => [...row].reverse())
-  const options = {
-    ...pendingExportOptions,
-    cellData: mirroredCellData,
-  }
-
-  // 重新生成预览图（需要 await，小程序端返回 Promise）
+  const options = { ...pendingExportOptions, cellData: mirroredCellData }
   try {
     const previewPath = await generateLongImagePreview(options) as unknown as string
-    if (previewPath) {
-      previewDataUrl.value = previewPath
-      pendingExportOptions = { ...options }
-    }
-  } catch {
-    // 生成失败时保持原预览，恢复镜像状态
-    isMirrored.value = !isMirrored.value
-  }
+    if (previewPath) { previewDataUrl.value = previewPath; pendingExportOptions = { ...options } }
+  } catch { isMirrored.value = !isMirrored.value }
 }
 
 async function confirmExport() {
   if (!pendingExportOptions) return
   const filePath = previewDataUrl.value
-  const options = pendingExportOptions
   cancelPreview()
   try {
-    // 直接将预览图保存到相册
     if (filePath) {
       await new Promise<void>((resolve, reject) => {
         uni.saveImageToPhotosAlbum({
           filePath,
-          success: () => {
-            uni.showToast({ title: '已保存到相册', icon: 'success' })
-            resolve()
-          },
+          success: () => { uni.showToast({ title: '已保存到相册', icon: 'success' }); resolve() },
           fail: (err: any) => {
-            // 权限不足时引导用户授权
             if (err.errMsg?.includes('auth deny') || err.errMsg?.includes('auth denied')) {
               uni.showModal({
-                title: '提示',
-                content: '需要您授权保存到相册',
-                confirmText: '去授权',
-                success: (modalRes: any) => {
-                  if (modalRes.confirm) {
-                    uni.openSetting()
-                  }
-                },
+                title: '提示', content: '需要您授权保存到相册', confirmText: '去授权',
+                success: (modalRes: any) => { if (modalRes.confirm) uni.openSetting() },
               })
             } else {
               uni.showToast({ title: '保存失败', icon: 'none' })
@@ -449,9 +399,7 @@ async function confirmExport() {
         })
       })
     }
-  } catch (err) {
-    console.error('导出失败:', err)
-  }
+  } catch (err) { console.error('导出失败:', err) }
 }
 
 function handleSaveHistory() {
@@ -462,34 +410,21 @@ function handleSaveHistory() {
 
 let hasGeneratedForCurrentImage = false
 let lastSourceImage = ''
-// 每次 generateGrid 调用递增，只有最新一次能写入结果并关闭 loading
 let currentGenerateId = 0
 
-onShow(() => {
-  setTimeout(() => {
-    checkAndGenerate()
-  }, 100)
-})
+onShow(() => { setTimeout(() => { checkAndGenerate() }, 100) })
 
 function checkAndGenerate() {
-  if (!projectStore.hasImage) {
-    hasGeneratedForCurrentImage = false
-    lastSourceImage = ''
-    return
-  }
-
+  if (!projectStore.hasImage) { hasGeneratedForCurrentImage = false; lastSourceImage = ''; return }
   const imageChanged = projectStore.sourceImage !== lastSourceImage
   const gridEmpty = isEmptyGrid()
-  // pendingGenerate 由 index 页"生成图纸"按钮设置，确保参数变化后必须重新生成
   const userRequested = projectStore.pendingGenerate
-
   if (userRequested || imageChanged || gridEmpty) {
     lastSourceImage = projectStore.sourceImage
     hasGeneratedForCurrentImage = false
     generateGrid()
   } else if (!hasGeneratedForCurrentImage) {
     hasGeneratedForCurrentImage = true
-    // 从草稿箱加载：数据已保存，重置标志
     hasSavedCurrentWork.value = true
     gridCanvasRef.value?.refresh()
   }
@@ -498,21 +433,15 @@ function checkAndGenerate() {
 function isEmptyGrid(): boolean {
   const data = projectStore.cellData
   if (data.length === 0) return true
-  for (const row of data) {
-    for (const hex of row) {
-      if (hex) return false
-    }
-  }
+  for (const row of data) for (const hex of row) if (hex) return false
   return true
 }
 
 async function generateGrid() {
-  // 消费请求标志，并抢占生成 ID
   projectStore.pendingGenerate = false
   const myId = ++currentGenerateId
   projectStore.isGenerating = true
   generateElapsed.value = 0
-
   try {
     const result = await pixelateImage({
       imagePath: projectStore.sourceImage,
@@ -526,15 +455,11 @@ async function generateGrid() {
       gaussianWeightedConfig: configStore.gaussianWeightedConfig,
       edgeAwareConfig: configStore.edgeAwareConfig,
     })
-
-    // 如果期间有更新的一次 generateGrid 已启动，丢弃旧结果
     if (myId !== currentGenerateId) return
-
     projectStore.setCellData(result.cellData)
     generateElapsed.value = result.elapsedMs
     hasGeneratedForCurrentImage = true
     hasSavedCurrentWork.value = false
-
     await nextTick()
     gridCanvasRef.value?.refresh()
   } catch (err) {
@@ -542,10 +467,7 @@ async function generateGrid() {
     console.error('生成图纸失败:', err)
     uni.showToast({ title: '生成失败，请重试', icon: 'none' })
   } finally {
-    // 只有最新一次负责关闭 loading，避免旧请求提前关闭 loading
-    if (myId === currentGenerateId) {
-      projectStore.isGenerating = false
-    }
+    if (myId === currentGenerateId) projectStore.isGenerating = false
   }
 }
 
@@ -553,7 +475,6 @@ function onCellClick(payload: { x: number; y: number }) {
   if (brushMode.value) return
   projectStore.selectedCell = payload
 }
-
 </script>
 
 <style scoped>
@@ -575,158 +496,66 @@ function onCellClick(payload: { x: number; y: number }) {
   overflow: hidden;
 }
 
+/* Loading */
 .loading-overlay {
   position: absolute;
-  top: 0;
-  left: 0;
-  right: 0;
-  bottom: 0;
+  top: 0; left: 0; right: 0; bottom: 0;
   display: flex;
-  flex-direction: column;
   align-items: center;
   justify-content: center;
-  background-color: rgba(254, 252, 251, 0.92);
+  background-color: rgba(254, 252, 251, 0.88);
   z-index: 30;
 }
 
+.loading-card {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 12px;
+  background: #ffffff;
+  border-radius: 20px;
+  padding: 32px 40px;
+  box-shadow: 0 8px 32px rgba(126, 200, 200, 0.15);
+}
+
+.loading-spinner {
+  width: 32px;
+  height: 32px;
+  border: 3px solid rgba(126, 200, 200, 0.2);
+  border-top-color: #7ec8c8;
+  border-radius: 50%;
+  animation: spin 0.8s linear infinite;
+}
+
+@keyframes spin {
+  to { transform: rotate(360deg); }
+}
+
 .loading-text {
-  font-size: 16px;
-  color: #4a4a4a;
+  font-size: 15px;
+  color: #5a5a5a;
   font-weight: 500;
 }
 
 .loading-sub {
-  font-size: 13px;
+  font-size: 12px;
   color: #9ca3af;
-  margin-top: 8px;
 }
 
 .elapsed-hint {
   position: absolute;
-  bottom: 12px;
+  bottom: 80px;
   left: 50%;
   transform: translateX(-50%);
-  font-size: 12px;
-  color: #b0a8a0;
+  font-size: 11px;
+  color: #c0b8b0;
   pointer-events: none;
-}
-
-.color-palette-bar {
-  position: fixed;
-  bottom: calc(56px + var(--safe-bottom, 0px));
-  left: 0;
-  right: 0;
-  background-color: #fefcfb;
-  border-top: 1px solid #f0ebe6;
-  border-radius: 20px 20px 0 0;
-  box-shadow: 0 -4px 20px rgba(126, 200, 200, 0.1);
-  z-index: 40;
-  display: flex;
-  flex-direction: column;
-}
-
-.palette-header {
-  display: flex;
-  align-items: center;
-  padding: 10px 16px;
-  border-bottom: 1px solid #f5f2ef;
-  flex-shrink: 0;
-  position: relative;
-}
-
-.cell-coords {
-  font-size: 13px;
-  color: #7ec8c8;
-  font-weight: 600;
-  flex-shrink: 0;
-}
-
-.palette-drag-handle {
-  position: absolute;
-  left: 50%;
-  transform: translateX(-50%);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  padding: 8px 16px;
-  cursor: grab;
-}
-
-.drag-indicator {
-  width: 36px;
-  height: 4px;
-  border-radius: 2px;
-  background-color: #e8e4e0;
-}
-
-.clear-selection-btn {
-  margin-left: auto;
-  padding: 5px 14px;
-  border-radius: 16px;
-  background-color: #f8f6f4;
-  flex-shrink: 0;
-  transition: all 0.25s ease;
-}
-
-.clear-text {
-  font-size: 12px;
-  color: #9ca3af;
-  font-weight: 500;
-}
-
-.palette-grid-scroll {
-  flex: 1;
-  min-height: 0;
-}
-
-.palette-grid {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 8px;
-  padding: 12px 14px;
-}
-
-.palette-swatch {
-  width: 38px;
-  height: 38px;
+  background: rgba(255,255,255,0.7);
+  padding: 3px 10px;
   border-radius: 10px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  border: 2px solid transparent;
-  position: relative;
-  transition: all 0.25s ease;
 }
 
-.palette-swatch.active {
-  border-color: #7ec8c8;
-  box-shadow: 0 0 0 3px rgba(126, 200, 200, 0.2);
-}
-
-.swatch-code {
-  font-size: 8px;
-  color: #ffffff;
-  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.5);
-  line-height: 1;
-  pointer-events: none;
-}
-
-.swatch-check {
-  position: absolute;
-  top: -5px;
-  right: -5px;
-  font-size: 9px;
-  color: #ffffff;
-  background-color: #7ec8c8;
-  border-radius: 50%;
-  width: 15px;
-  height: 15px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  text-shadow: none;
-}
-
+/* 操作按钮栏 */
 .action-bar {
   position: fixed;
   top: calc(var(--safe-top, 0px) + 10px);
@@ -741,82 +570,89 @@ function onCellClick(payload: { x: number; y: number }) {
 
 .action-row {
   display: flex;
-  justify-content: flex-start;
-  gap: 10px;
-}
-
-.back-action-btn {
-  /* 返回按钮无需特殊样式，和 action-btn 共用即可 */
+  gap: 8px;
 }
 
 .action-btn {
-  padding: 7px 16px;
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  padding: 8px 14px;
   border-radius: 20px;
-  background-color: rgba(254, 252, 251, 0.95);
-  box-shadow: 0 2px 12px rgba(126, 200, 200, 0.15);
-  transition: all 0.25s ease;
+  background-color: rgba(255, 253, 251, 0.96);
+  box-shadow: 0 2px 12px rgba(0, 0, 0, 0.08), 0 0 0 1px rgba(126, 200, 200, 0.12);
+  transition: all 0.22s ease;
 }
 
 .action-btn:active {
-  transform: scale(0.96);
+  transform: scale(0.95);
+  box-shadow: 0 1px 6px rgba(0, 0, 0, 0.06);
 }
 
-.action-btn.disabled {
-  opacity: 0.4;
+.back-btn {
+  padding: 8px 16px;
 }
 
 .action-btn-text {
   font-size: 12px;
-  color: #7ec8c8;
+  color: #5a9e9e;
   font-weight: 600;
 }
 
+/* 撤销重做栏 */
 .undo-redo-bar {
   position: absolute;
-  bottom: 70px;
+  bottom: 72px;
   left: 50%;
   transform: translateX(-50%);
   display: flex;
-  gap: 12px;
+  align-items: center;
+  background: rgba(255, 253, 251, 0.96);
+  border-radius: 24px;
+  box-shadow: 0 4px 20px rgba(126, 200, 200, 0.18), 0 0 0 1px rgba(126, 200, 200, 0.1);
+  overflow: hidden;
   z-index: 30;
 }
 
 .undo-redo-btn {
-  padding: 10px 20px;
-  border-radius: 22px;
-  background-color: rgba(254, 252, 251, 0.95);
-  box-shadow: 0 2px 12px rgba(126, 200, 200, 0.15);
-  transition: all 0.25s ease;
+  padding: 11px 20px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.22s ease;
+  min-width: 52px;
 }
 
 .undo-redo-btn:active {
-  transform: scale(0.95);
+  background: rgba(126, 200, 200, 0.1);
 }
 
 .undo-redo-btn.disabled {
-  opacity: 0.35;
+  opacity: 0.3;
 }
 
 .undo-redo-btn.active {
-  background-color: #7ec8c8;
+  background: linear-gradient(135deg, #7ec8c8, #5ab0b0);
 }
 
-.undo-redo-btn.active .undo-redo-text {
-  color: #ffffff;
+.undo-redo-divider {
+  width: 1px;
+  height: 20px;
+  background: #ede9e4;
+  flex-shrink: 0;
 }
 
 .undo-redo-text {
-  font-size: 14px;
+  font-size: 17px;
   color: #7ec8c8;
   font-weight: 600;
+  line-height: 1;
 }
 
+/* 统计抽屉 */
 .stats-drawer-mask {
   position: fixed;
-  top: 0;
-  left: 0;
-  right: 0;
-  bottom: 0;
+  top: 0; left: 0; right: 0; bottom: 0;
   background-color: rgba(0, 0, 0, 0.2);
   z-index: 44;
   opacity: 0;
@@ -831,9 +667,7 @@ function onCellClick(payload: { x: number; y: number }) {
 
 .stats-drawer {
   position: fixed;
-  top: 0;
-  right: 0;
-  bottom: 0;
+  top: 0; right: 0; bottom: 0;
   width: 280px;
   background-color: #fefcfb;
   z-index: 45;
@@ -842,7 +676,7 @@ function onCellClick(payload: { x: number; y: number }) {
   display: flex;
   flex-direction: column;
   padding-top: var(--safe-top, 0px);
-  box-shadow: -4px 0 20px rgba(126, 200, 200, 0.12);
+  box-shadow: -6px 0 24px rgba(126, 200, 200, 0.14);
 }
 
 .stats-drawer.open {
@@ -871,18 +705,11 @@ function onCellClick(payload: { x: number; y: number }) {
   align-items: center;
   justify-content: center;
   border-radius: 50%;
-  background-color: #f8f6f4;
-  transition: all 0.25s ease;
+  background-color: #f5f2ef;
+  transition: all 0.22s ease;
 }
 
-.drawer-close:active {
-  background-color: #f0eeeb;
-}
-
-.drawer-close-text {
-  font-size: 14px;
-  color: #9ca3af;
-}
+.drawer-close:active { background-color: #ede9e4; }
 
 .drawer-body {
   flex: 1;
@@ -890,80 +717,11 @@ function onCellClick(payload: { x: number; y: number }) {
   padding: 14px;
 }
 
-.guide-container {
-  flex: 1;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  padding: 32px;
-}
-
-.guide-card {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  padding: 40px 32px;
-  border-radius: 20px;
-  background-color: #fefcfb;
-  box-shadow: 0 4px 16px rgba(126, 200, 200, 0.1);
-  margin-bottom: 32px;
-}
-
-.guide-icon {
-  font-size: 56px;
-  margin-bottom: 16px;
-}
-
-.guide-title {
-  font-size: 18px;
-  color: #4a4a4a;
-  text-align: center;
-  margin-bottom: 24px;
-  font-weight: 600;
-}
-
-.guide-btn {
-  padding: 12px 40px;
-  border-radius: 24px;
-  background: linear-gradient(135deg, #7ec8c8 0%, #a8d8d8 100%);
-  box-shadow: 0 4px 16px rgba(126, 200, 200, 0.3);
-}
-
-.guide-btn-text {
-  font-size: 16px;
-  color: #ffffff;
-  font-weight: 600;
-}
-
-.quick-entries {
-  display: flex;
-  gap: 24px;
-}
-
-.quick-entry {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 6px;
-}
-
-.entry-icon {
-  font-size: 28px;
-}
-
-.entry-label {
-  font-size: 13px;
-  color: #9ca3af;
-}
-
+/* 导出预览弹窗 */
 .preview-mask {
   position: fixed;
-  top: 0;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  background-color: rgba(0, 0, 0, 0.3);
+  top: 0; left: 0; right: 0; bottom: 0;
+  background-color: rgba(0, 0, 0, 0.32);
   z-index: 999;
   display: flex;
   align-items: center;
@@ -972,10 +730,7 @@ function onCellClick(payload: { x: number; y: number }) {
 
 .preview-overlay {
   position: absolute;
-  top: 0;
-  left: 0;
-  right: 0;
-  bottom: 0;
+  top: 0; left: 0; right: 0; bottom: 0;
   z-index: 0;
 }
 
@@ -985,12 +740,12 @@ function onCellClick(payload: { x: number; y: number }) {
   width: 90vw;
   max-width: 400px;
   max-height: 80vh;
-  background-color: #fefcfb;
-  border-radius: 20px;
+  background-color: #ffffff;
+  border-radius: 24px;
   display: flex;
   flex-direction: column;
   overflow: hidden;
-  box-shadow: 0 8px 32px rgba(126, 200, 200, 0.15);
+  box-shadow: 0 16px 48px rgba(0, 0, 0, 0.14);
 }
 
 .preview-header {
@@ -1015,18 +770,11 @@ function onCellClick(payload: { x: number; y: number }) {
   align-items: center;
   justify-content: center;
   border-radius: 50%;
-  background-color: #f8f6f4;
-  transition: all 0.25s ease;
+  background-color: #f5f2ef;
+  transition: all 0.22s ease;
 }
 
-.preview-close:active {
-  background-color: #f0eeeb;
-}
-
-.preview-close-text {
-  font-size: 13px;
-  color: #9ca3af;
-}
+.preview-close:active { background-color: #ede9e4; }
 
 .preview-body {
   flex: 1;
@@ -1041,45 +789,6 @@ function onCellClick(payload: { x: number; y: number }) {
   border-radius: 12px;
 }
 
-.preview-footer {
-  display: flex;
-  gap: 12px;
-  padding: 14px 18px;
-  border-top: 1px solid #f5f2ef;
-  flex-shrink: 0;
-}
-
-.preview-btn {
-  flex: 1;
-  padding: 11px;
-  border-radius: 14px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  transition: all 0.25s ease;
-}
-
-.preview-btn.cancel {
-  background-color: #f8f6f4;
-}
-
-.preview-btn.confirm {
-  background: linear-gradient(135deg, #7ec8c8 0%, #a8d8d8 100%);
-  box-shadow: 0 2px 12px rgba(126, 200, 200, 0.25);
-}
-
-.preview-btn-text {
-  font-size: 15px;
-  color: #9ca3af;
-  font-weight: 500;
-}
-
-.preview-btn-text-confirm {
-  font-size: 15px;
-  color: #ffffff;
-  font-weight: 600;
-}
-
 .preview-actions {
   padding: 10px 18px;
   display: flex;
@@ -1087,60 +796,66 @@ function onCellClick(payload: { x: number; y: number }) {
   gap: 12px;
 }
 
-.preview-mirror-btn {
-  padding: 8px 20px;
+.preview-mirror-btn, .preview-guide-btn {
+  padding: 8px 18px;
   border-radius: 16px;
-  background-color: #f0eeeb;
+  background-color: #f5f2ef;
   border: 1.5px solid transparent;
-  transition: all 0.25s ease;
+  transition: all 0.22s ease;
 }
 
 .preview-mirror-btn.mirrored {
-  background-color: #e8f6f6;
+  background-color: rgba(126, 200, 200, 0.12);
   border-color: #7ec8c8;
 }
 
-.preview-mirror-btn-text {
-  font-size: 13px;
-  color: #4a4a4a;
-  font-weight: 500;
-}
-
-.preview-mirror-btn.mirrored .preview-mirror-btn-text {
-  color: #5a9e9e;
-}
-
-.preview-guide-btn {
-  padding: 8px 20px;
-  border-radius: 16px;
-  background-color: #f0eeeb;
-  border: 1.5px solid transparent;
-  transition: all 0.25s ease;
-}
-
 .preview-guide-btn.active {
-  background-color: #f6e8e8;
-  border-color: #c87e7e;
+  background-color: rgba(255, 182, 185, 0.12);
+  border-color: #ffb6b9;
 }
 
-.preview-guide-btn-text {
+.preview-mirror-btn-text, .preview-guide-btn-text {
   font-size: 13px;
-  color: #4a4a4a;
+  color: #5a5a5a;
   font-weight: 500;
 }
 
-.preview-guide-btn.active .preview-guide-btn-text {
-  color: #9e5a5a;
+.preview-mirror-btn.mirrored .preview-mirror-btn-text { color: #5a9e9e; }
+.preview-guide-btn.active .preview-guide-btn-text { color: #c06065; }
+
+.preview-footer {
+  display: flex;
+  gap: 10px;
+  padding: 14px 18px;
+  border-top: 1px solid #f5f2ef;
+  flex-shrink: 0;
 }
+
+.preview-btn {
+  flex: 1;
+  padding: 12px;
+  border-radius: 16px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  transition: all 0.22s ease;
+}
+
+.preview-btn.cancel { background-color: #f5f2ef; }
+.preview-btn.confirm {
+  background: linear-gradient(135deg, #7ec8c8 0%, #5ab0b0 100%);
+  box-shadow: 0 4px 14px rgba(126, 200, 200, 0.3);
+}
+
+.preview-btn-text { font-size: 15px; color: #9ca3af; font-weight: 500; }
+.preview-btn-text-confirm { font-size: 15px; color: #ffffff; font-weight: 600; }
 
 /* 退出确认弹窗 */
 .confirm-mask {
   position: fixed;
-  top: 0;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  background-color: rgba(0, 0, 0, 0.25);
+  top: 0; left: 0; right: 0; bottom: 0;
+  background-color: rgba(0, 0, 0, 0.28);
   z-index: 100;
   display: flex;
   align-items: center;
@@ -1150,13 +865,13 @@ function onCellClick(payload: { x: number; y: number }) {
 .confirm-dialog {
   width: 80vw;
   max-width: 320px;
-  background-color: #fefcfb;
-  border-radius: 20px;
+  background-color: #ffffff;
+  border-radius: 24px;
   padding: 28px 22px 18px;
   display: flex;
   flex-direction: column;
   align-items: center;
-  box-shadow: 0 8px 32px rgba(126, 200, 200, 0.15);
+  box-shadow: 0 16px 48px rgba(0, 0, 0, 0.12);
 }
 
 .confirm-title {
@@ -1177,7 +892,7 @@ function onCellClick(payload: { x: number; y: number }) {
 
 .confirm-buttons {
   display: flex;
-  gap: 12px;
+  gap: 10px;
   width: 100%;
   margin-bottom: 14px;
 }
@@ -1186,67 +901,45 @@ function onCellClick(payload: { x: number; y: number }) {
   flex: 1;
   padding: 12px 0;
   border-radius: 14px;
-  background-color: #f8f6f4;
+  background-color: #f5f2ef;
   display: flex;
   align-items: center;
   justify-content: center;
-  transition: all 0.25s ease;
+  transition: all 0.22s ease;
 }
 
-.confirm-btn-discard-text {
-  font-size: 15px;
-  color: #9ca3af;
-  font-weight: 500;
-}
+.confirm-btn-discard-text { font-size: 15px; color: #9ca3af; font-weight: 500; }
 
 .confirm-btn-save {
   flex: 1;
   padding: 12px 0;
   border-radius: 14px;
-  background: linear-gradient(135deg, #7ec8c8 0%, #a8d8d8 100%);
+  background: linear-gradient(135deg, #7ec8c8 0%, #5ab0b0 100%);
   display: flex;
   align-items: center;
   justify-content: center;
-  box-shadow: 0 2px 12px rgba(126, 200, 200, 0.25);
+  box-shadow: 0 4px 14px rgba(126, 200, 200, 0.3);
 }
 
-.confirm-btn-save-text {
-  font-size: 15px;
-  color: #ffffff;
-  font-weight: 600;
-}
+.confirm-btn-save-text { font-size: 15px; color: #ffffff; font-weight: 600; }
 
-.confirm-cancel {
-  padding: 8px 24px;
-}
-
-.confirm-cancel-text {
-  font-size: 14px;
-  color: #7ec8c8;
-  font-weight: 500;
-}
+.confirm-cancel { padding: 8px 24px; }
+.confirm-cancel-text { font-size: 14px; color: #7ec8c8; font-weight: 500; }
 
 /* 底部工具条 */
 .editor-toolbar {
   position: fixed;
-  bottom: 0;
-  left: 0;
-  right: 0;
+  bottom: 0; left: 0; right: 0;
   height: calc(56px + var(--safe-bottom, 0px));
   padding-bottom: var(--safe-bottom, 0px);
-  background-color: rgba(254, 252, 251, 0.95);
+  background-color: rgba(255, 253, 251, 0.96);
   backdrop-filter: blur(12px);
-  border-top: 1px solid #f0ebe6;
+  border-top: 1px solid rgba(230, 225, 220, 0.8);
   display: flex;
   align-items: center;
+  justify-content: center;
   z-index: 50;
-  overflow-x: auto;
-  -webkit-overflow-scrolling: touch;
-  box-shadow: 0 -4px 20px rgba(126, 200, 200, 0.08);
-}
-
-.editor-toolbar::-webkit-scrollbar {
-  display: none;
+  box-shadow: 0 -4px 20px rgba(126, 200, 200, 0.1);
 }
 
 .toolbar-item {
@@ -1254,118 +947,37 @@ function onCellClick(payload: { x: number; y: number }) {
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  gap: 3px;
-  padding: 8px 18px;
-  border-radius: 12px;
-  flex-shrink: 0;
-  transition: all 0.25s ease;
+  gap: 4px;
+  padding: 6px 24px;
+  border-radius: 16px;
+  transition: all 0.22s ease;
 }
 
-.toolbar-item:active {
-  background-color: rgba(126, 200, 200, 0.1);
+.toolbar-icon-wrap {
+  width: 40px;
+  height: 40px;
+  border-radius: 14px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: #f5f2ef;
+  transition: all 0.22s ease;
 }
 
-.toolbar-icon {
-  font-size: 20px;
-  line-height: 1;
+.toolbar-icon-wrap.active {
+  background: linear-gradient(135deg, #7ec8c8, #5ab0b0);
+  box-shadow: 0 4px 14px rgba(126, 200, 200, 0.4);
 }
 
 .toolbar-label {
   font-size: 10px;
   color: #9ca3af;
-  line-height: 1;
   font-weight: 500;
-}
-
-.toolbar-item.active {
-  background-color: rgba(126, 200, 200, 0.15);
-}
-
-.toolbar-item.active .toolbar-label {
-  color: #7ec8c8;
-  font-weight: 600;
-}
-
-/* 画笔色卡选择面板 */
-.brush-palette-panel {
-  position: fixed;
-  bottom: calc(56px + var(--safe-bottom, 0px));
-  left: 0;
-  right: 0;
-  height: 40vh;
-  background-color: #fefcfb;
-  border-radius: 20px 20px 0 0;
-  box-shadow: 0 -4px 20px rgba(126, 200, 200, 0.12);
-  z-index: 55;
-  display: flex;
-  flex-direction: column;
-  overflow: hidden;
-}
-
-.brush-palette-header {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  padding: 12px 18px;
-  border-bottom: 1px solid #f5f2ef;
-  flex-shrink: 0;
-}
-
-.brush-palette-title {
-  font-size: 14px;
-  font-weight: 600;
-  color: #4a4a4a;
-}
-
-.brush-palette-close {
-  padding: 5px 12px;
-  border-radius: 14px;
-  background-color: #f8f6f4;
-  transition: all 0.25s ease;
-}
-
-.brush-palette-close:active {
-  background-color: #f0eeeb;
-}
-
-.brush-palette-close-text {
-  font-size: 12px;
-  color: #9ca3af;
-}
-
-.brush-palette-scroll {
-  flex: 1;
-  min-height: 0;
-}
-
-.brush-palette-grid {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 8px;
-  padding: 12px 14px;
-}
-
-.brush-swatch {
-  width: 38px;
-  height: 38px;
-  border-radius: 10px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  border: 2px solid transparent;
-  transition: all 0.25s ease;
-}
-
-.brush-swatch.active {
-  border-color: #7ec8c8;
-  box-shadow: 0 0 0 3px rgba(126, 200, 200, 0.2);
-}
-
-.brush-swatch-code {
-  font-size: 8px;
-  color: #ffffff;
-  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.5);
   line-height: 1;
-  pointer-events: none;
+}
+
+.toolbar-label.active {
+  color: #7ec8c8;
+  font-weight: 700;
 }
 </style>
