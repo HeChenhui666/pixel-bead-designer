@@ -7,7 +7,7 @@
         <text class="card-title">网格尺寸</text>
       </view>
       <view class="preset-row">
-        <view v-for="preset in presets.slice(0, 3)" :key="preset.label" class="preset-btn"
+        <view v-for="preset in presets.slice(0, 4)" :key="preset.label" class="preset-btn"
           :class="{ active: isActivePreset(preset) }" @click="selectPreset(preset)">
           <text class="preset-label">{{ preset.label }}</text>
           <text class="preset-size">{{ preset.width }}×{{ preset.height }}</text>
@@ -15,7 +15,7 @@
       </view>
       <view class="custom-preset-row">
         <view class="preset-btn custom-btn"
-          :class="{ active: isCustom }" @click="selectPreset(presets[3])">
+          :class="{ active: isCustom }" @click="selectPreset(presets[4])">
           <text class="preset-label">自定义</text>
           <text v-if="!isCustom" class="preset-size">自定义尺寸</text>
           <view v-if="isCustom" class="custom-input-inline">
@@ -33,8 +33,8 @@
       </view>
     </view>
 
-    <!-- 像素化模式 -->
-    <view class="card">
+    <!-- 像素化模式（图片模式专用） -->
+    <view v-if="!props.blankMode" class="card">
       <view class="card-header">
         <view class="card-dot" />
         <text class="card-title">像素化模式</text>
@@ -64,7 +64,7 @@
     </view>
 
     <!-- 加权中值参数 -->
-    <view v-if="configStore.pixelationMode === 'weighted-median'" class="card">
+    <view v-if="!props.blankMode && configStore.pixelationMode === 'weighted-median'" class="card">
       <view class="card-header">
         <view class="card-dot accent" />
         <text class="card-title">加权中值参数</text>
@@ -103,7 +103,7 @@
     </view>
 
     <!-- 自适应参数 -->
-    <view v-if="configStore.pixelationMode === 'adaptive'" class="card">
+    <view v-if="!props.blankMode && configStore.pixelationMode === 'adaptive'" class="card">
       <view class="card-header">
         <view class="card-dot accent" />
         <text class="card-title">自适应参数</text>
@@ -143,7 +143,7 @@
     </view>
 
     <!-- 高斯加权参数 -->
-    <view v-if="configStore.pixelationMode === 'gaussian-weighted'" class="card">
+    <view v-if="!props.blankMode && configStore.pixelationMode === 'gaussian-weighted'" class="card">
       <view class="card-header">
         <view class="card-dot accent" />
         <text class="card-title">高斯加权参数</text>
@@ -167,7 +167,7 @@
     </view>
 
     <!-- 边缘感知参数 -->
-    <view v-if="configStore.pixelationMode === 'edge-aware'" class="card">
+    <view v-if="!props.blankMode && configStore.pixelationMode === 'edge-aware'" class="card">
       <view class="card-header">
         <view class="card-dot accent" />
         <text class="card-title">边缘感知参数</text>
@@ -238,6 +238,8 @@ import { useConfigStore, DEFAULT_WEIGHTED_MEDIAN_CONFIG, DEFAULT_ADAPTIVE_CONFIG
 import { getSeriesList } from '../utils/color-mapper'
 import type { PaletteId } from '../stores/useProjectStore'
 
+const props = withDefaults(defineProps<{ blankMode?: boolean }>(), { blankMode: false })
+
 const projectStore = useProjectStore()
 const configStore = useConfigStore()
 
@@ -251,6 +253,7 @@ const presets: Preset[] = [
   { label: '小图', width: 32, height: 32 },
   { label: '中图', width: 48, height: 48 },
   { label: '大图', width: 98, height: 98 },
+  { label: '超大图', width: 158, height: 158 },
   { label: '自定义', width: 0, height: 0 },
 ]
 
@@ -434,13 +437,13 @@ function resetEdgeAwareConfig() { configStore.edgeAwareConfig = { ...DEFAULT_EDG
 }
 
 .preset-btn {
+  flex: 1;
   display: flex;
   flex-direction: column;
   align-items: center;
-  padding: 10px 14px;
+  padding: 10px 6px;
   border-radius: 12px;
   background-color: #f7f5f3;
-  min-width: 70px;
   transition: all 0.22s ease;
   border: 1.5px solid #ede9e4;
 }

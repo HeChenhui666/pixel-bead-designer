@@ -38,27 +38,22 @@
           <view class="card-dot pink" />
           <text class="card-title">联系方式</text>
         </view>
-        <view class="info-row" @click="copyWechat">
+        <view class="info-row" @tap="copyWechat()">
           <text class="info-label">微信号</text>
           <view class="info-value-wrap">
             <text class="info-value highlight">chenhui6677889</text>
             <uni-icons type="paperplane" size="14" color="#7ec8c8" />
           </view>
         </view>
-        <view v-if="showCopyHint" class="copy-hint-chip">
-          <uni-icons type="checkbox" size="13" color="#7ec8c8" />
-          <text class="copy-hint-text">已复制到剪贴板</text>
-        </view>
       </view>
 
       <!-- 仓库地址卡片 -->
-      <view class="info-card" @click="openRepo">
+      <view class="info-card">
         <view class="card-title-row">
           <view class="card-dot" />
           <text class="card-title">开源仓库</text>
-          <uni-icons type="right" size="14" color="#b0a8a0" />
         </view>
-        <view class="repo-link">
+        <view class="repo-link" @tap="copyRepo()">
           <text class="repo-url">github.com/HeChenhui666/pixel-bead-designer</text>
         </view>
       </view>
@@ -82,7 +77,8 @@ import CustomTabBar from '../../custom-tab-bar/index.vue'
 
 const projectStore = useProjectStore()
 const { safeTop, safeBottom } = useSafeArea()
-const showCopyHint = ref(false)
+
+const REPO_URL = 'https://github.com/HeChenhui666/pixel-bead-designer'
 
 onShow(() => {
   projectStore.currentTab = 3
@@ -92,25 +88,20 @@ function copyWechat() {
   uni.setClipboardData({
     data: 'chenhui6677889',
     success: () => {
-      showCopyHint.value = true
-      setTimeout(() => { showCopyHint.value = false }, 2000)
+      uni.showToast({ title: '微信号已复制', icon: 'none' })
     },
   })
 }
 
-function openRepo() {
-  // #ifdef H5
-  window.open('https://github.com/HeChenhui666/pixel-bead-designer', '_blank')
-  // #endif
-  // #ifndef H5
+function copyRepo() {
   uni.setClipboardData({
-    data: 'https://github.com/HeChenhui666/pixel-bead-designer',
+    data: REPO_URL,
     success: () => {
-      uni.showToast({ title: '链接已复制，请在浏览器中打开', icon: 'none' })
+      uni.showToast({ title: '链接已复制', icon: 'none' })
     },
   })
-  // #endif
 }
+
 </script>
 
 <style scoped>
@@ -258,27 +249,16 @@ function openRepo() {
   gap: 6px;
 }
 
-.copy-hint-chip {
-  display: flex;
-  align-items: center;
-  gap: 6px;
-  margin-top: 8px;
-  padding: 5px 12px;
-  background: rgba(126, 200, 200, 0.1);
-  border-radius: 10px;
-  align-self: flex-start;
-}
-
-.copy-hint-text {
-  font-size: 12px;
-  color: #7ec8c8;
-  font-weight: 500;
-}
 
 .repo-link {
   padding: 10px 12px;
   background-color: #f8f6f4;
   border-radius: 12px;
+  transition: background-color 0.18s ease;
+}
+
+.repo-link:active {
+  background-color: #ede9e4;
 }
 
 .repo-url {

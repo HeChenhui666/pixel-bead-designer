@@ -54,7 +54,7 @@
 		"list": [
 			{
 				"pagePath": "pages/index/index",
-				"text": "图片"
+				"text": "首页"
 			},
 			{
 				"pagePath": "pages/palette/index",

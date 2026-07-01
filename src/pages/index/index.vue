@@ -1,35 +1,78 @@
 <template>
   <view class="page-wrapper">
     <view class="page-index" :style="{ paddingTop: safeTop + 'px', paddingBottom: `calc(80px + ${safeBottom}px)` }">
+
       <!-- 顶部标题区 -->
-      <view class="app-header">
+      <view
+        class="app-header"
+        :style="{ paddingRight: capsuleRight > 20 ? capsuleRight + 'px' : '20px' }"
+      >
         <view class="header-main">
-          <text class="app-title">拼豆图纸</text>
-          <text class="app-subtitle">将图片一键转为拼豆图纸</text>
+          <text class="app-title">拼豆图纸生成</text>
+          <text class="app-subtitle">{{
+            mode === 'blank' ? '创建空白画布' :
+              mode === 'image' ? '将图片一键转为拼豆图纸' : '选择一种方式开始吧！' }}</text>
+        </view>
+        <view v-if="mode !== 'choose'" class="back-chip" @tap="resetMode()">
+          <uni-icons type="back" size="13" color="#7ec8c8" />
+          <text class="back-chip-text">重新选择</text>
         </view>
       </view>
 
-      <!-- 图片上传区 -->
-      <view class="upload-section">
-        <ImagePicker v-model="projectStore.sourceImage" @error="onImageError" />
-      </view>
+      <!-- ===== 选择模式 ===== -->
+      <view v-if="mode === 'choose'" class="choose-section">
+        <view class="option-card" @tap="enterImageMode()">
+          <view class="option-icon-wrap teal">
+            <uni-icons type="image" size="26" color="#ffffff" />
+          </view>
+          <view class="option-content">
+            <text class="option-title">选择图片</text>
+            <text class="option-desc">从相册或相机导入图片，自动转换为拼豆图纸</text>
+          </view>
+          <uni-icons type="forward" size="15" color="#c8c0b8" />
+        </view>
 
-      <!-- 参数面板 -->
-      <scroll-view scroll-y class="params-scroll">
-        <ParamPanel />
-      </scroll-view>
-
-      <!-- 底部生成按钮 -->
-      <view class="bottom-action">
-        <view
-          class="generate-btn"
-          :class="{ disabled: !projectStore.hasImage }"
-          @tap="handleGenerate()"
-        >
-          <uni-icons v-if="projectStore.hasImage" type="compose" size="18" color="#ffffff" />
-          <text class="btn-text">生成图纸</text>
+        <view class="option-card" @tap="enterBlankMode()">
+          <view class="option-icon-wrap pink">
+            <uni-icons type="compose" size="26" color="#ffffff" />
+          </view>
+          <view class="option-content">
+            <text class="option-title">创建空白画布</text>
+            <text class="option-desc">选择尺寸和色系，从零手动绘制拼豆图纸</text>
+          </view>
+          <uni-icons type="forward" size="15" color="#c8c0b8" />
         </view>
       </view>
+
+      <!-- ===== 图片模式 ===== -->
+      <view v-if="mode === 'image'" class="mode-content">
+        <view class="upload-section">
+          <ImagePicker v-model="projectStore.sourceImage" @error="onImageError" />
+        </view>
+        <scroll-view scroll-y class="params-scroll">
+          <ParamPanel />
+        </scroll-view>
+        <view class="bottom-action">
+          <view class="generate-btn" :class="{ disabled: !projectStore.hasImage }" @tap="handleGenerate()">
+            <uni-icons v-if="projectStore.hasImage" type="compose" size="18" color="#ffffff" />
+            <text class="btn-text">生成图纸</text>
+          </view>
+        </view>
+      </view>
+
+      <!-- ===== 空白画布模式 ===== -->
+      <view v-if="mode === 'blank'" class="mode-content">
+        <scroll-view scroll-y class="params-scroll">
+          <ParamPanel :blank-mode="true" />
+        </scroll-view>
+        <view class="bottom-action">
+          <view class="generate-btn" @tap="handleCreateBlankCanvas()">
+            <uni-icons type="compose" size="18" color="#ffffff" />
+            <text class="btn-text">创建空白画布</text>
+          </view>
+        </view>
+      </view>
+
     </view>
 
     <CustomTabBar />
@@ -37,6 +80,7 @@
 </template>
 
 <script setup lang="ts">
+import { ref } from 'vue'
 import { onShow } from '@dcloudio/uni-app'
 import { useProjectStore } from '../../stores/useProjectStore'
 import { useSafeArea } from '../../utils/useSafeArea'
@@ -45,11 +89,27 @@ import ParamPanel from '../../components/ParamPanel.vue'
 import CustomTabBar from '../../custom-tab-bar/index.vue'
 
 const projectStore = useProjectStore()
-const { safeTop, safeBottom } = useSafeArea()
+const { safeTop, safeBottom, capsuleRight, capsuleBottom } = useSafeArea()
+
+type Mode = 'choose' | 'image' | 'blank'
+const mode = ref<Mode>('choose')
 
 onShow(() => {
   projectStore.currentTab = 0
 })
+
+function enterImageMode() {
+  mode.value = 'image'
+}
+
+function enterBlankMode() {
+  mode.value = 'blank'
+}
+
+function resetMode() {
+  mode.value = 'choose'
+  projectStore.sourceImage = ''
+}
 
 function onImageError(message: string) {
   uni.showToast({ title: message, icon: 'none' })
@@ -58,6 +118,12 @@ function onImageError(message: string) {
 function handleGenerate() {
   if (!projectStore.hasImage) return
   projectStore.pendingGenerate = true
+  uni.navigateTo({ url: '/pages/editor/index' })
+}
+
+function handleCreateBlankCanvas() {
+  projectStore.sourceImage = ''
+  projectStore.resetGrid()
   uni.navigateTo({ url: '/pages/editor/index' })
 }
 </script>
@@ -82,6 +148,9 @@ function handleGenerate() {
 .app-header {
   padding: 20px 20px 12px;
   flex-shrink: 0;
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
 }
 
 .header-main {
@@ -101,6 +170,98 @@ function handleGenerate() {
   font-size: 13px;
   color: #b0a8a0;
   font-weight: 400;
+}
+
+/* 返回 chip */
+.back-chip {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  padding: 6px 12px;
+  border-radius: 20px;
+  background: rgba(126, 200, 200, 0.1);
+  border: 1px solid rgba(126, 200, 200, 0.3);
+  margin-top: 4px;
+}
+
+.back-chip-text {
+  font-size: 12px;
+  color: #7ec8c8;
+  font-weight: 500;
+}
+
+/* 选择模式 */
+.choose-section {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  padding: 24px 16px;
+  gap: 12px;
+}
+
+.option-card {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  padding: 18px 16px;
+  background: #ffffff;
+  border-radius: 20px;
+  box-shadow:
+    0 2px 16px rgba(0, 0, 0, 0.06),
+    0 0 0 1px rgba(0, 0, 0, 0.03);
+  transition: all 0.22s ease;
+}
+
+.option-card:active {
+  transform: scale(0.975);
+  box-shadow: 0 1px 8px rgba(0, 0, 0, 0.04);
+  background-color: #f9f9f9;
+}
+
+.option-icon-wrap {
+  width: 52px;
+  height: 52px;
+  border-radius: 16px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.option-icon-wrap.teal {
+  background: linear-gradient(135deg, #7ec8c8 0%, #5ab0b0 100%);
+  box-shadow: 0 4px 12px rgba(126, 200, 200, 0.4);
+}
+
+.option-icon-wrap.pink {
+  background: linear-gradient(135deg, #ffb6b9 0%, #f0909a 100%);
+  box-shadow: 0 4px 12px rgba(255, 182, 185, 0.4);
+}
+
+.option-content {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+}
+
+.option-title {
+  font-size: 16px;
+  font-weight: 700;
+  color: #3d3d3d;
+}
+
+.option-desc {
+  font-size: 12px;
+  color: #b0a8a0;
+  line-height: 1.5;
+}
+
+/* 图片 & 空白画布模式公共容器 */
+.mode-content {
+  display: flex;
+  flex-direction: column;
+  flex: 1;
 }
 
 .upload-section {
@@ -129,8 +290,6 @@ function handleGenerate() {
   background: linear-gradient(135deg, #7ec8c8 0%, #5ab0b0 100%);
   box-shadow: 0 6px 24px rgba(126, 200, 200, 0.40);
   transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
-  position: relative;
-  overflow: hidden;
 }
 
 .generate-btn:active {
