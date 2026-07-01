@@ -35,8 +35,8 @@ const current = computed(() => projectStore.currentTab)
 
 const tabs = [
   { path: '/pages/index/index', text: '首页', icon: 'image' },
-  { path: '/pages/palette/index', text: '色卡', icon: 'color' },
   { path: '/pages/history/index', text: '草稿箱', icon: 'list' },
+  { path: '/pages/palette/index', text: '色卡', icon: 'color' },
   { path: '/pages/about/index', text: '关于', icon: 'info' },
 ]
 
