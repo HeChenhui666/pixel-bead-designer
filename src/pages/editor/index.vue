@@ -1,5 +1,5 @@
 <template>
-  <view class="page-editor" :style="{ paddingTop: safeTop + 'px', paddingBottom: `calc(56px + ${safeBottom}px)`, '--safe-top': safeTop + 'px', '--safe-bottom': safeBottom + 'px' }">
+  <view class="page-editor" :style="{ paddingTop: safeTop + 'px', paddingBottom: `calc(112rpx + ${safeBottom}px)`, '--safe-top': safeTop + 'px', '--safe-bottom': safeBottom + 'px' }">
     <view class="editor-container">
       <!-- 生成中 Loading -->
       <view v-if="projectStore.isGenerating" class="loading-overlay">
@@ -483,7 +483,7 @@ function onCellClick(payload: { x: number; y: number }) {
   flex-direction: column;
   background: linear-gradient(180deg, #fdf9f5 0%, #faf5f0 100%);
   overflow: hidden;
-  min-height: calc(100vh - var(--safe-top, 0px) - var(--safe-bottom, 0px));
+  min-height: calc(100vh - var(--safe-top, 0) - var(--safe-bottom, 0));
 }
 
 .editor-container {
@@ -511,17 +511,17 @@ function onCellClick(payload: { x: number; y: number }) {
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 12px;
+  gap: 24rpx;
   background: #ffffff;
-  border-radius: 20px;
-  padding: 32px 40px;
-  box-shadow: 0 8px 32px rgba(126, 200, 200, 0.15);
+  border-radius: 40rpx;
+  padding: 64rpx 80rpx;
+  box-shadow: 0 16rpx 64rpx rgba(126, 200, 200, 0.15);
 }
 
 .loading-spinner {
-  width: 32px;
-  height: 32px;
-  border: 3px solid rgba(126, 200, 200, 0.2);
+  width: 64rpx;
+  height: 64rpx;
+  border: 6rpx solid rgba(126, 200, 200, 0.2);
   border-top-color: #7ec8c8;
   border-radius: 50%;
   animation: spin 0.8s linear infinite;
@@ -532,69 +532,69 @@ function onCellClick(payload: { x: number; y: number }) {
 }
 
 .loading-text {
-  font-size: 15px;
+  font-size: 30rpx;
   color: #5a5a5a;
   font-weight: 500;
 }
 
 .loading-sub {
-  font-size: 12px;
+  font-size: 24rpx;
   color: #9ca3af;
 }
 
 .elapsed-hint {
   position: absolute;
-  bottom: 80px;
+  bottom: 160rpx;
   left: 50%;
   transform: translateX(-50%);
-  font-size: 11px;
+  font-size: 22rpx;
   color: #c0b8b0;
   pointer-events: none;
   background: rgba(255,255,255,0.7);
-  padding: 3px 10px;
-  border-radius: 10px;
+  padding: 6rpx 20rpx;
+  border-radius: 20rpx;
 }
 
 /* 操作按钮栏 */
 .action-bar {
   position: fixed;
-  top: calc(var(--safe-top, 0px) + 10px);
-  left: 14px;
-  right: 14px;
+  top: calc(var(--safe-top, 0) + 20rpx);
+  left: 28rpx;
+  right: 28rpx;
   display: flex;
   flex-direction: column;
   align-items: flex-start;
-  gap: 8px;
+  gap: 16rpx;
   z-index: 36;
 }
 
 .action-row {
   display: flex;
-  gap: 8px;
+  gap: 16rpx;
 }
 
 .action-btn {
   display: flex;
   align-items: center;
-  gap: 5px;
-  padding: 8px 14px;
-  border-radius: 20px;
+  gap: 10rpx;
+  padding: 16rpx 28rpx;
+  border-radius: 40rpx;
   background-color: rgba(255, 253, 251, 0.96);
-  box-shadow: 0 2px 12px rgba(0, 0, 0, 0.08), 0 0 0 1px rgba(126, 200, 200, 0.12);
+  box-shadow: 0 4rpx 24rpx rgba(0, 0, 0, 0.08), 0 0 0 2rpx rgba(126, 200, 200, 0.12);
   transition: all 0.22s ease;
 }
 
 .action-btn:active {
   transform: scale(0.95);
-  box-shadow: 0 1px 6px rgba(0, 0, 0, 0.06);
+  box-shadow: 0 2rpx 12rpx rgba(0, 0, 0, 0.06);
 }
 
 .back-btn {
-  padding: 8px 16px;
+  padding: 16rpx 32rpx;
 }
 
 .action-btn-text {
-  font-size: 12px;
+  font-size: 24rpx;
   color: #5a9e9e;
   font-weight: 600;
 }
@@ -602,25 +602,25 @@ function onCellClick(payload: { x: number; y: number }) {
 /* 撤销重做栏 */
 .undo-redo-bar {
   position: absolute;
-  bottom: 72px;
+  bottom: 144rpx;
   left: 50%;
   transform: translateX(-50%);
   display: flex;
   align-items: center;
   background: rgba(255, 253, 251, 0.96);
-  border-radius: 24px;
-  box-shadow: 0 4px 20px rgba(126, 200, 200, 0.18), 0 0 0 1px rgba(126, 200, 200, 0.1);
+  border-radius: 48rpx;
+  box-shadow: 0 8rpx 40rpx rgba(126, 200, 200, 0.18), 0 0 0 2rpx rgba(126, 200, 200, 0.1);
   overflow: hidden;
   z-index: 30;
 }
 
 .undo-redo-btn {
-  padding: 11px 20px;
+  padding: 22rpx 40rpx;
   display: flex;
   align-items: center;
   justify-content: center;
   transition: all 0.22s ease;
-  min-width: 52px;
+  min-width: 104rpx;
 }
 
 .undo-redo-btn:active {
@@ -636,14 +636,14 @@ function onCellClick(payload: { x: number; y: number }) {
 }
 
 .undo-redo-divider {
-  width: 1px;
-  height: 20px;
+  width: 2rpx;
+  height: 40rpx;
   background: #ede9e4;
   flex-shrink: 0;
 }
 
 .undo-redo-text {
-  font-size: 17px;
+  font-size: 34rpx;
   color: #7ec8c8;
   font-weight: 600;
   line-height: 1;
@@ -668,15 +668,15 @@ function onCellClick(payload: { x: number; y: number }) {
 .stats-drawer {
   position: fixed;
   top: 0; right: 0; bottom: 0;
-  width: 280px;
+  width: 560rpx;
   background-color: #fefcfb;
   z-index: 45;
   transform: translateX(100%);
   transition: transform 0.3s ease;
   display: flex;
   flex-direction: column;
-  padding-top: var(--safe-top, 0px);
-  box-shadow: -6px 0 24px rgba(126, 200, 200, 0.14);
+  padding-top: var(--safe-top, 0);
+  box-shadow: -12rpx 0 48rpx rgba(126, 200, 200, 0.14);
 }
 
 .stats-drawer.open {
@@ -687,20 +687,20 @@ function onCellClick(payload: { x: number; y: number }) {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: 18px 16px;
-  border-bottom: 1px solid #f5f2ef;
+  padding: 36rpx 32rpx;
+  border-bottom: 2rpx solid #f5f2ef;
   flex-shrink: 0;
 }
 
 .drawer-title {
-  font-size: 17px;
+  font-size: 34rpx;
   font-weight: 700;
   color: #4a4a4a;
 }
 
 .drawer-close {
-  width: 32px;
-  height: 32px;
+  width: 64rpx;
+  height: 64rpx;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -714,7 +714,7 @@ function onCellClick(payload: { x: number; y: number }) {
 .drawer-body {
   flex: 1;
   overflow-y: auto;
-  padding: 14px;
+  padding: 28rpx;
 }
 
 /* 导出预览弹窗 */
@@ -738,34 +738,34 @@ function onCellClick(payload: { x: number; y: number }) {
   position: relative;
   z-index: 1;
   width: 90vw;
-  max-width: 400px;
+  max-width: 800rpx;
   max-height: 80vh;
   background-color: #ffffff;
-  border-radius: 24px;
+  border-radius: 48rpx;
   display: flex;
   flex-direction: column;
   overflow: hidden;
-  box-shadow: 0 16px 48px rgba(0, 0, 0, 0.14);
+  box-shadow: 0 32rpx 96rpx rgba(0, 0, 0, 0.14);
 }
 
 .preview-header {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: 16px 18px;
-  border-bottom: 1px solid #f5f2ef;
+  padding: 32rpx 36rpx;
+  border-bottom: 2rpx solid #f5f2ef;
   flex-shrink: 0;
 }
 
 .preview-title {
-  font-size: 16px;
+  font-size: 32rpx;
   font-weight: 700;
   color: #4a4a4a;
 }
 
 .preview-close {
-  width: 30px;
-  height: 30px;
+  width: 60rpx;
+  height: 60rpx;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -779,28 +779,28 @@ function onCellClick(payload: { x: number; y: number }) {
 .preview-body {
   flex: 1;
   overflow-y: auto;
-  padding: 14px;
+  padding: 28rpx;
   display: flex;
   justify-content: center;
 }
 
 .preview-image {
   width: 100%;
-  border-radius: 12px;
+  border-radius: 24rpx;
 }
 
 .preview-actions {
-  padding: 10px 18px;
+  padding: 20rpx 36rpx;
   display: flex;
   justify-content: center;
-  gap: 12px;
+  gap: 24rpx;
 }
 
 .preview-mirror-btn, .preview-guide-btn {
-  padding: 8px 18px;
-  border-radius: 16px;
+  padding: 16rpx 36rpx;
+  border-radius: 32rpx;
   background-color: #f5f2ef;
-  border: 1.5px solid transparent;
+  border: 3rpx solid transparent;
   transition: all 0.22s ease;
 }
 
@@ -815,7 +815,7 @@ function onCellClick(payload: { x: number; y: number }) {
 }
 
 .preview-mirror-btn-text, .preview-guide-btn-text {
-  font-size: 13px;
+  font-size: 26rpx;
   color: #5a5a5a;
   font-weight: 500;
 }
@@ -825,31 +825,31 @@ function onCellClick(payload: { x: number; y: number }) {
 
 .preview-footer {
   display: flex;
-  gap: 10px;
-  padding: 14px 18px;
-  border-top: 1px solid #f5f2ef;
+  gap: 20rpx;
+  padding: 28rpx 36rpx;
+  border-top: 2rpx solid #f5f2ef;
   flex-shrink: 0;
 }
 
 .preview-btn {
   flex: 1;
-  padding: 12px;
-  border-radius: 16px;
+  padding: 24rpx;
+  border-radius: 32rpx;
   display: flex;
   align-items: center;
   justify-content: center;
-  gap: 6px;
+  gap: 12rpx;
   transition: all 0.22s ease;
 }
 
 .preview-btn.cancel { background-color: #f5f2ef; }
 .preview-btn.confirm {
   background: linear-gradient(135deg, #7ec8c8 0%, #5ab0b0 100%);
-  box-shadow: 0 4px 14px rgba(126, 200, 200, 0.3);
+  box-shadow: 0 8rpx 28rpx rgba(126, 200, 200, 0.3);
 }
 
-.preview-btn-text { font-size: 15px; color: #9ca3af; font-weight: 500; }
-.preview-btn-text-confirm { font-size: 15px; color: #ffffff; font-weight: 600; }
+.preview-btn-text { font-size: 30rpx; color: #9ca3af; font-weight: 500; }
+.preview-btn-text-confirm { font-size: 30rpx; color: #ffffff; font-weight: 600; }
 
 /* 退出确认弹窗 */
 .confirm-mask {
@@ -864,43 +864,43 @@ function onCellClick(payload: { x: number; y: number }) {
 
 .confirm-dialog {
   width: 80vw;
-  max-width: 320px;
+  max-width: 640rpx;
   background-color: #ffffff;
-  border-radius: 24px;
-  padding: 28px 22px 18px;
+  border-radius: 48rpx;
+  padding: 56rpx 44rpx 36rpx;
   display: flex;
   flex-direction: column;
   align-items: center;
-  box-shadow: 0 16px 48px rgba(0, 0, 0, 0.12);
+  box-shadow: 0 32rpx 96rpx rgba(0, 0, 0, 0.12);
 }
 
 .confirm-title {
-  font-size: 17px;
+  font-size: 34rpx;
   font-weight: 700;
   color: #4a4a4a;
-  margin-bottom: 10px;
+  margin-bottom: 20rpx;
   text-align: center;
 }
 
 .confirm-msg {
-  font-size: 14px;
+  font-size: 28rpx;
   color: #9ca3af;
   text-align: center;
-  margin-bottom: 22px;
+  margin-bottom: 44rpx;
   line-height: 1.6;
 }
 
 .confirm-buttons {
   display: flex;
-  gap: 10px;
+  gap: 20rpx;
   width: 100%;
-  margin-bottom: 14px;
+  margin-bottom: 28rpx;
 }
 
 .confirm-btn-discard {
   flex: 1;
-  padding: 12px 0;
-  border-radius: 14px;
+  padding: 24rpx 0;
+  border-radius: 28rpx;
   background-color: #f5f2ef;
   display: flex;
   align-items: center;
@@ -908,38 +908,38 @@ function onCellClick(payload: { x: number; y: number }) {
   transition: all 0.22s ease;
 }
 
-.confirm-btn-discard-text { font-size: 15px; color: #9ca3af; font-weight: 500; }
+.confirm-btn-discard-text { font-size: 30rpx; color: #9ca3af; font-weight: 500; }
 
 .confirm-btn-save {
   flex: 1;
-  padding: 12px 0;
-  border-radius: 14px;
+  padding: 24rpx 0;
+  border-radius: 28rpx;
   background: linear-gradient(135deg, #7ec8c8 0%, #5ab0b0 100%);
   display: flex;
   align-items: center;
   justify-content: center;
-  box-shadow: 0 4px 14px rgba(126, 200, 200, 0.3);
+  box-shadow: 0 8rpx 28rpx rgba(126, 200, 200, 0.3);
 }
 
-.confirm-btn-save-text { font-size: 15px; color: #ffffff; font-weight: 600; }
+.confirm-btn-save-text { font-size: 30rpx; color: #ffffff; font-weight: 600; }
 
-.confirm-cancel { padding: 8px 24px; }
-.confirm-cancel-text { font-size: 14px; color: #7ec8c8; font-weight: 500; }
+.confirm-cancel { padding: 16rpx 48rpx; }
+.confirm-cancel-text { font-size: 28rpx; color: #7ec8c8; font-weight: 500; }
 
 /* 底部工具条 */
 .editor-toolbar {
   position: fixed;
   bottom: 0; left: 0; right: 0;
-  height: calc(56px + var(--safe-bottom, 0px));
-  padding-bottom: var(--safe-bottom, 0px);
+  height: calc(112rpx + var(--safe-bottom, 0));
+  padding-bottom: var(--safe-bottom, 0);
   background-color: rgba(255, 253, 251, 0.96);
-  backdrop-filter: blur(12px);
-  border-top: 1px solid rgba(230, 225, 220, 0.8);
+  backdrop-filter: blur(24rpx);
+  border-top: 2rpx solid rgba(230, 225, 220, 0.8);
   display: flex;
   align-items: center;
   justify-content: center;
   z-index: 50;
-  box-shadow: 0 -4px 20px rgba(126, 200, 200, 0.1);
+  box-shadow: 0 -8rpx 40rpx rgba(126, 200, 200, 0.1);
 }
 
 .toolbar-item {
@@ -947,16 +947,16 @@ function onCellClick(payload: { x: number; y: number }) {
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  gap: 4px;
-  padding: 6px 24px;
-  border-radius: 16px;
+  gap: 8rpx;
+  padding: 12rpx 48rpx;
+  border-radius: 32rpx;
   transition: all 0.22s ease;
 }
 
 .toolbar-icon-wrap {
-  width: 40px;
-  height: 40px;
-  border-radius: 14px;
+  width: 80rpx;
+  height: 80rpx;
+  border-radius: 28rpx;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -966,11 +966,11 @@ function onCellClick(payload: { x: number; y: number }) {
 
 .toolbar-icon-wrap.active {
   background: linear-gradient(135deg, #7ec8c8, #5ab0b0);
-  box-shadow: 0 4px 14px rgba(126, 200, 200, 0.4);
+  box-shadow: 0 8rpx 28rpx rgba(126, 200, 200, 0.4);
 }
 
 .toolbar-label {
-  font-size: 10px;
+  font-size: 20rpx;
   color: #9ca3af;
   font-weight: 500;
   line-height: 1;

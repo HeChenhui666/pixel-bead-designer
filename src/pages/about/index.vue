@@ -1,5 +1,5 @@
 <template>
-  <view class="page-about" :style="{ paddingTop: safeTop + 'px', paddingBottom: `calc(80px + ${safeBottom}px)` }">
+  <view class="page-about" :style="{ paddingTop: safeTop + 'px', paddingBottom: `calc(160rpx + ${safeBottom}px)` }">
     <view class="about-container">
       <!-- 应用图标与名称 -->
       <view class="app-header">
@@ -114,7 +114,7 @@ function copyRepo() {
 
 .about-container {
   flex: 1;
-  padding: 24px 20px;
+  padding: 48rpx 40rpx;
 }
 
 /* 顶部应用头 */
@@ -122,15 +122,15 @@ function copyRepo() {
   display: flex;
   flex-direction: column;
   align-items: center;
-  margin-bottom: 28px;
-  padding-top: 12px;
-  gap: 12px;
+  margin-bottom: 56rpx;
+  padding-top: 24rpx;
+  gap: 24rpx;
 }
 
 .icon-glow-wrap {
   position: relative;
-  width: 90px;
-  height: 90px;
+  width: 180rpx;
+  height: 180rpx;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -138,44 +138,44 @@ function copyRepo() {
 
 .icon-glow {
   position: absolute;
-  width: 90px;
-  height: 90px;
+  width: 180rpx;
+  height: 180rpx;
   border-radius: 50%;
   background: radial-gradient(circle, rgba(126, 200, 200, 0.25) 0%, rgba(126, 200, 200, 0) 70%);
 }
 
 .app-icon-wrap {
-  width: 72px;
-  height: 72px;
-  border-radius: 22px;
+  width: 144rpx;
+  height: 144rpx;
+  border-radius: 44rpx;
   background: #ffffff;
   display: flex;
   align-items: center;
   justify-content: center;
-  box-shadow: 0 6px 24px rgba(126, 200, 200, 0.2), 0 2px 8px rgba(0, 0, 0, 0.06);
+  box-shadow: 0 12rpx 48rpx rgba(126, 200, 200, 0.2), 0 4rpx 16rpx rgba(0, 0, 0, 0.06);
 }
 
 .app-icon {
-  font-size: 36px;
+  font-size: 72rpx;
   line-height: 1;
 }
 
 .app-name {
-  font-size: 20px;
+  font-size: 40rpx;
   font-weight: 700;
   color: #3d3d3d;
-  letter-spacing: -0.3px;
+  letter-spacing: -0.6rpx;
 }
 
 .version-chip {
   background: rgba(126, 200, 200, 0.12);
-  border: 1px solid rgba(126, 200, 200, 0.25);
-  border-radius: 12px;
-  padding: 4px 14px;
+  border: 2rpx solid rgba(126, 200, 200, 0.25);
+  border-radius: 24rpx;
+  padding: 8rpx 28rpx;
 }
 
 .version-chip-text {
-  font-size: 12px;
+  font-size: 24rpx;
   color: #7ec8c8;
   font-weight: 600;
 }
@@ -183,23 +183,23 @@ function copyRepo() {
 /* 信息卡片 */
 .info-card {
   background-color: #ffffff;
-  border-radius: 20px;
-  padding: 18px 18px 16px;
-  margin-bottom: 12px;
-  box-shadow: 0 2px 12px rgba(0, 0, 0, 0.05), 0 0 0 1px rgba(0, 0, 0, 0.03);
+  border-radius: 40rpx;
+  padding: 36rpx 36rpx 32rpx;
+  margin-bottom: 24rpx;
+  box-shadow: 0 4rpx 24rpx rgba(0, 0, 0, 0.05), 0 0 0 2rpx rgba(0, 0, 0, 0.03);
 }
 
 .card-title-row {
   display: flex;
   align-items: center;
-  gap: 8px;
-  margin-bottom: 14px;
+  gap: 16rpx;
+  margin-bottom: 28rpx;
 }
 
 .card-dot {
-  width: 6px;
-  height: 6px;
-  border-radius: 3px;
+  width: 12rpx;
+  height: 12rpx;
+  border-radius: 6rpx;
   background: #7ec8c8;
   flex-shrink: 0;
 }
@@ -209,7 +209,7 @@ function copyRepo() {
 }
 
 .card-title {
-  font-size: 13px;
+  font-size: 26rpx;
   font-weight: 600;
   color: #6b6b6b;
   flex: 1;
@@ -219,22 +219,22 @@ function copyRepo() {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  padding: 6px 0;
+  padding: 12rpx 0;
 }
 
 .info-divider {
-  height: 1px;
+  height: 2rpx;
   background: #f5f2ef;
-  margin: 4px 0;
+  margin: 8rpx 0;
 }
 
 .info-label {
-  font-size: 14px;
+  font-size: 28rpx;
   color: #9ca3af;
 }
 
 .info-value {
-  font-size: 14px;
+  font-size: 28rpx;
   color: #4a4a4a;
   font-weight: 500;
 }
@@ -246,14 +246,14 @@ function copyRepo() {
 .info-value-wrap {
   display: flex;
   align-items: center;
-  gap: 6px;
+  gap: 12rpx;
 }
 
 
 .repo-link {
-  padding: 10px 12px;
+  padding: 20rpx 24rpx;
   background-color: #f8f6f4;
-  border-radius: 12px;
+  border-radius: 24rpx;
   transition: background-color 0.18s ease;
 }
 
@@ -262,7 +262,7 @@ function copyRepo() {
 }
 
 .repo-url {
-  font-size: 12px;
+  font-size: 24rpx;
   color: #7ec8c8;
   word-break: break-all;
   line-height: 1.6;
@@ -271,12 +271,12 @@ function copyRepo() {
 
 /* 底部 */
 .footer-note {
-  margin-top: 28px;
+  margin-top: 56rpx;
   text-align: center;
 }
 
 .footer-text {
-  font-size: 13px;
+  font-size: 26rpx;
   color: #c0b8b0;
 }
 </style>

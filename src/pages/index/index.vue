@@ -1,11 +1,11 @@
 <template>
   <view class="page-wrapper">
-    <view class="page-index" :style="{ paddingTop: safeTop + 'px', paddingBottom: `calc(80px + ${safeBottom}px)` }">
+    <view class="page-index" :style="{ paddingTop: safeTop + 'px', paddingBottom: `calc(160rpx + ${safeBottom}px)` }">
 
       <!-- 顶部标题区 -->
       <view
         class="app-header"
-        :style="{ paddingRight: capsuleRight > 20 ? capsuleRight + 'px' : '20px' }"
+        :style="{ paddingRight: capsuleRight > 20 ? capsuleRight + 'px' : '40rpx' }"
       >
         <view class="header-main">
           <text class="app-title">拼豆图纸生成</text>
@@ -146,7 +146,7 @@ function handleCreateBlankCanvas() {
 
 /* 顶部标题区 */
 .app-header {
-  padding: 20px 20px 12px;
+  padding: 40rpx 40rpx 24rpx;
   flex-shrink: 0;
   display: flex;
   align-items: flex-start;
@@ -156,18 +156,18 @@ function handleCreateBlankCanvas() {
 .header-main {
   display: flex;
   flex-direction: column;
-  gap: 4px;
+  gap: 8rpx;
 }
 
 .app-title {
-  font-size: 26px;
+  font-size: 52rpx;
   font-weight: 800;
   color: #3d3d3d;
-  letter-spacing: -0.5px;
+  letter-spacing: -1rpx;
 }
 
 .app-subtitle {
-  font-size: 13px;
+  font-size: 26rpx;
   color: #b0a8a0;
   font-weight: 400;
 }
@@ -176,16 +176,16 @@ function handleCreateBlankCanvas() {
 .back-chip {
   display: flex;
   align-items: center;
-  gap: 4px;
-  padding: 6px 12px;
-  border-radius: 20px;
+  gap: 8rpx;
+  padding: 12rpx 24rpx;
+  border-radius: 40rpx;
   background: rgba(126, 200, 200, 0.1);
-  border: 1px solid rgba(126, 200, 200, 0.3);
-  margin-top: 4px;
+  border: 2rpx solid rgba(126, 200, 200, 0.3);
+  margin-top: 8rpx;
 }
 
 .back-chip-text {
-  font-size: 12px;
+  font-size: 24rpx;
   color: #7ec8c8;
   font-weight: 500;
 }
@@ -195,33 +195,33 @@ function handleCreateBlankCanvas() {
   flex: 1;
   display: flex;
   flex-direction: column;
-  padding: 24px 16px;
-  gap: 12px;
+  padding: 48rpx 32rpx;
+  gap: 24rpx;
 }
 
 .option-card {
   display: flex;
   align-items: center;
-  gap: 14px;
-  padding: 18px 16px;
+  gap: 28rpx;
+  padding: 36rpx 32rpx;
   background: #ffffff;
-  border-radius: 20px;
+  border-radius: 40rpx;
   box-shadow:
-    0 2px 16px rgba(0, 0, 0, 0.06),
-    0 0 0 1px rgba(0, 0, 0, 0.03);
+    0 4rpx 32rpx rgba(0, 0, 0, 0.06),
+    0 0 0 2rpx rgba(0, 0, 0, 0.03);
   transition: all 0.22s ease;
 }
 
 .option-card:active {
   transform: scale(0.975);
-  box-shadow: 0 1px 8px rgba(0, 0, 0, 0.04);
+  box-shadow: 0 2rpx 16rpx rgba(0, 0, 0, 0.04);
   background-color: #f9f9f9;
 }
 
 .option-icon-wrap {
-  width: 52px;
-  height: 52px;
-  border-radius: 16px;
+  width: 104rpx;
+  height: 104rpx;
+  border-radius: 32rpx;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -230,29 +230,29 @@ function handleCreateBlankCanvas() {
 
 .option-icon-wrap.teal {
   background: linear-gradient(135deg, #7ec8c8 0%, #5ab0b0 100%);
-  box-shadow: 0 4px 12px rgba(126, 200, 200, 0.4);
+  box-shadow: 0 8rpx 24rpx rgba(126, 200, 200, 0.4);
 }
 
 .option-icon-wrap.pink {
   background: linear-gradient(135deg, #ffb6b9 0%, #f0909a 100%);
-  box-shadow: 0 4px 12px rgba(255, 182, 185, 0.4);
+  box-shadow: 0 8rpx 24rpx rgba(255, 182, 185, 0.4);
 }
 
 .option-content {
   flex: 1;
   display: flex;
   flex-direction: column;
-  gap: 5px;
+  gap: 10rpx;
 }
 
 .option-title {
-  font-size: 16px;
+  font-size: 32rpx;
   font-weight: 700;
   color: #3d3d3d;
 }
 
 .option-desc {
-  font-size: 12px;
+  font-size: 24rpx;
   color: #b0a8a0;
   line-height: 1.5;
 }
@@ -265,17 +265,17 @@ function handleCreateBlankCanvas() {
 }
 
 .upload-section {
-  padding: 0 16px 12px;
+  padding: 0 32rpx 24rpx;
   flex-shrink: 0;
 }
 
 .params-scroll {
   flex: 1;
-  margin: 0 4px;
+  margin: 0 8rpx;
 }
 
 .bottom-action {
-  padding: 12px 16px calc(20px + env(safe-area-inset-bottom, 0px));
+  padding: 24rpx 32rpx calc(40rpx + env(safe-area-inset-bottom, 0px));
   flex-shrink: 0;
   background: linear-gradient(180deg, rgba(253, 249, 245, 0) 0%, rgba(253, 249, 245, 0.95) 30%, #fdf9f5 100%);
 }
@@ -284,17 +284,17 @@ function handleCreateBlankCanvas() {
   display: flex;
   align-items: center;
   justify-content: center;
-  gap: 8px;
-  height: 54px;
-  border-radius: 27px;
+  gap: 16rpx;
+  height: 108rpx;
+  border-radius: 54rpx;
   background: linear-gradient(135deg, #7ec8c8 0%, #5ab0b0 100%);
-  box-shadow: 0 6px 24px rgba(126, 200, 200, 0.40);
+  box-shadow: 0 12rpx 48rpx rgba(126, 200, 200, 0.40);
   transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
 .generate-btn:active {
   transform: scale(0.97);
-  box-shadow: 0 3px 14px rgba(126, 200, 200, 0.30);
+  box-shadow: 0 6rpx 28rpx rgba(126, 200, 200, 0.30);
 }
 
 .generate-btn.disabled {
@@ -307,10 +307,10 @@ function handleCreateBlankCanvas() {
 }
 
 .btn-text {
-  font-size: 17px;
+  font-size: 34rpx;
   color: #ffffff;
   font-weight: 700;
-  letter-spacing: 1.5px;
-  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.08);
+  letter-spacing: 3rpx;
+  text-shadow: 0 2rpx 4rpx rgba(0, 0, 0, 0.08);
 }
 </style>

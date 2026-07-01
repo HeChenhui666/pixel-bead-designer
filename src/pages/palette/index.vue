@@ -1,5 +1,5 @@
 <template>
-  <view class="page-palette" :style="{ height: `calc(100vh - 80px - ${safeBottom}px)` }">
+  <view class="page-palette" :style="{ height: `calc(100vh - 160rpx - ${safeBottom}px)` }">
     <!-- 顶部安全区域占位 -->
     <view class="safe-top-placeholder" :style="{ height: safeTop + 'px' }" />
 
@@ -114,7 +114,7 @@ const searchKeyword = ref('')
 const selectedColor = ref<{ hex: string; code: string } | null>(null)
 
 onShow(() => {
-  projectStore.currentTab = 1
+  projectStore.currentTab = 2
   selectedBrand.value = projectStore.paletteId
 })
 
@@ -152,7 +152,7 @@ function onColorCellTap(item: { hex: string; code: string }) {
   top: 0;
   z-index: 10;
   background: linear-gradient(180deg, #fdf9f5 0%, #faf5f0 100%);
-  padding-bottom: 10px;
+  padding-bottom: 20rpx;
 }
 
 .page-palette {
@@ -165,17 +165,17 @@ function onColorCellTap(item: { hex: string; code: string }) {
 
 /* 标题行 */
 .header {
-  padding: 18px 18px 12px;
+  padding: 36rpx 36rpx 24rpx;
   display: flex;
   align-items: baseline;
-  gap: 10px;
+  gap: 20rpx;
 }
 
 .header-title {
-  font-size: 26px;
+  font-size: 52rpx;
   font-weight: 800;
   color: #3d3d3d;
-  letter-spacing: -0.5px;
+  letter-spacing: -1rpx;
 }
 
 .meta-badge {
@@ -184,21 +184,21 @@ function onColorCellTap(item: { hex: string; code: string }) {
 }
 
 .meta-count {
-  font-size: 15px;
+  font-size: 30rpx;
   font-weight: 700;
   color: #7ec8c8;
 }
 
 .meta-label {
-  font-size: 12px;
+  font-size: 24rpx;
   color: #b0a8a0;
 }
 
 /* 品牌 Tab */
 .brand-tabs {
   display: flex;
-  padding: 0 16px 10px;
-  gap: 8px;
+  padding: 0 32rpx 20rpx;
+  gap: 16rpx;
   overflow-x: auto;
   flex-shrink: 0;
   scrollbar-width: none;
@@ -208,16 +208,16 @@ function onColorCellTap(item: { hex: string; code: string }) {
 
 .brand-tab {
   position: relative;
-  padding: 9px 18px;
-  border-radius: 22px;
+  padding: 18rpx 36rpx;
+  border-radius: 44rpx;
   background-color: #ffffff;
   flex-shrink: 0;
   transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
-  border: 1.5px solid #ede9e3;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
+  border: 3rpx solid #ede9e3;
+  box-shadow: 0 4rpx 16rpx rgba(0, 0, 0, 0.04);
   display: flex;
   align-items: center;
-  gap: 6px;
+  gap: 12rpx;
 }
 
 .brand-tab:active { transform: scale(0.95); }
@@ -225,11 +225,11 @@ function onColorCellTap(item: { hex: string; code: string }) {
 .brand-tab.active {
   background: linear-gradient(135deg, #7ec8c8 0%, #5ab0b0 100%);
   border-color: #7ec8c8;
-  box-shadow: 0 4px 14px rgba(126, 200, 200, 0.35);
+  box-shadow: 0 8rpx 28rpx rgba(126, 200, 200, 0.35);
 }
 
 .brand-tab-text {
-  font-size: 13px;
+  font-size: 26rpx;
   color: #6b6b6b;
   font-weight: 500;
   transition: all 0.25s ease;
@@ -241,8 +241,8 @@ function onColorCellTap(item: { hex: string; code: string }) {
 }
 
 .current-dot {
-  width: 5px;
-  height: 5px;
+  width: 10rpx;
+  height: 10rpx;
   border-radius: 50%;
   background: rgba(255, 255, 255, 0.8);
 }
@@ -251,20 +251,20 @@ function onColorCellTap(item: { hex: string; code: string }) {
 .search-card {
   display: flex;
   align-items: center;
-  padding: 11px 16px;
-  gap: 10px;
+  padding: 22rpx 32rpx;
+  gap: 20rpx;
   flex-shrink: 0;
   background-color: #ffffff;
-  border-radius: 18px;
-  margin: 0 16px 10px;
-  box-shadow: 0 2px 12px rgba(0, 0, 0, 0.05), 0 0 0 1px rgba(0, 0, 0, 0.03);
+  border-radius: 36rpx;
+  margin: 0 32rpx 20rpx;
+  box-shadow: 0 4rpx 24rpx rgba(0, 0, 0, 0.05), 0 0 0 2rpx rgba(0, 0, 0, 0.03);
 }
 
 .search-input {
   flex: 1;
-  font-size: 14px;
+  font-size: 28rpx;
   color: #4a4a4a;
-  height: 32px;
+  height: 64rpx;
   background-color: transparent;
   border: none;
   outline: none;
@@ -273,8 +273,8 @@ function onColorCellTap(item: { hex: string; code: string }) {
 .search-placeholder { color: #c0c4cc; }
 
 .search-clear {
-  width: 22px;
-  height: 22px;
+  width: 44rpx;
+  height: 44rpx;
   border-radius: 50%;
   background-color: #f0ebe5;
   display: flex;
@@ -294,56 +294,56 @@ function onColorCellTap(item: { hex: string; code: string }) {
 .color-grid {
   display: flex;
   flex-wrap: wrap;
-  padding: 10px 14px 32px;
-  gap: 10px;
+  padding: 20rpx 28rpx 64rpx;
+  gap: 20rpx;
 }
 
 .color-cell {
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 6px;
-  flex: 0 0 calc(16.666% - 8.333px);
+  gap: 12rpx;
+  flex: 0 0 calc(16.666% - 16.666rpx);
   transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
 .color-cell:active { transform: scale(0.9); }
 
 .cell-swatch {
-  width: 50px;
-  height: 50px;
-  border-radius: 16px;
-  border: 2px solid rgba(0, 0, 0, 0.04);
+  width: 100rpx;
+  height: 100rpx;
+  border-radius: 32rpx;
+  border: 4rpx solid rgba(0, 0, 0, 0.04);
   position: relative;
   display: flex;
   align-items: flex-end;
   justify-content: center;
-  padding: 4px;
+  padding: 8rpx;
   transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
-  box-shadow: 0 3px 10px rgba(0, 0, 0, 0.08);
+  box-shadow: 0 6rpx 20rpx rgba(0, 0, 0, 0.08);
 }
 
 .color-cell.in-use .cell-swatch {
   border-color: #7ec8c8;
-  border-width: 2.5px;
-  box-shadow: 0 4px 14px rgba(126, 200, 200, 0.3);
+  border-width: 5rpx;
+  box-shadow: 0 8rpx 28rpx rgba(126, 200, 200, 0.3);
 }
 
 .cell-usage-badge {
   background-color: rgba(126, 200, 200, 0.92);
-  padding: 2px 5px;
-  border-radius: 8px;
+  padding: 4rpx 10rpx;
+  border-radius: 16rpx;
 }
 
 .cell-usage-text {
-  font-size: 7px;
+  font-size: 14rpx;
   color: #ffffff;
   line-height: 1;
   font-weight: 700;
 }
 
 .cell-code {
-  font-size: 10px;
+  font-size: 20rpx;
   color: #9ca3af;
   text-align: center;
   line-height: 1.2;
@@ -375,10 +375,10 @@ function onColorCellTap(item: { hex: string; code: string }) {
 .detail-dialog {
   width: 100%;
   background-color: #ffffff;
-  border-radius: 28px 28px 0 0;
-  padding: 0 0 calc(28px + 80px + env(safe-area-inset-bottom, 0px));
+  border-radius: 56rpx 56rpx 0 0;
+  padding: 0 0 calc(56rpx + 160rpx + env(safe-area-inset-bottom, 0px));
   position: relative;
-  box-shadow: 0 -8px 32px rgba(0, 0, 0, 0.1);
+  box-shadow: 0 -16rpx 64rpx rgba(0, 0, 0, 0.1);
   animation: slideUp 0.32s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
@@ -388,30 +388,30 @@ function onColorCellTap(item: { hex: string; code: string }) {
 }
 
 .drag-handle {
-  width: 36px;
-  height: 4px;
-  border-radius: 2px;
+  width: 72rpx;
+  height: 8rpx;
+  border-radius: 4rpx;
   background: #ede9e3;
-  margin: 12px auto 4px;
+  margin: 24rpx auto 8rpx;
 }
 
 .detail-header {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: 12px 20px 14px;
-  border-bottom: 1px solid #f5f0ea;
+  padding: 24rpx 40rpx 28rpx;
+  border-bottom: 2rpx solid #f5f0ea;
 }
 
 .detail-title {
-  font-size: 17px;
+  font-size: 34rpx;
   font-weight: 700;
   color: #4a4a4a;
 }
 
 .detail-close {
-  width: 32px;
-  height: 32px;
+  width: 64rpx;
+  height: 64rpx;
   border-radius: 50%;
   background-color: #f5f2ef;
   display: flex;
@@ -426,37 +426,37 @@ function onColorCellTap(item: { hex: string; code: string }) {
 }
 
 .detail-content {
-  padding: 20px;
+  padding: 40rpx;
   display: flex;
   align-items: center;
-  gap: 18px;
+  gap: 36rpx;
 }
 
 .detail-swatch {
-  width: 76px;
-  height: 76px;
-  border-radius: 22px;
-  border: 2px solid rgba(0, 0, 0, 0.06);
+  width: 152rpx;
+  height: 152rpx;
+  border-radius: 44rpx;
+  border: 4rpx solid rgba(0, 0, 0, 0.06);
   flex-shrink: 0;
-  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.1);
+  box-shadow: 0 12rpx 40rpx rgba(0, 0, 0, 0.1);
 }
 
 .detail-info {
   flex: 1;
   display: flex;
   flex-direction: column;
-  gap: 8px;
+  gap: 16rpx;
 }
 
 .detail-code {
-  font-size: 24px;
+  font-size: 48rpx;
   font-weight: 800;
   color: #3d3d3d;
-  letter-spacing: 0.5px;
+  letter-spacing: 1rpx;
 }
 
 .detail-hex {
-  font-size: 13px;
+  font-size: 26rpx;
   color: #b0a8a0;
   font-family: monospace;
 }
@@ -464,23 +464,23 @@ function onColorCellTap(item: { hex: string; code: string }) {
 .detail-usage-card {
   display: flex;
   align-items: center;
-  gap: 8px;
+  gap: 16rpx;
   background: rgba(126, 200, 200, 0.1);
-  padding: 10px 14px;
-  border-radius: 14px;
-  border: 1px solid rgba(126, 200, 200, 0.2);
+  padding: 20rpx 28rpx;
+  border-radius: 28rpx;
+  border: 2rpx solid rgba(126, 200, 200, 0.2);
 }
 
-.detail-usage-icon, .detail-not-used-icon { font-size: 15px; }
+.detail-usage-icon, .detail-not-used-icon { font-size: 30rpx; }
 
 .detail-usage-text {
-  font-size: 13px;
+  font-size: 26rpx;
   color: #5a5a5a;
   line-height: 1.4;
 }
 
 .detail-usage-count {
-  font-size: 15px;
+  font-size: 30rpx;
   font-weight: 700;
   color: #7ec8c8;
 }
@@ -488,15 +488,15 @@ function onColorCellTap(item: { hex: string; code: string }) {
 .detail-not-used-card {
   display: flex;
   align-items: center;
-  gap: 8px;
+  gap: 16rpx;
   background-color: #f8f6f4;
-  padding: 10px 14px;
-  border-radius: 14px;
-  border: 1px solid #ede9e3;
+  padding: 20rpx 28rpx;
+  border-radius: 28rpx;
+  border: 2rpx solid #ede9e3;
 }
 
 .detail-not-used-text {
-  font-size: 13px;
+  font-size: 26rpx;
   color: #b0a8a0;
   line-height: 1.4;
 }

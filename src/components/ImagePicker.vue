@@ -185,14 +185,14 @@ function onH5FileChange(event: Event) {
 .preview-container {
   position: relative;
   width: 100%;
-  border-radius: 20px;
+  border-radius: 40rpx;
   overflow: hidden;
   background-color: #f5f5f5;
 }
 
 .preview-image {
   width: 100%;
-  height: 220px;
+  height: 440rpx;
 }
 
 .change-hint {
@@ -200,16 +200,16 @@ function onH5FileChange(event: Event) {
   bottom: 0;
   left: 0;
   right: 0;
-  padding: 10px 14px;
+  padding: 20rpx 28rpx;
   display: flex;
   align-items: center;
   justify-content: center;
-  gap: 6px;
+  gap: 12rpx;
   background: linear-gradient(180deg, transparent 0%, rgba(0, 0, 0, 0.45) 100%);
 }
 
 .change-hint-text {
-  font-size: 13px;
+  font-size: 26rpx;
   color: #ffffff;
   font-weight: 500;
 }
@@ -220,50 +220,50 @@ function onH5FileChange(event: Event) {
   align-items: center;
   justify-content: center;
   width: 100%;
-  height: 220px;
-  border-radius: 20px;
+  height: 440rpx;
+  border-radius: 40rpx;
   background: linear-gradient(135deg, rgba(126, 200, 200, 0.08) 0%, rgba(168, 216, 216, 0.05) 100%);
-  border: 1.5px dashed rgba(126, 200, 200, 0.4);
+  border: 3rpx dashed rgba(126, 200, 200, 0.4);
   gap: 0;
 }
 
 .empty-icon-wrap {
-  width: 72px;
-  height: 72px;
-  border-radius: 22px;
+  width: 144rpx;
+  height: 144rpx;
+  border-radius: 44rpx;
   background: rgba(126, 200, 200, 0.12);
   display: flex;
   align-items: center;
   justify-content: center;
-  margin-bottom: 14px;
+  margin-bottom: 28rpx;
 }
 
 .empty-text {
-  font-size: 16px;
+  font-size: 32rpx;
   color: #5a8888;
   font-weight: 600;
-  margin-bottom: 6px;
+  margin-bottom: 12rpx;
 }
 
 .empty-sub {
-  font-size: 12px;
+  font-size: 24rpx;
   color: #b0c8c8;
   font-weight: 400;
 }
 
 .image-size-hint {
-  margin-top: 10px;
-  padding: 7px 14px;
+  margin-top: 20rpx;
+  padding: 14rpx 28rpx;
   background-color: rgba(126, 200, 200, 0.08);
-  border-radius: 10px;
+  border-radius: 20rpx;
   display: flex;
   align-items: center;
   justify-content: center;
-  gap: 6px;
+  gap: 12rpx;
 }
 
 .size-text {
-  font-size: 12px;
+  font-size: 24rpx;
   color: #5a9e9e;
   font-weight: 500;
 }

@@ -1,6 +1,6 @@
 <template>
   <view class="page-wrapper">
-    <view class="page-history" :style="{ paddingTop: safeTop + 'px', paddingBottom: `calc(80px + ${safeBottom}px)` }">
+    <view class="page-history" :style="{ paddingTop: safeTop + 'px', paddingBottom: `calc(160rpx + ${safeBottom}px)` }">
       <view class="header">
         <text class="header-title">草稿箱</text>
         <text class="header-sub">{{ historyList.length > 0 ? `${historyList.length} 个草稿` : '暂无草稿' }}</text>
@@ -33,7 +33,7 @@
               :canvas-id="'thumb_' + item.id"
               :id="'thumb_' + item.id"
               class="thumb-canvas"
-              style="width: 60px; height: 60px;"
+              style="width: 120rpx; height: 120rpx;"
             />
           </view>
 
@@ -88,7 +88,7 @@ const historyList = ref<HistoryItem[]>([])
 onMounted(() => { refreshList() })
 
 onShow(() => {
-  projectStore.currentTab = 2
+  projectStore.currentTab = 1
   refreshList()
 })
 
@@ -183,87 +183,87 @@ function goToUpload() {
 }
 
 .header {
-  padding: 22px 22px 16px;
-  border-bottom: 1px solid #ede9e3;
+  padding: 44rpx 44rpx 32rpx;
+  border-bottom: 2rpx solid #ede9e3;
   display: flex;
   align-items: baseline;
-  gap: 10px;
+  gap: 20rpx;
 }
 
 .header-title {
-  font-size: 26px;
+  font-size: 52rpx;
   font-weight: 800;
   color: #3d3d3d;
-  letter-spacing: -0.5px;
+  letter-spacing: -1rpx;
 }
 
 .header-sub {
-  font-size: 13px;
+  font-size: 26rpx;
   color: #b0a8a0;
   font-weight: 500;
 }
 
 .history-list {
   flex: 1;
-  padding: 14px 16px;
+  padding: 28rpx 32rpx;
 }
 
 .history-item {
   display: flex;
   align-items: center;
   background-color: #ffffff;
-  border-radius: 20px;
-  padding: 14px;
-  margin-bottom: 10px;
-  box-shadow: 0 2px 12px rgba(0, 0, 0, 0.05), 0 0 0 1px rgba(0, 0, 0, 0.03);
+  border-radius: 40rpx;
+  padding: 28rpx;
+  margin-bottom: 20rpx;
+  box-shadow: 0 4rpx 24rpx rgba(0, 0, 0, 0.05), 0 0 0 2rpx rgba(0, 0, 0, 0.03);
   transition: all 0.22s ease;
 }
 
 .history-item:active {
   transform: scale(0.98);
-  box-shadow: 0 1px 6px rgba(0, 0, 0, 0.04);
+  box-shadow: 0 2rpx 12rpx rgba(0, 0, 0, 0.04);
 }
 
 .thumb-wrapper {
-  width: 62px;
-  height: 62px;
-  border-radius: 14px;
+  width: 124rpx;
+  height: 124rpx;
+  border-radius: 28rpx;
   overflow: hidden;
   background-color: #f5f2ef;
   flex-shrink: 0;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
+  box-shadow: 0 4rpx 16rpx rgba(0, 0, 0, 0.06);
 }
 
 .thumb-canvas {
-  width: 62px;
-  height: 62px;
+  width: 124rpx;
+  height: 124rpx;
 }
 
 .item-info {
   flex: 1;
-  margin-left: 14px;
+  margin-left: 28rpx;
   display: flex;
   flex-direction: column;
   justify-content: center;
-  gap: 8px;
+  gap: 16rpx;
 }
 
 .item-title {
-  font-size: 15px;
+  font-size: 30rpx;
   font-weight: 600;
   color: #3d3d3d;
 }
 
 .item-tags {
   display: flex;
-  gap: 6px;
+  gap: 12rpx;
 }
 
 .item-tag {
-  padding: 3px 10px;
-  border-radius: 10px;
+  padding: 6rpx 20rpx;
+  border-radius: 20rpx;
   background: rgba(126, 200, 200, 0.1);
-  border: 1px solid rgba(126, 200, 200, 0.2);
+  border: 2rpx solid rgba(126, 200, 200, 0.2);
 }
 
 .item-tag.brand {
@@ -272,7 +272,7 @@ function goToUpload() {
 }
 
 .item-tag-text {
-  font-size: 11px;
+  font-size: 22rpx;
   color: #7ea8a8;
   font-weight: 600;
 }
@@ -282,15 +282,15 @@ function goToUpload() {
 }
 
 .delete-btn {
-  width: 36px;
-  height: 36px;
+  width: 72rpx;
+  height: 72rpx;
   display: flex;
   align-items: center;
   justify-content: center;
-  border-radius: 12px;
+  border-radius: 24rpx;
   background-color: rgba(255, 182, 185, 0.1);
   flex-shrink: 0;
-  margin-left: 10px;
+  margin-left: 20rpx;
   transition: all 0.22s ease;
 }
 
@@ -306,32 +306,32 @@ function goToUpload() {
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  padding: 32px;
+  padding: 64rpx;
   gap: 0;
 }
 
 .empty-icon-wrap {
-  width: 88px;
-  height: 88px;
-  border-radius: 28px;
+  width: 176rpx;
+  height: 176rpx;
+  border-radius: 56rpx;
   background: rgba(126, 200, 200, 0.1);
   display: flex;
   align-items: center;
   justify-content: center;
-  margin-bottom: 20px;
+  margin-bottom: 40rpx;
 }
 
 .empty-text {
-  font-size: 18px;
+  font-size: 36rpx;
   color: #4a4a4a;
-  margin-bottom: 8px;
+  margin-bottom: 16rpx;
   font-weight: 700;
 }
 
 .empty-sub {
-  font-size: 13px;
+  font-size: 26rpx;
   color: #b0a8a0;
-  margin-bottom: 32px;
+  margin-bottom: 64rpx;
   text-align: center;
   line-height: 1.6;
 }
@@ -339,18 +339,18 @@ function goToUpload() {
 .empty-btn {
   display: flex;
   align-items: center;
-  gap: 8px;
-  padding: 14px 36px;
-  border-radius: 26px;
+  gap: 16rpx;
+  padding: 28rpx 72rpx;
+  border-radius: 52rpx;
   background: linear-gradient(135deg, #7ec8c8 0%, #5ab0b0 100%);
-  box-shadow: 0 6px 20px rgba(126, 200, 200, 0.35);
+  box-shadow: 0 12rpx 40rpx rgba(126, 200, 200, 0.35);
   transition: all 0.22s ease;
 }
 
 .empty-btn:active { transform: scale(0.96); }
 
 .empty-btn-text {
-  font-size: 16px;
+  font-size: 32rpx;
   color: #ffffff;
   font-weight: 600;
 }

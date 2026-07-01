@@ -101,13 +101,13 @@ function onSelect(hex: string) {
 <style scoped>
 .resizable-color-picker {
   position: fixed;
-  bottom: calc(56px + var(--safe-bottom, 0px));
+  bottom: calc(112rpx + var(--safe-bottom, 0));
   left: 0;
   right: 0;
   background-color: #fefcfb;
-  border-top: 1px solid #f0ebe6;
-  border-radius: 20px 20px 0 0;
-  box-shadow: 0 -4px 20px rgba(126, 200, 200, 0.1);
+  border-top: 2rpx solid #f0ebe6;
+  border-radius: 40rpx 40rpx 0 0;
+  box-shadow: 0 -8rpx 40rpx rgba(126, 200, 200, 0.1);
   z-index: 40;
   display: flex;
   flex-direction: column;
@@ -117,14 +117,14 @@ function onSelect(hex: string) {
 .picker-header {
   display: flex;
   align-items: center;
-  padding: 10px 16px;
-  border-bottom: 1px solid #f5f2ef;
+  padding: 20rpx 32rpx;
+  border-bottom: 2rpx solid #f5f2ef;
   flex-shrink: 0;
   position: relative;
 }
 
 .cell-coords {
-  font-size: 13px;
+  font-size: 26rpx;
   color: #7ec8c8;
   font-weight: 600;
   flex-shrink: 0;
@@ -137,28 +137,28 @@ function onSelect(hex: string) {
   display: flex;
   align-items: center;
   justify-content: center;
-  padding: 8px 16px;
+  padding: 16rpx 32rpx;
   cursor: grab;
 }
 
 .drag-indicator {
-  width: 36px;
-  height: 4px;
-  border-radius: 2px;
+  width: 72rpx;
+  height: 8rpx;
+  border-radius: 4rpx;
   background-color: #e8e4e0;
 }
 
 .clear-selection-btn {
   margin-left: auto;
-  padding: 5px 14px;
-  border-radius: 16px;
+  padding: 10rpx 28rpx;
+  border-radius: 32rpx;
   background-color: #f8f6f4;
   flex-shrink: 0;
   transition: all 0.25s ease;
 }
 
 .clear-text {
-  font-size: 12px;
+  font-size: 24rpx;
   color: #9ca3af;
   font-weight: 500;
 }
@@ -171,45 +171,45 @@ function onSelect(hex: string) {
 .picker-grid {
   display: flex;
   flex-wrap: wrap;
-  gap: 8px;
-  padding: 12px 14px;
+  gap: 16rpx;
+  padding: 24rpx 28rpx;
 }
 
 .picker-swatch {
-  width: 38px;
-  height: 38px;
-  border-radius: 10px;
+  width: 76rpx;
+  height: 76rpx;
+  border-radius: 20rpx;
   display: flex;
   align-items: center;
   justify-content: center;
-  border: 2px solid transparent;
+  border: 4rpx solid transparent;
   position: relative;
   transition: all 0.25s ease;
 }
 
 .picker-swatch.active {
   border-color: #7ec8c8;
-  box-shadow: 0 0 0 3px rgba(126, 200, 200, 0.2);
+  box-shadow: 0 0 0 6rpx rgba(126, 200, 200, 0.2);
 }
 
 .swatch-code {
-  font-size: 8px;
+  font-size: 16rpx;
   color: #ffffff;
-  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.5);
+  text-shadow: 0 2rpx 4rpx rgba(0, 0, 0, 0.5);
   line-height: 1;
   pointer-events: none;
 }
 
 .swatch-check {
   position: absolute;
-  top: -5px;
-  right: -5px;
-  font-size: 9px;
+  top: -10rpx;
+  right: -10rpx;
+  font-size: 18rpx;
   color: #ffffff;
   background-color: #7ec8c8;
   border-radius: 50%;
-  width: 15px;
-  height: 15px;
+  width: 30rpx;
+  height: 30rpx;
   display: flex;
   align-items: center;
   justify-content: center;

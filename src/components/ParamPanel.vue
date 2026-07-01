@@ -380,31 +380,31 @@ function resetEdgeAwareConfig() { configStore.edgeAwareConfig = { ...DEFAULT_EDG
 
 <style scoped>
 .param-panel {
-  padding: 4px 16px 24px;
+  padding: 8rpx 32rpx 48rpx;
   display: flex;
   flex-direction: column;
-  gap: 12px;
+  gap: 24rpx;
 }
 
 /* 白色卡片 */
 .card {
   background: #ffffff;
-  border-radius: 18px;
-  padding: 16px;
-  box-shadow: 0 2px 12px rgba(0, 0, 0, 0.05), 0 0 0 1px rgba(0, 0, 0, 0.03);
+  border-radius: 36rpx;
+  padding: 32rpx;
+  box-shadow: 0 4rpx 24rpx rgba(0, 0, 0, 0.05), 0 0 0 2rpx rgba(0, 0, 0, 0.03);
 }
 
 .card-header {
   display: flex;
   align-items: center;
-  gap: 8px;
-  margin-bottom: 14px;
+  gap: 16rpx;
+  margin-bottom: 28rpx;
 }
 
 .card-dot {
-  width: 6px;
-  height: 6px;
-  border-radius: 3px;
+  width: 12rpx;
+  height: 12rpx;
+  border-radius: 6rpx;
   background: #7ec8c8;
   flex-shrink: 0;
 }
@@ -418,22 +418,22 @@ function resetEdgeAwareConfig() { configStore.edgeAwareConfig = { ...DEFAULT_EDG
 }
 
 .card-title {
-  font-size: 13px;
+  font-size: 26rpx;
   color: #6b6b6b;
   font-weight: 600;
-  letter-spacing: 0.3px;
+  letter-spacing: 0.6rpx;
   flex: 1;
 }
 
 /* 预设按钮 */
 .preset-row {
   display: flex;
-  gap: 10px;
+  gap: 20rpx;
   flex-wrap: wrap;
 }
 
 .custom-preset-row {
-  margin-top: 10px;
+  margin-top: 20rpx;
 }
 
 .preset-btn {
@@ -441,11 +441,11 @@ function resetEdgeAwareConfig() { configStore.edgeAwareConfig = { ...DEFAULT_EDG
   display: flex;
   flex-direction: column;
   align-items: center;
-  padding: 10px 6px;
-  border-radius: 12px;
+  padding: 20rpx 12rpx;
+  border-radius: 24rpx;
   background-color: #f7f5f3;
   transition: all 0.22s ease;
-  border: 1.5px solid #ede9e4;
+  border: 3rpx solid #ede9e4;
 }
 
 .preset-btn:active {
@@ -457,7 +457,7 @@ function resetEdgeAwareConfig() { configStore.edgeAwareConfig = { ...DEFAULT_EDG
   flex-direction: row;
   justify-content: space-between;
   align-items: center;
-  padding: 10px 14px;
+  padding: 20rpx 28rpx;
 }
 
 .preset-btn.active {
@@ -472,42 +472,42 @@ function resetEdgeAwareConfig() { configStore.edgeAwareConfig = { ...DEFAULT_EDG
 }
 
 .preset-label {
-  font-size: 13px;
+  font-size: 26rpx;
   color: #5a5a5a;
   font-weight: 500;
 }
 
 .preset-size {
-  font-size: 10px;
+  font-size: 20rpx;
   color: #9ca3af;
-  margin-top: 3px;
+  margin-top: 6rpx;
 }
 
 .custom-input-inline {
   display: flex;
   align-items: center;
-  gap: 8px;
+  gap: 16rpx;
 }
 
 .input-group {
   display: flex;
   align-items: center;
-  gap: 6px;
+  gap: 12rpx;
 }
 
 .input-label {
-  font-size: 13px;
+  font-size: 26rpx;
   color: #9ca3af;
   font-weight: 500;
 }
 
 .size-input {
-  width: 60px;
-  height: 36px;
-  border: 1.5px solid #ede9e4;
-  border-radius: 10px;
+  width: 120rpx;
+  height: 72rpx;
+  border: 3rpx solid #ede9e4;
+  border-radius: 20rpx;
   text-align: center;
-  font-size: 14px;
+  font-size: 28rpx;
   color: #4a4a4a;
   background-color: #fefcfb;
   transition: all 0.22s ease;
@@ -515,32 +515,32 @@ function resetEdgeAwareConfig() { configStore.edgeAwareConfig = { ...DEFAULT_EDG
 
 .size-input:focus {
   border-color: #7ec8c8;
-  box-shadow: 0 0 0 3px rgba(126, 200, 200, 0.15);
+  box-shadow: 0 0 0 6rpx rgba(126, 200, 200, 0.15);
 }
 
 .input-separator {
-  font-size: 16px;
+  font-size: 32rpx;
   color: #d1cdc8;
 }
 
 /* 模式按钮 */
 .mode-row {
   display: flex;
-  gap: 8px;
+  gap: 16rpx;
   flex-wrap: wrap;
 }
 
 .mode-btn {
   flex: 1;
-  padding: 10px 8px;
+  padding: 20rpx 16rpx;
   text-align: center;
-  border-radius: 12px;
+  border-radius: 24rpx;
   background-color: #f7f5f3;
-  font-size: 12px;
+  font-size: 24rpx;
   color: #6b6b6b;
   font-weight: 500;
   transition: all 0.22s ease;
-  border: 1.5px solid #ede9e4;
+  border: 3rpx solid #ede9e4;
 }
 
 .mode-btn:active {
@@ -557,19 +557,19 @@ function resetEdgeAwareConfig() { configStore.edgeAwareConfig = { ...DEFAULT_EDG
 /* 品牌标签 */
 .brand-row {
   display: flex;
-  gap: 8px;
+  gap: 16rpx;
   flex-wrap: wrap;
 }
 
 .brand-tag {
-  padding: 8px 16px;
-  border-radius: 20px;
+  padding: 16rpx 32rpx;
+  border-radius: 40rpx;
   background-color: #f7f5f3;
-  font-size: 13px;
+  font-size: 26rpx;
   color: #6b6b6b;
   font-weight: 500;
   transition: all 0.22s ease;
-  border: 1.5px solid #ede9e4;
+  border: 3rpx solid #ede9e4;
 }
 
 .brand-tag:active {
@@ -586,34 +586,34 @@ function resetEdgeAwareConfig() { configStore.edgeAwareConfig = { ...DEFAULT_EDG
 /* 色系 */
 .series-toggle-all {
   margin-left: auto;
-  padding: 3px 12px;
-  border-radius: 16px;
+  padding: 6rpx 24rpx;
+  border-radius: 32rpx;
   background: rgba(126, 200, 200, 0.12);
-  border: 1px solid rgba(126, 200, 200, 0.3);
+  border: 2rpx solid rgba(126, 200, 200, 0.3);
   transition: all 0.22s ease;
 }
 
 .series-toggle-text {
-  font-size: 11px;
+  font-size: 22rpx;
   color: #6bb3b3;
   font-weight: 600;
 }
 
 .series-row {
   display: flex;
-  gap: 8px;
+  gap: 16rpx;
   flex-wrap: wrap;
 }
 
 .series-tag {
-  padding: 6px 14px;
-  border-radius: 20px;
+  padding: 12rpx 28rpx;
+  border-radius: 40rpx;
   background-color: #f7f5f3;
-  font-size: 12px;
+  font-size: 24rpx;
   color: #6b6b6b;
   font-weight: 500;
   transition: all 0.22s ease;
-  border: 1.5px solid #ede9e4;
+  border: 3rpx solid #ede9e4;
 }
 
 .series-tag:active {
@@ -631,31 +631,31 @@ function resetEdgeAwareConfig() { configStore.edgeAwareConfig = { ...DEFAULT_EDG
 .param-row {
   display: flex;
   align-items: center;
-  gap: 12px;
-  margin-bottom: 12px;
+  gap: 24rpx;
+  margin-bottom: 24rpx;
 }
 
 .param-label {
-  font-size: 13px;
+  font-size: 26rpx;
   color: #5a5a5a;
   font-weight: 500;
-  min-width: 70px;
+  min-width: 140rpx;
 }
 
 .slider-group {
   flex: 1;
   display: flex;
   align-items: center;
-  gap: 8px;
+  gap: 16rpx;
 }
 
 .param-input {
-  width: 72px;
-  height: 38px;
-  border: 1.5px solid #ede9e4;
-  border-radius: 10px;
+  width: 144rpx;
+  height: 76rpx;
+  border: 3rpx solid #ede9e4;
+  border-radius: 20rpx;
   text-align: center;
-  font-size: 14px;
+  font-size: 28rpx;
   color: #4a4a4a;
   background-color: #fafaf9;
   transition: all 0.22s ease;
@@ -663,27 +663,27 @@ function resetEdgeAwareConfig() { configStore.edgeAwareConfig = { ...DEFAULT_EDG
 
 .param-input:focus {
   border-color: #7ec8c8;
-  box-shadow: 0 0 0 3px rgba(126, 200, 200, 0.15);
+  box-shadow: 0 0 0 6rpx rgba(126, 200, 200, 0.15);
 }
 
 .param-unit {
-  font-size: 13px;
+  font-size: 26rpx;
   color: #9ca3af;
   font-weight: 500;
 }
 
 .hints {
   background: rgba(126, 200, 200, 0.06);
-  border-radius: 10px;
-  padding: 10px 12px;
-  margin-bottom: 12px;
+  border-radius: 20rpx;
+  padding: 20rpx 24rpx;
+  margin-bottom: 24rpx;
   display: flex;
   flex-direction: column;
-  gap: 4px;
+  gap: 8rpx;
 }
 
 .param-hint {
-  font-size: 11px;
+  font-size: 22rpx;
   color: #9ca3af;
   line-height: 1.5;
 }
@@ -694,10 +694,10 @@ function resetEdgeAwareConfig() { configStore.edgeAwareConfig = { ...DEFAULT_EDG
 }
 
 .reset-btn {
-  padding: 7px 22px;
-  border-radius: 16px;
+  padding: 14rpx 44rpx;
+  border-radius: 32rpx;
   background: #f7f5f3;
-  border: 1.5px solid #ede9e4;
+  border: 3rpx solid #ede9e4;
   transition: all 0.22s ease;
 }
 
@@ -707,7 +707,7 @@ function resetEdgeAwareConfig() { configStore.edgeAwareConfig = { ...DEFAULT_EDG
 }
 
 .reset-btn-text {
-  font-size: 12px;
+  font-size: 24rpx;
   color: #6bb3b3;
   font-weight: 600;
 }

@@ -434,14 +434,14 @@ function renderSingleCell(x: number, y: number, hex: string) {
 
 .grid-canvas {
   background-color: #fefcfb;
-  border-radius: 12px;
-  box-shadow: 0 4px 20px rgba(126, 200, 200, 0.1);
+  border-radius: 24rpx;
+  box-shadow: 0 8rpx 40rpx rgba(126, 200, 200, 0.1);
 }
 
 .grid-canvas-placeholder {
   background-color: #fefcfb;
-  border-radius: 12px;
-  box-shadow: 0 4px 20px rgba(126, 200, 200, 0.1);
+  border-radius: 24rpx;
+  box-shadow: 0 8rpx 40rpx rgba(126, 200, 200, 0.1);
 }
 
 .compare-overlay {
@@ -449,6 +449,6 @@ function renderSingleCell(x: number, y: number, hex: string) {
   top: 0;
   left: 0;
   opacity: 0.5;
-  border-radius: 12px;
+  border-radius: 24rpx;
 }
 </style>

@@ -75,9 +75,9 @@ const sortedColors = computed(() => {
 }
 
 .summary-count {
-  font-size: 12px;
+  font-size: 24rpx;
   color: #999999;
-  padding: 8px 16px 4px;
+  padding: 16rpx 32rpx 8rpx;
 }
 
 .summary-list {
@@ -87,8 +87,8 @@ const sortedColors = computed(() => {
 .color-row {
   display: flex;
   align-items: center;
-  padding: 10px 16px;
-  gap: 10px;
+  padding: 20rpx 32rpx;
+  gap: 20rpx;
   position: relative;
 }
 
@@ -97,62 +97,62 @@ const sortedColors = computed(() => {
 }
 
 .color-swatch {
-  width: 28px;
-  height: 28px;
-  border-radius: 6px;
+  width: 56rpx;
+  height: 56rpx;
+  border-radius: 12rpx;
   flex-shrink: 0;
-  border: 1px solid rgba(0, 0, 0, 0.08);
+  border: 2rpx solid rgba(0, 0, 0, 0.08);
 }
 
 .color-info {
   display: flex;
   flex-direction: column;
-  min-width: 60px;
+  min-width: 120rpx;
 }
 
 .color-code {
-  font-size: 14px;
+  font-size: 28rpx;
   font-weight: 500;
   color: #1a1a1a;
 }
 
 .color-hex {
-  font-size: 11px;
+  font-size: 22rpx;
   color: #999999;
 }
 
 .color-usage {
   display: flex;
   align-items: baseline;
-  gap: 2px;
+  gap: 4rpx;
   margin-left: auto;
   flex-shrink: 0;
 }
 
 .usage-count {
-  font-size: 16px;
+  font-size: 32rpx;
   font-weight: 600;
   color: #1a1a1a;
 }
 
 .usage-label {
-  font-size: 11px;
+  font-size: 22rpx;
   color: #999999;
 }
 
 .usage-bar-bg {
   position: absolute;
   bottom: 0;
-  left: 16px;
-  right: 16px;
-  height: 2px;
+  left: 32rpx;
+  right: 32rpx;
+  height: 4rpx;
   background-color: #f5f5f5;
-  border-radius: 1px;
+  border-radius: 2rpx;
 }
 
 .usage-bar-fill {
   height: 100%;
-  border-radius: 1px;
+  border-radius: 2rpx;
   opacity: 0.6;
 }
 
@@ -160,8 +160,8 @@ const sortedColors = computed(() => {
   display: flex;
   align-items: center;
   justify-content: center;
-  padding: 40px;
-  font-size: 14px;
+  padding: 80rpx;
+  font-size: 28rpx;
   color: #cccccc;
 }
 </style>

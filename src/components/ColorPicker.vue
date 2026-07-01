@@ -58,13 +58,13 @@ function onSelect(hex: string) {
 <style scoped>
 .color-picker-panel {
   position: fixed;
-  bottom: calc(56px + var(--safe-bottom, 0px));
+  bottom: calc(112rpx + var(--safe-bottom, 0));
   left: 0;
   right: 0;
   height: 40vh;
   background-color: #fefcfb;
-  border-radius: 20px 20px 0 0;
-  box-shadow: 0 -4px 20px rgba(126, 200, 200, 0.12);
+  border-radius: 40rpx 40rpx 0 0;
+  box-shadow: 0 -8rpx 40rpx rgba(126, 200, 200, 0.12);
   z-index: 55;
   display: flex;
   flex-direction: column;
@@ -75,20 +75,20 @@ function onSelect(hex: string) {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: 12px 18px;
-  border-bottom: 1px solid #f5f2ef;
+  padding: 24rpx 36rpx;
+  border-bottom: 2rpx solid #f5f2ef;
   flex-shrink: 0;
 }
 
 .picker-title {
-  font-size: 14px;
+  font-size: 28rpx;
   font-weight: 600;
   color: #4a4a4a;
 }
 
 .picker-close {
-  padding: 5px 12px;
-  border-radius: 14px;
+  padding: 10rpx 24rpx;
+  border-radius: 28rpx;
   background-color: #f8f6f4;
   transition: all 0.25s ease;
 }
@@ -98,7 +98,7 @@ function onSelect(hex: string) {
 }
 
 .picker-close-text {
-  font-size: 12px;
+  font-size: 24rpx;
   color: #9ca3af;
 }
 
@@ -110,45 +110,45 @@ function onSelect(hex: string) {
 .picker-grid {
   display: flex;
   flex-wrap: wrap;
-  gap: 8px;
-  padding: 12px 14px;
+  gap: 16rpx;
+  padding: 24rpx 28rpx;
 }
 
 .picker-swatch {
-  width: 38px;
-  height: 38px;
-  border-radius: 10px;
+  width: 76rpx;
+  height: 76rpx;
+  border-radius: 20rpx;
   display: flex;
   align-items: center;
   justify-content: center;
-  border: 2px solid transparent;
+  border: 4rpx solid transparent;
   transition: all 0.25s ease;
   position: relative;
 }
 
 .picker-swatch.active {
   border-color: #7ec8c8;
-  box-shadow: 0 0 0 3px rgba(126, 200, 200, 0.2);
+  box-shadow: 0 0 0 6rpx rgba(126, 200, 200, 0.2);
 }
 
 .swatch-code {
-  font-size: 8px;
+  font-size: 16rpx;
   color: #ffffff;
-  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.5);
+  text-shadow: 0 2rpx 4rpx rgba(0, 0, 0, 0.5);
   line-height: 1;
   pointer-events: none;
 }
 
 .swatch-check {
   position: absolute;
-  top: -5px;
-  right: -5px;
-  font-size: 9px;
+  top: -10rpx;
+  right: -10rpx;
+  font-size: 18rpx;
   color: #ffffff;
   background-color: #7ec8c8;
   border-radius: 50%;
-  width: 15px;
-  height: 15px;
+  width: 30rpx;
+  height: 30rpx;
   display: flex;
   align-items: center;
   justify-content: center;

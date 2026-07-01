@@ -54,9 +54,9 @@ function switchTab(index: number) {
   left: 0;
   right: 0;
   z-index: 999;
-  padding-left: 14px;
-  padding-right: 14px;
-  padding-top: 8px;
+  padding-left: 28rpx;
+  padding-right: 28rpx;
+  padding-top: 16rpx;
   background: transparent;
   pointer-events: none;
 }
@@ -66,30 +66,30 @@ function switchTab(index: number) {
   display: flex;
   align-items: center;
   background: #ffffff;
-  border-radius: 28px;
-  padding: 6px;
+  border-radius: 56rpx;
+  padding: 12rpx;
   box-shadow:
-    0 8px 32px rgba(126, 200, 200, 0.18),
-    0 2px 12px rgba(0, 0, 0, 0.08),
-    0 0 0 1px rgba(126, 200, 200, 0.10);
+    0 16rpx 64rpx rgba(126, 200, 200, 0.18),
+    0 4rpx 24rpx rgba(0, 0, 0, 0.08),
+    0 0 0 2rpx rgba(126, 200, 200, 0.10);
   pointer-events: auto;
   overflow: hidden;
 }
 
 /* 滑动指示器
-   width: calc(25% - 3px) 是精确计算值：
-   容器 padding=6px，每个 tab 宽=(W-12)/4，
-   translateX(100%) = 指示器自身宽度 = (W/4 - 3px)，
+   width: calc(25% - 6rpx) 是精确计算值：
+   容器 padding=12rpx，每个 tab 宽=(W-12)/4，
+   translateX(100%) = 指示器自身宽度 = (W/4 - 6rpx)，
    恰好等于一个 tab 的步长，四个 tab 位置均精确对齐。 */
 .slide-indicator {
   position: absolute;
-  width: calc(25% - 3px);
-  top: 6px;
-  bottom: 6px;
-  left: 6px;
-  border-radius: 20px;
+  width: calc(25% - 6rpx);
+  top: 12rpx;
+  bottom: 12rpx;
+  left: 12rpx;
+  border-radius: 40rpx;
   background: linear-gradient(135deg, #7ec8c8 0%, #5ab0b0 100%);
-  box-shadow: 0 4px 14px rgba(126, 200, 200, 0.45);
+  box-shadow: 0 8rpx 28rpx rgba(126, 200, 200, 0.45);
   transition: transform 0.38s cubic-bezier(0.35, 0, 0.25, 1);
   will-change: transform;
   pointer-events: none;
@@ -102,14 +102,14 @@ function switchTab(index: number) {
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  gap: 3px;
-  padding: 8px 4px;
+  gap: 6rpx;
+  padding: 16rpx 8rpx;
   position: relative;
   z-index: 1;
 }
 
 .tab-label {
-  font-size: 10px;
+  font-size: 20rpx;
   color: #b0a8a0;
   font-weight: 500;
   line-height: 1;
