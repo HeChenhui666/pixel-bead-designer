@@ -4,7 +4,7 @@
       <!-- 滑动高亮指示器 -->
       <view
         class="slide-indicator"
-        :style="{ transform: `translateX(calc(${current} * 100%))` }"
+        :style="indicatorStyle"
       />
 
       <view
@@ -25,13 +25,37 @@
 </template>
 
 <script setup lang="ts">
-import { computed } from 'vue'
+import { computed, ref, nextTick, onMounted } from 'vue'
 import { useProjectStore } from '../stores/useProjectStore'
 import { useSafeArea } from '../utils/useSafeArea'
 
 const projectStore = useProjectStore()
 const { safeBottom } = useSafeArea()
+
+// 指示器位置，直接使用 store 的值
 const current = computed(() => projectStore.currentTab)
+
+// 组件挂载后，如果 skipTabAnim 为 true，说明是由 tab-bar 主动触发的切换，
+// 指示器应瞬间定位（无动画），然后清除标记
+const skipAnim = ref(false)
+onMounted(() => {
+  if (projectStore.skipTabAnim) {
+    skipAnim.value = true
+    // 下一帧清除标记，后续正常切换恢复动画
+    nextTick(() => {
+      skipAnim.value = false
+      projectStore.skipTabAnim = false
+    })
+  }
+})
+
+const indicatorStyle = computed(() => {
+  const transform = `translateX(calc(${current.value} * 100%))`
+  if (skipAnim.value) {
+    return { transform, transition: 'none' }
+  }
+  return { transform }
+})
 
 const tabs = [
   { path: '/pages/index/index', text: '首页', icon: 'image' },
@@ -42,8 +66,13 @@ const tabs = [
 
 function switchTab(index: number) {
   if (current.value === index) return
+  // 设置 store 标记，新页面挂载后指示器瞬间定位，不播动画
+  projectStore.skipTabAnim = true
   projectStore.currentTab = index
-  uni.switchTab({ url: tabs[index].path })
+  // nextTick 让当前帧渲染指示器新位置（带动画），然后切换页面
+  nextTick(() => {
+    uni.switchTab({ url: tabs[index].path })
+  })
 }
 </script>
 

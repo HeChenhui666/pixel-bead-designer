@@ -10,6 +10,8 @@ export type PaletteId = 'MARD' | 'COCO' | '漫漫' | '盼盼' | '咪小窝'
 
 export const useProjectStore = defineStore('project', () => {
   const currentTab = ref(0)
+  // 标记：tab 切换是否由 tab-bar 主动触发，用于跳过组件重建后的二次动画
+  const skipTabAnim = ref(false)
   const sourceImage = ref('')
   const gridWidth = ref(48)
   const gridHeight = ref(48)
@@ -183,6 +185,7 @@ export const useProjectStore = defineStore('project', () => {
 
   return {
     currentTab,
+    skipTabAnim,
     sourceImage,
     gridWidth,
     gridHeight,
