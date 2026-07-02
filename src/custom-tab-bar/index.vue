@@ -1,7 +1,6 @@
 <template>
   <view class="tab-bar-wrap" :style="{ paddingBottom: safeBottom + 'px' }">
     <view class="custom-tab-bar">
-      <!-- 滑动高亮指示器 -->
       <view
         class="slide-indicator"
         :style="indicatorStyle"
@@ -25,36 +24,17 @@
 </template>
 
 <script setup lang="ts">
-import { computed, ref, nextTick, onMounted } from 'vue'
+import { computed } from 'vue'
 import { useProjectStore } from '../stores/useProjectStore'
 import { useSafeArea } from '../utils/useSafeArea'
 
 const projectStore = useProjectStore()
 const { safeBottom } = useSafeArea()
 
-// 指示器位置，直接使用 store 的值
 const current = computed(() => projectStore.currentTab)
 
-// 组件挂载后，如果 skipTabAnim 为 true，说明是由 tab-bar 主动触发的切换，
-// 指示器应瞬间定位（无动画），然后清除标记
-const skipAnim = ref(false)
-onMounted(() => {
-  if (projectStore.skipTabAnim) {
-    skipAnim.value = true
-    // 下一帧清除标记，后续正常切换恢复动画
-    nextTick(() => {
-      skipAnim.value = false
-      projectStore.skipTabAnim = false
-    })
-  }
-})
-
 const indicatorStyle = computed(() => {
-  const transform = `translateX(calc(${current.value} * 100%))`
-  if (skipAnim.value) {
-    return { transform, transition: 'none' }
-  }
-  return { transform }
+  return { transform: `translateX(calc(${current.value} * 100%))` }
 })
 
 const tabs = [
@@ -66,13 +46,8 @@ const tabs = [
 
 function switchTab(index: number) {
   if (current.value === index) return
-  // 设置 store 标记，新页面挂载后指示器瞬间定位，不播动画
-  projectStore.skipTabAnim = true
   projectStore.currentTab = index
-  // nextTick 让当前帧渲染指示器新位置（带动画），然后切换页面
-  nextTick(() => {
-    uni.switchTab({ url: tabs[index].path })
-  })
+  uni.switchTab({ url: tabs[index].path })
 }
 </script>
 
@@ -105,11 +80,6 @@ function switchTab(index: number) {
   overflow: hidden;
 }
 
-/* 滑动指示器
-   width: calc(25% - 6rpx) 是精确计算值：
-   容器 padding=12rpx，每个 tab 宽=(W-12)/4，
-   translateX(100%) = 指示器自身宽度 = (W/4 - 6rpx)，
-   恰好等于一个 tab 的步长，四个 tab 位置均精确对齐。 */
 .slide-indicator {
   position: absolute;
   width: calc(25% - 6rpx);
@@ -119,8 +89,6 @@ function switchTab(index: number) {
   border-radius: 40rpx;
   background: linear-gradient(135deg, #7ec8c8 0%, #5ab0b0 100%);
   box-shadow: 0 8rpx 28rpx rgba(126, 200, 200, 0.45);
-  transition: transform 0.38s cubic-bezier(0.35, 0, 0.25, 1);
-  will-change: transform;
   pointer-events: none;
   z-index: 0;
 }
