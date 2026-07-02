@@ -63,6 +63,7 @@ function switchTab(index: number) {
   padding-top: 16rpx;
   background: transparent;
   pointer-events: none;
+  box-sizing: border-box;
 }
 
 .custom-tab-bar {
@@ -78,6 +79,7 @@ function switchTab(index: number) {
     0 0 0 2rpx rgba(126, 200, 200, 0.10);
   pointer-events: auto;
   overflow: hidden;
+  box-sizing: border-box;
 }
 
 .slide-indicator {
