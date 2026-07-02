@@ -54,7 +54,7 @@ function switchTab(index: number) {
 <style scoped>
 .tab-bar-wrap {
   position: fixed;
-  bottom: 0;
+  bottom: 16rpx;
   left: 0;
   right: 0;
   z-index: 999;

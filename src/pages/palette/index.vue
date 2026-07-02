@@ -1,19 +1,17 @@
 <template>
-  <view class="page-palette" :style="{ height: `calc(100vh - 160rpx - ${safeBottom}px)` }">
-    <!-- 顶部安全区域占位 -->
-    <view class="safe-top-placeholder" :style="{ height: safeTop + 'px' }" />
+  <view class="page-wrapper">
 
-    <!-- 吸顶卡片容器 -->
-    <view class="sticky-card-wrapper">
-      <view class="header">
-        <text class="header-title">色卡库</text>
-        <view class="meta-badge">
-          <text class="meta-count">{{ filteredColors.length }}</text>
-          <text class="meta-label"> 种颜色</text>
+    <view class="fixed-header" :style="{ paddingTop: safeTop + 'px' }">
+      <view class="app-header">
+        <view class="header-main">
+          <text class="app-title">色卡库</text>
+          <view class="meta-badge">
+            <text class="meta-count">{{ filteredColors.length }}</text>
+            <text class="meta-label"> 种颜色</text>
+          </view>
         </view>
       </view>
 
-      <!-- 品牌切换 Tab -->
       <view class="brand-tabs">
         <view
           v-for="brand in brands"
@@ -27,7 +25,6 @@
         </view>
       </view>
 
-      <!-- 搜索卡片 -->
       <view class="search-card">
         <uni-icons type="search" size="16" color="#b0a8a0" />
         <input
@@ -42,8 +39,7 @@
       </view>
     </view>
 
-    <!-- 色块网格 -->
-    <scroll-view scroll-y class="color-grid-scroll">
+    <view class="page-palette">
       <view class="color-grid">
         <view
           v-for="item in filteredColors"
@@ -60,9 +56,10 @@
           <text class="cell-code">{{ item.code }}</text>
         </view>
       </view>
-    </scroll-view>
+    </view>
 
-    <!-- 颜色详情弹窗 -->
+    <CustomTabBar />
+
     <view v-if="selectedColor" class="detail-mask" @click="selectedColor = null">
       <view class="detail-dialog" @click.stop>
         <view class="drag-handle" />
@@ -91,8 +88,6 @@
         </view>
       </view>
     </view>
-
-    <CustomTabBar />
   </view>
 </template>
 
@@ -140,38 +135,40 @@ function onColorCellTap(item: { hex: string; code: string }) {
 </script>
 
 <style scoped>
-.safe-top-placeholder {
-  flex-shrink: 0;
-  background: linear-gradient(180deg, #fdf9f5 0%, #faf5f0 100%);
-  position: relative;
-  z-index: 20;
-}
-
-.sticky-card-wrapper {
-  position: sticky;
+.page-wrapper {
+  position: fixed;
   top: 0;
-  z-index: 10;
-  background: linear-gradient(180deg, #fdf9f5 0%, #faf5f0 100%);
-  padding-bottom: 20rpx;
-}
-
-.page-palette {
+  left: 0;
+  right: 0;
+  bottom: 0;
   display: flex;
   flex-direction: column;
   background: linear-gradient(180deg, #fdf9f5 0%, #faf5f0 100%);
-  overflow: auto;
-  box-sizing: border-box;
 }
 
-/* 标题行 */
-.header {
-  padding: 36rpx 36rpx 24rpx;
+.fixed-header {
+  background: linear-gradient(180deg, #fdf9f5 0%, #faf5f0 100%);
+}
+
+.page-palette {
+  overflow-y: auto;
+  background: transparent;
+  box-sizing: border-box;
+  padding-bottom: calc(160rpx + env(safe-area-inset-bottom, 0px));
+}
+
+.app-header {
+  padding: 40rpx 40rpx 24rpx;
+  flex-shrink: 0;  
+}
+
+.header-main {
   display: flex;
   align-items: baseline;
   gap: 20rpx;
 }
 
-.header-title {
+.app-title {
   font-size: 52rpx;
   font-weight: 800;
   color: #3d3d3d;
@@ -194,7 +191,6 @@ function onColorCellTap(item: { hex: string; code: string }) {
   color: #b0a8a0;
 }
 
-/* 品牌 Tab */
 .brand-tabs {
   display: flex;
   padding: 0 32rpx 20rpx;
@@ -247,7 +243,6 @@ function onColorCellTap(item: { hex: string; code: string }) {
   background: rgba(255, 255, 255, 0.8);
 }
 
-/* 搜索卡片 */
 .search-card {
   display: flex;
   align-items: center;
@@ -287,9 +282,6 @@ function onColorCellTap(item: { hex: string; code: string }) {
   background-color: #e5e0d8;
   transform: scale(0.9);
 }
-
-/* 色块网格 */
-.color-grid-scroll { flex: 1; }
 
 .color-grid {
   display: flex;
@@ -356,7 +348,6 @@ function onColorCellTap(item: { hex: string; code: string }) {
   font-weight: 700;
 }
 
-/* 详情弹窗 */
 .detail-mask {
   position: fixed;
   top: 0; left: 0; right: 0; bottom: 0;

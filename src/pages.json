@@ -43,7 +43,8 @@
 		"navigationBarTextStyle": "black",
 		"navigationBarTitleText": "拼豆图纸生成器",
 		"navigationBarBackgroundColor": "#FFFFFF",
-		"backgroundColor": "#F5F5F5"
+		"backgroundColor": "#F5F5F5",
+		"viewportFit": "cover"
 	},
 	"tabBar": {
 		"custom": true,

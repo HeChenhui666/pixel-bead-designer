@@ -130,9 +130,13 @@ function handleCreateBlankCanvas() {
 
 <style scoped>
 .page-wrapper {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
   display: flex;
   flex-direction: column;
-  min-height: 100vh;
   background: linear-gradient(180deg, #fdf9f5 0%, #faf5f0 100%);
 }
 
@@ -140,6 +144,7 @@ function handleCreateBlankCanvas() {
   display: flex;
   flex-direction: column;
   flex: 1;
+  overflow-y: auto;
   background: transparent;
   box-sizing: border-box;
 }
